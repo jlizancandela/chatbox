@@ -8,9 +8,18 @@ const documentSchema = {
 		content: { type: "string", minLength: 1 },
 		source: { type: "string", minLength: 1 },
 		version: { type: "string", minLength: 1 },
+		is_active: { type: "boolean" },
 		created_at: { type: "string", format: "date-time" },
 	},
-	required: ["id", "title", "content", "source", "version", "created_at"],
+	required: [
+		"id",
+		"title",
+		"content",
+		"source",
+		"version",
+		"is_active",
+		"created_at",
+	],
 } as const;
 
 const newDocumentSchema = {
