@@ -1,15 +1,11 @@
 import type { FastifyPluginAsync } from "fastify";
-import {
-	createDocumentsRepository,
-	type NewDocument,
-} from "../../../repositories/documents";
-
-interface DocumentParams {
-	id: number;
-}
+import { createDocumentsController } from "../../../controllers/documents";
+import { createDocumentsRepository } from "../../../repositories/documents";
 
 const documents: FastifyPluginAsync = async (fastify) => {
-	const repository = createDocumentsRepository(fastify);
+	const controller = createDocumentsController(
+		createDocumentsRepository(fastify),
+	);
 
 	fastify.get(
 		"/",
@@ -23,13 +19,10 @@ const documents: FastifyPluginAsync = async (fastify) => {
 				},
 			},
 		},
-		async () => {
-			const result = await repository.getAllDocuments();
-			return result.rows;
-		},
+		controller.getAll,
 	);
 
-	fastify.get<{ Params: DocumentParams }>(
+	fastify.get(
 		"/:id",
 		{
 			schema: {
@@ -37,19 +30,10 @@ const documents: FastifyPluginAsync = async (fastify) => {
 				response: { 200: { $ref: "document#" } },
 			},
 		},
-		async (request, reply) => {
-			const result = await repository.getDocumentById(request.params.id);
-			const document = result.rows[0];
-
-			if (!document) {
-				return reply.code(404).send({ error: "DOCUMENT_NOT_FOUND" });
-			}
-
-			return document;
-		},
+		controller.getById,
 	);
 
-	fastify.post<{ Body: NewDocument }>(
+	fastify.post(
 		"/",
 		{
 			schema: {
@@ -57,13 +41,10 @@ const documents: FastifyPluginAsync = async (fastify) => {
 				response: { 201: { $ref: "document#" } },
 			},
 		},
-		async (request, reply) => {
-			const result = await repository.createDocument(request.body);
-			return reply.code(201).send(result.rows[0]);
-		},
+		controller.create,
 	);
 
-	fastify.put<{ Params: DocumentParams; Body: NewDocument }>(
+	fastify.put(
 		"/:id",
 		{
 			schema: {
@@ -72,37 +53,17 @@ const documents: FastifyPluginAsync = async (fastify) => {
 				response: { 200: { $ref: "document#" } },
 			},
 		},
-		async (request, reply) => {
-			const result = await repository.updateDocument(
-				request.params.id,
-				request.body,
-			);
-			const document = result.rows[0];
-
-			if (!document) {
-				return reply.code(404).send({ error: "DOCUMENT_NOT_FOUND" });
-			}
-
-			return document;
-		},
+		controller.update,
 	);
 
-	fastify.delete<{ Params: DocumentParams }>(
+	fastify.delete(
 		"/:id",
 		{
 			schema: {
 				params: { $ref: "documentIdParams#" },
 			},
 		},
-		async (request, reply) => {
-			const result = await repository.deleteDocument(request.params.id);
-
-			if (result.rowCount === 0) {
-				return reply.code(404).send({ error: "DOCUMENT_NOT_FOUND" });
-			}
-
-			return reply.code(204).send();
-		},
+		controller.remove,
 	);
 };
 
