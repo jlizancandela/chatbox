@@ -42,4 +42,11 @@ const createDocumentsRepository = (fastify: FastifyInstance) => {
 	};
 };
 
-export { createDocumentsRepository, type Document, type NewDocument };
+type DocumentsRepository = ReturnType<typeof createDocumentsRepository>;
+
+export {
+	createDocumentsRepository,
+	type Document,
+	type DocumentsRepository,
+	type NewDocument,
+};
