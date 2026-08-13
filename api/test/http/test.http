@@ -1,0 +1,18 @@
+# ruta por defecto
+
+GET http://localhost:7000/
+
+###
+
+# ruta /health
+GET http://localhost:7000/health
+
+###
+
+# ruta /chat
+POST http://localhost:7000/api/chat
+Content-Type: application/json
+
+{
+    "message": "Hello, world!"
+}

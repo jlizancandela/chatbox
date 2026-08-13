@@ -1,0 +1,52 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+*.local
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build and coverage output
+dist/
+build/
+coverage/
+.nyc_output/
+
+# Logs and runtime files
+*.log
+logs/
+pids/
+*.pid
+*.seed
+
+# Local databases and persistent service data
+*.sqlite
+*.sqlite3
+*.db
+docker-data/
+
+# Tool caches and generated metadata
+.cache/
+.turbo/
+.eslintcache
+.parcel-cache/
+.atl/.skill-registry.cache.json
+api/.atl/.skill-registry.cache.json
+
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*code-workspace
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
