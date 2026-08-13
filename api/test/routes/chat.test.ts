@@ -37,8 +37,12 @@ for (const [name, payload] of [
     })
 
     assert.equal(res.statusCode, 400)
-    assert.equal(res.json().statusCode, 400)
-    assert.equal(res.json().error, 'Bad Request')
+    assert.deepStrictEqual(res.json(), {
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Request validation failed'
+      }
+    })
   })
 }
 
@@ -53,6 +57,10 @@ test('chat route rejects malformed JSON', async (t) => {
   })
 
   assert.equal(res.statusCode, 400)
-  assert.equal(res.json().statusCode, 400)
-  assert.equal(res.json().error, 'Bad Request')
+  assert.deepStrictEqual(res.json(), {
+    error: {
+      code: 'VALIDATION_ERROR',
+      message: 'Request validation failed'
+    }
+  })
 })

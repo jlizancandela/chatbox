@@ -22,7 +22,12 @@ const createDocumentsController = (repository: DocumentsRepository) => ({
 		const document = result.rows[0];
 
 		if (!document) {
-			return reply.code(404).send({ error: "DOCUMENT_NOT_FOUND" });
+			return reply.code(404).send({
+				error: {
+					code: "DOCUMENT_NOT_FOUND",
+					message: "Document not found",
+				},
+			});
 		}
 
 		return document;
@@ -47,7 +52,12 @@ const createDocumentsController = (repository: DocumentsRepository) => ({
 		const document = result.rows[0];
 
 		if (!document) {
-			return reply.code(404).send({ error: "DOCUMENT_NOT_FOUND" });
+			return reply.code(404).send({
+				error: {
+					code: "DOCUMENT_NOT_FOUND",
+					message: "Document not found",
+				},
+			});
 		}
 
 		return document;
@@ -60,7 +70,12 @@ const createDocumentsController = (repository: DocumentsRepository) => ({
 		const result = await repository.deleteDocument(request.params.id);
 
 		if (result.rowCount === 0) {
-			return reply.code(404).send({ error: "DOCUMENT_NOT_FOUND" });
+			return reply.code(404).send({
+				error: {
+					code: "DOCUMENT_NOT_FOUND",
+					message: "Document not found",
+				},
+			});
 		}
 
 		return reply.code(204).send();

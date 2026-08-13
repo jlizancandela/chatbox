@@ -8,6 +8,7 @@ erDiagram
         text title
         text version
         text content
+        boolean is_active
         timestamptz created_at
     }
 
