@@ -20,7 +20,7 @@ CREATE TABLE document_chunks (
   document_id BIGINT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
   chunk_index INTEGER NOT NULL,
   content TEXT NOT NULL,
-  embedding vector(384) NOT NULL,
+  embedding vector(768) NOT NULL,
   metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (document_id, chunk_index)
