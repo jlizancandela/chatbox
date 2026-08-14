@@ -2,26 +2,29 @@
 
 Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`.
 
-## Paso 1 — Base ejecutable y almacenamiento vectorial (en progreso)
+## Paso 1 — Base ejecutable y almacenamiento vectorial (parcialmente cerrado)
 
 - [x] Crear la API con Fastify y TypeScript.
 - [x] Conectar PostgreSQL y habilitar `pgvector`.
 - [x] Validar `DATABASE_URL` al arrancar.
 - [x] Mantener un formato JSON estable para errores públicos.
-- [ ] Cambiar la columna de embeddings de `vector(384)` a `vector(768)`.
+- [x] Definir la columna de embeddings como `vector(768)` en el esquema nuevo.
 - [ ] Convertir el esquema en una migración reproducible para bases existentes.
 - [ ] Configurar y validar las credenciales y modelos de Gemini y Groq.
 - [ ] Configurar la dimensión de embeddings y el valor top-k.
 - [ ] Verificar la inserción y lectura de un vector de 768 dimensiones.
 
-## Paso 2 — Ingesta por CLI (no iniciado)
+## Paso 2 — Ingesta por CLI (parcialmente implementado)
 
-- [ ] Crear un comando CLI para archivos Markdown y texto plano.
-- [ ] Implementar chunking simple con un solapamiento pequeño.
-- [ ] Generar embeddings con `gemini-embedding-001` a 768 dimensiones.
-- [ ] Guardar fuente, texto y vector en PostgreSQL.
+- [x] Crear un comando CLI para ingerir archivos desde el directorio `ingest`.
+- [x] Dividir el contenido mediante chunking.
+- [x] Generar embeddings con `gemini-embedding-001` a 768 dimensiones.
+- [x] Guardar fuente, texto y vector en PostgreSQL.
+- [ ] Recibir archivos o directorios mediante argumentos de CLI.
+- [ ] Filtrar archivos Markdown y texto plano y descartar fragmentos vacíos.
 - [ ] Informar cantidades procesadas y errores.
-- [ ] Verificar que un documento queda disponible para búsqueda vectorial.
+- [ ] Añadir pruebas unitarias para servicios y repositorio.
+- [ ] Verificar mediante integración que un documento queda disponible para búsqueda vectorial.
 
 ## Paso 3 — Recuperación y chat fundamentado (contrato inicial)
 
@@ -51,4 +54,7 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 
 ## Próximo trabajo
 
-Cerrar el Paso 1 comenzando por migrar `vector(384)` a `vector(768)` y comprobar la escritura y lectura de un vector real antes de implementar la ingesta.
+1. Crear la migración reproducible de `vector(384)` a `vector(768)` para bases existentes.
+2. Añadir las pruebas unitarias de la ingesta y verificar el flujo end-to-end.
+3. Completar la configuración validada de Gemini, Groq, dimensión y `top-k`.
+4. Actualizar la documentación de variables, migración, ingesta y arranque.
