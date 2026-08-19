@@ -33,6 +33,7 @@ docker-data/
 .turbo/
 .eslintcache
 .parcel-cache/
+docs/.atl/
 .atl/.skill-registry.cache.json
 api/.atl/.skill-registry.cache.json
 
