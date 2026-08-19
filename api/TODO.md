@@ -8,8 +8,8 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Conectar PostgreSQL y habilitar `pgvector`.
 - [x] Validar `DATABASE_URL` al arrancar.
 - [x] Mantener un formato JSON estable para errores públicos.
-- [ ] Cambiar la columna de embeddings de `vector(384)` a `vector(768)`.
-- [ ] Convertir el esquema en una migración reproducible para bases existentes.
+- [x] Cambiar la columna de embeddings de `vector(384)` a `vector(768)`.
+- [x] Convertir el esquema en una migración reproducible para bases existentes.
 - [ ] Configurar y validar las credenciales y modelos de Gemini y Groq.
 - [ ] Configurar la dimensión de embeddings y el valor top-k.
 - [ ] Verificar la inserción y lectura de un vector de 768 dimensiones.
@@ -51,4 +51,4 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 
 ## Próximo trabajo
 
-Cerrar el Paso 1 comenzando por migrar `vector(384)` a `vector(768)` y comprobar la escritura y lectura de un vector real antes de implementar la ingesta.
+Comprobar la escritura y lectura de un vector real antes de implementar la ingesta.
