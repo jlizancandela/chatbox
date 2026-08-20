@@ -44,7 +44,13 @@ function documentService(app: FastifyInstance) {
 			return documentId;
 		});
 
-	return { ingestDocument };
+	const getDocumentChunks = async (documentId: string) =>
+		app.pg.transact(async (client) => {
+			const repository = documentRepository(client);
+			return repository.findChunksByDocumentId(documentId);
+		});
+
+	return { getDocumentChunks, ingestDocument };
 }
 
 export default documentService;

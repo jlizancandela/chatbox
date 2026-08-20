@@ -73,9 +73,26 @@ function documentRepository(client: TransactionClient) {
 		}
 	};
 
+	const findChunksByDocumentId = async (documentId: string) => {
+		const result = await client.query<{
+			chunk_index: number;
+			content: string;
+			embedding: string;
+		}>(
+			`SELECT chunk_index, content, embedding
+			 FROM document_chunks
+			 WHERE document_id = $1
+			 ORDER BY chunk_index`,
+			[documentId],
+		);
+
+		return result.rows;
+	};
+
 	return {
 		activateById,
 		deactivateBySource,
+		findChunksByDocumentId,
 		findIdBySourceAndVersion,
 		insertChunks,
 		insertDocument,

@@ -2,7 +2,7 @@
 
 Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`.
 
-## Paso 1 — Base ejecutable y almacenamiento vectorial (en progreso)
+## Paso 1 — Base ejecutable y almacenamiento vectorial ✅
 
 - [x] Crear la API con Fastify y TypeScript.
 - [x] Conectar PostgreSQL y habilitar `pgvector`.
@@ -10,9 +10,9 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Mantener un formato JSON estable para errores públicos.
 - [x] Cambiar la columna de embeddings de `vector(384)` a `vector(768)`.
 - [x] Convertir el esquema en una migración reproducible para bases existentes.
-- [ ] Configurar y validar las credenciales y modelos de Gemini y Groq.
-- [ ] Configurar la dimensión de embeddings y el valor top-k.
-- [ ] Verificar la inserción y lectura de un vector de 768 dimensiones.
+- [x] Configurar y validar las credenciales y modelos de Gemini y Groq.
+- [x] Configurar la dimensión de embeddings y el valor top-k.
+- [x] Verificar la inserción y lectura de un vector de 768 dimensiones. <- Test de integración 
 
 ## Paso 2 — Ingesta por CLI (no iniciado)
 
@@ -51,4 +51,4 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 
 ## Próximo trabajo
 
-Comprobar la escritura y lectura de un vector real antes de implementar la ingesta.
+Paso 2 — Ingesta por CLI.

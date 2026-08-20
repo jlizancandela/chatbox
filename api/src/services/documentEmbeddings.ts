@@ -1,6 +1,7 @@
 import type { Chunk } from "@chonkiejs/core";
 import { GoogleGenAI } from "@google/genai";
 import pgvector from "pgvector/pg";
+import { documentEmbeddingsConfig } from "./documentEmbeddings.config";
 
 type DocumentChunk = {
 	chunkIndex: number;
@@ -10,7 +11,7 @@ type DocumentChunk = {
 
 export const documentEmbeddingsService = () => {
 	const genAI = new GoogleGenAI({
-		apiKey: process.env.GEMINI_API_KEY || "",
+		apiKey: documentEmbeddingsConfig.geminiApiKey,
 	});
 
 	const getDocumentEmbeddings = async (
@@ -21,10 +22,10 @@ export const documentEmbeddingsService = () => {
 
 		for (const [chunkIndex, chunk] of chunks.entries()) {
 			const response = await genAI.models.embedContent({
-				model: "gemini-embedding-001",
+				model: documentEmbeddingsConfig.geminiEmbeddingModel,
 				contents: chunk.text,
 				config: {
-					outputDimensionality: 768,
+					outputDimensionality: documentEmbeddingsConfig.geminiVectorDimension,
 				},
 			});
 			const embedding = response.embeddings?.[0]?.values;
