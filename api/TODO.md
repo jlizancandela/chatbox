@@ -14,14 +14,14 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Configurar la dimensión de embeddings y el valor top-k.
 - [x] Verificar la inserción y lectura de un vector de 768 dimensiones. <- Test de integración 
 
-## Paso 2 — Ingesta por CLI (no iniciado)
+## Paso 2 — Ingesta por CLI ✅
 
-- [ ] Crear un comando CLI para archivos Markdown y texto plano.
-- [ ] Implementar chunking simple con un solapamiento pequeño.
-- [ ] Generar embeddings con `gemini-embedding-001` a 768 dimensiones.
-- [ ] Guardar fuente, texto y vector en PostgreSQL.
-- [ ] Informar cantidades procesadas y errores.
-- [ ] Verificar que un documento queda disponible para búsqueda vectorial.
+- [x] Crear un comando CLI para archivos Markdown y texto plano.
+- [x] Implementar chunking simple con un solapamiento pequeño.
+- [x] Generar embeddings con `gemini-embedding-001` a 768 dimensiones.
+- [x] Guardar fuente, texto y vector en PostgreSQL.
+- [x] Informar cantidades procesadas y errores.
+- [x] Verificar que un documento queda disponible para búsqueda vectorial.
 
 ## Paso 3 — Recuperación y chat fundamentado (contrato inicial)
 
@@ -51,4 +51,4 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 
 ## Próximo trabajo
 
-Paso 2 — Ingesta por CLI.
+Paso 3 — Recuperación y chat fundamentado.

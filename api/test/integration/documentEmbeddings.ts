@@ -1,6 +1,5 @@
 import assert from "node:assert";
 import { test } from "node:test";
-import { RecursiveChunker } from "@chonkiejs/core";
 import fastify from "fastify";
 import db from "../../src/plugins/db";
 import { documentEmbeddingsService } from "../../src/services/documentEmbeddings";
@@ -9,12 +8,8 @@ import documentService from "../../src/services/documents";
 test("Must generate an 768-dimensional embedding", async () => {
 	const service = documentEmbeddingsService();
 
-	const chunker = await RecursiveChunker.create({
-		chunkSize: 512,
-	});
-
 	const content = "This is a test document to generate embeddings.";
-	const chunks = await chunker.chunk(content);
+	const chunks = [content];
 
 	const embeddedChunks = await service.getDocumentEmbeddings(
 		"test-document.txt",
@@ -38,8 +33,8 @@ test("Must insert and read a 768-dimensional vector via documentService", async 
 
 	try {
 		const embeddingsService = documentEmbeddingsService();
-		const chunker = await RecursiveChunker.create({ chunkSize: 512 });
-		const chunks = await chunker.chunk("Test vector insert and read via documentService.");
+		const content = "Test vector insert and read via documentService.";
+		const chunks = [content];
 		const embeddedChunks = await embeddingsService.getDocumentEmbeddings(
 			"test-document-service.txt",
 			chunks,
@@ -47,7 +42,7 @@ test("Must insert and read a 768-dimensional vector via documentService", async 
 
 		const { ingestDocument, getDocumentChunks } = documentService(app);
 		const documentId = await ingestDocument({
-			content: "Test vector insert and read via documentService.",
+			content,
 			source: "test-document-service.txt",
 			title: "Test Document",
 			version: "1.0",
