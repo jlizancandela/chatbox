@@ -1,10 +1,10 @@
-export type DocumentEmbeddingsConfig = {
+export type EmbeddingConfig = {
 	geminiApiKey: string;
 	geminiEmbeddingModel: string;
 	geminiVectorDimension: number;
 };
 
-export const documentEmbeddingsConfig: DocumentEmbeddingsConfig = {
+export const embeddingConfig: EmbeddingConfig = {
 	geminiApiKey: process.env.GEMINI_API_KEY ?? "",
 	geminiEmbeddingModel:
 		process.env.GEMINI_EMBEDDING_MODEL ?? "gemini-embedding-001",
@@ -15,12 +15,12 @@ export const documentEmbeddingsConfig: DocumentEmbeddingsConfig = {
 };
 
 if (
-	Number.isNaN(documentEmbeddingsConfig.geminiVectorDimension) ||
-	documentEmbeddingsConfig.geminiVectorDimension <= 0
+	Number.isNaN(embeddingConfig.geminiVectorDimension) ||
+	embeddingConfig.geminiVectorDimension <= 0
 ) {
 	throw new Error("GEMINI_VECTOR_DIMENSION must be a positive integer");
 }
 
-if (documentEmbeddingsConfig.geminiApiKey === "") {
+if (embeddingConfig.geminiApiKey === "") {
 	throw new Error("GEMINI_API_KEY is required");
 }

@@ -34,3 +34,9 @@ const groq: FastifyPluginAsync = async (fastify) => {
 
 export default fp(groq);
 export type { GroqPlugin };
+
+declare module "fastify" {
+	export interface FastifyInstance {
+		groq: GroqPlugin;
+	}
+}

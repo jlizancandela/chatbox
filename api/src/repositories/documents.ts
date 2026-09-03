@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 
 type TransactionCallback = Parameters<FastifyInstance["pg"]["transact"]>[0];
 type TransactionClient = Parameters<TransactionCallback>[0];
+type QueryClient = { query: TransactionClient["query"] };
 
 export type DocumentChunk = {
 	chunkIndex: number;
@@ -98,5 +99,31 @@ function documentRepository(client: TransactionClient) {
 		insertDocument,
 	};
 }
+
+export const findChunksByEmbedding = async (
+	queryClient: QueryClient,
+	embedding: string,
+	threshold: number,
+	limit = 5,
+) => {
+	const result = await queryClient.query<{
+		document_id: string;
+		chunk_index: number;
+		content: string;
+		distance: number;
+	}>(
+		`SELECT dc.document_id, dc.chunk_index, dc.content,
+		        dc.embedding <=> $1 AS distance
+		 FROM document_chunks dc
+		 JOIN documents d ON d.id = dc.document_id
+		 WHERE d.is_active = TRUE
+		   AND dc.embedding <=> $1 < $2
+		 ORDER BY distance
+		 LIMIT $3`,
+		[embedding, threshold, limit],
+	);
+
+	return result.rows;
+};
 
 export default documentRepository;

@@ -23,23 +23,25 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Informar cantidades procesadas y errores.
 - [x] Verificar que un documento queda disponible para búsqueda vectorial.
 
-## Paso 3 — Recuperación y chat fundamentado (contrato inicial)
+## Paso 3 — Recuperación y chat fundamentado (contrato inicial) ✅
 
 - [x] Crear `POST /api/chat` con validación JSON básica.
-- [ ] Añadir una longitud máxima para la pregunta.
-- [ ] Generar el embedding de la pregunta con Gemini.
-- [ ] Implementar la búsqueda vectorial top-k.
-- [ ] Definir cuándo el contexto recuperado es insuficiente.
-- [ ] Integrar Groq usando únicamente la pregunta y el contexto recuperado.
-- [ ] Devolver la respuesta y sus fuentes en JSON.
-- [ ] Evitar la llamada a Groq cuando no exista contexto suficiente.
-- [ ] Sustituir la respuesta temporal `501 CHAT_NOT_IMPLEMENTED`.
+- [x] Añadir una longitud máxima para la pregunta.
+- [x] Generar el embedding de la pregunta con Gemini.
+- [x] Implementar la búsqueda vectorial top-k.
+- [x] Definir cuándo el contexto recuperado es insuficiente.
+- [x] Integrar Groq usando únicamente la pregunta y el contexto recuperado.
+- [x] Devolver la respuesta y sus fuentes en JSON.
+- [x] Evitar la llamada a Groq cuando no exista contexto suficiente.
+- [x] Sustituir la respuesta temporal `501 CHAT_NOT_IMPLEMENTED`.
+- [x] Calibrar `SIMILARITY_THRESHOLD`: cambiar de L2 (`<->`) a coseno (`<=>`), índice HNSW, umbral `0.5`.
 
 ## Paso 4 — Protecciones mínimas y entrega (no iniciado)
 
-- [ ] Configurar Redis para el control de peticiones.
-- [ ] Añadir rate limiting configurable por IP respaldado por Redis.
-- [ ] Configurar la expiración de los contadores.
+- [ ] Añadir rate limiting por IP en memoria (sin Redis): ráfaga + tope diario.
+- [ ] Límite de ráfaga configurable (p. ej. `10 peticiones/minuto`).
+- [ ] Límite diario por día calendario configurable (p. ej. `100 peticiones/día`).
+- [ ] Configurar la expiración de los contadores (ventana y reset diario).
 - [ ] Devolver una respuesta `429` clara al superar el límite.
 - [ ] Configurar CORS para el origen permitido.
 - [ ] Configurar límites de tamaño de petición.
@@ -51,4 +53,4 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 
 ## Próximo trabajo
 
-Paso 3 — Recuperación y chat fundamentado.
+Paso 4 — Protecciones mínimas y entrega.

@@ -7,12 +7,12 @@ El MVP será un RAG vectorial real y pequeño: ingerirá documentos, almacenará
 ```text
 Markdown/texto -> CLI -> chunking simple -> Gemini Embeddings -> PostgreSQL/pgvector
 
-POST /api/chat -> rate limiting con Redis -> validar pregunta -> Gemini Embeddings -> búsqueda top-k
+POST /api/chat -> rate limiting en memoria (ráfaga + diario) -> validar pregunta -> Gemini Embeddings -> búsqueda top-k
                -> sin contexto: respuesta de desconocimiento
                -> con contexto: Groq -> respuesta JSON fundamentada
 ```
 
-Todo se implementa en un único backend Fastify con TypeScript. Las claves de Gemini y Groq permanecen en el backend. Redis se incorpora en el Paso 4: no bloquea la implementación del RAG de los pasos 1–3 y queda integrado antes de publicar el endpoint.
+Todo se implementa en un único backend Fastify con TypeScript. Las claves de Gemini y Groq permanecen en el backend. El rate limiting por IP (ráfaga + tope diario) se incorpora en el Paso 4 usando un store en memoria, sin Redis: no bloquea la implementación del RAG de los pasos 1–3 y queda integrado antes de publicar el endpoint.
 
 ## Decisiones
 
@@ -27,7 +27,7 @@ Todo se implementa en un único backend Fastify con TypeScript. Las claves de Ge
 | Recuperación | Similitud vectorial top-k, con `k` configurable |
 | Generación | Groq recibe únicamente la pregunta y los fragmentos recuperados |
 | Contrato | `POST /api/chat` recibe y devuelve JSON normal |
-| Protección | Validación, rate limiting por IP respaldado por Redis, secretos en backend y logs mínimos sin contenido sensible |
+| Protección | Validación, rate limiting por IP en memoria (ráfaga + diario), secretos en backend y logs mínimos sin contenido sensible |
 
 > **Advertencia:** el nivel gratuito de Gemini puede usar datos para mejorar productos y sus límites pueden cambiar. Usar únicamente documentos públicos o no sensibles, y mantener proveedor, modelo y dimensión configurables.
 
@@ -61,7 +61,7 @@ Todo se implementa en un único backend Fastify con TypeScript. Las claves de Ge
 
 ## Paso 4 - Protecciones mínimas y entrega
 
-- [ ] Configurar Redis y añadir rate limiting configurable por IP con expiración de contadores y respuesta `429` clara.
+- [ ] Añadir rate limiting en memoria por IP (ráfaga + diario) con expiración de contadores y respuesta `429` clara.
 - [ ] Configurar CORS para el origen permitido y límites de tamaño de petición.
 - [ ] Registrar solo método, ruta, estado, duración y categoría de error, sin secretos ni contenido completo.
 - [ ] Documentar variables de entorno, migración, ingesta, arranque y una llamada de ejemplo a `POST /api/chat`.
@@ -75,7 +75,7 @@ Todo se implementa en un único backend Fastify con TypeScript. Las claves de Ge
 - Documentos y preguntas comparten `gemini-embedding-001` y 768 dimensiones.
 - Las respuestas con contexto se generan con Groq y señalan sus fuentes.
 - Las preguntas sin contexto no producen respuestas inventadas.
-- El endpoint valida entradas, limita abuso por IP mediante Redis y no expone secretos.
+- El endpoint valida entradas, limita abuso por IP en memoria (ráfaga + diario) y no expone secretos.
 - Los cuatro pasos tienen un resultado verificable y pueden cerrarse en orden.
 
 ## Fuera de alcance
