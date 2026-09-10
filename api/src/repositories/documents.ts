@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 
 type TransactionCallback = Parameters<FastifyInstance["pg"]["transact"]>[0];
 type TransactionClient = Parameters<TransactionCallback>[0];
-type QueryClient = { query: TransactionClient["query"] };
+export type QueryClient = { query: TransactionClient["query"] };
 
 export type DocumentChunk = {
 	chunkIndex: number;

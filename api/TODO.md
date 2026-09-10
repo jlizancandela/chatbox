@@ -51,6 +51,21 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [ ] Verificar que el límite se aplica y se restablece al expirar el contador.
 - [ ] Verificar el flujo completo desde un entorno limpio.
 
+## Paso 5 — Streaming de respuestas (SSE) ✅ planificado
+
+- [ ] Refactorizar `chatService`: extraer `retrieve(question)` (embedding + búsqueda vectorial) reutilizable.
+- [ ] Reemplazar `ask(question)` por `askStream(question, signal)` que devuelva `AsyncIterable<ChatEvent>`.
+- [ ] Definir el contrato de eventos: `sources`, `token`, `done`, `error`.
+- [ ] Convertir `POST /api/chat` para responder siempre `Content-Type: text/event-stream`.
+- [ ] Emitir `sources` antes de llamar a Groq (incluido el caso de contexto insuficiente, sin llamar al LLM).
+- [ ] Propagar `stream: true` de Groq como eventos `token`.
+- [ ] Cancelar el stream de Groq al desconectarse el cliente (`AbortController`).
+- [ ] Mantener los errores previos al stream (validación) como JSON `400`.
+- [ ] Manejar errores mid-stream con un frame `error` sin filtrar detalles internos.
+- [ ] Reescribir los tests de `/api/chat` para parsear frames SSE y validar la secuencia.
+- [ ] Documentar el contrato de eventos para el front (`fetch` + `ReadableStream`).
+
 ## Próximo trabajo
 
 Paso 4 — Protecciones mínimas y entrega.
+Paso 5 — Streaming de respuestas (SSE).
