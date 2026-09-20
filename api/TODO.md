@@ -36,19 +36,19 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Sustituir la respuesta temporal `501 CHAT_NOT_IMPLEMENTED`.
 - [x] Calibrar `SIMILARITY_THRESHOLD`: cambiar de L2 (`<->`) a coseno (`<=>`), índice HNSW, umbral `0.5`.
 
-## Paso 4 — Protecciones mínimas y entrega (no iniciado)
+## Paso 4 — Protecciones mínimas y entrega (en progreso)
 
-- [ ] Añadir rate limiting por IP en memoria (sin Redis): ráfaga + tope diario.
-- [ ] Límite de ráfaga configurable (p. ej. `10 peticiones/minuto`).
-- [ ] Límite diario por día calendario configurable (p. ej. `100 peticiones/día`).
-- [ ] Configurar la expiración de los contadores (ventana y reset diario).
-- [ ] Devolver una respuesta `429` clara al superar el límite.
+- [x] Añadir rate limiting por IP en memoria (sin Redis) — ráfaga + tope diario con `@fastify/rate-limit`.
+- [x] Límite de ráfaga configurable (20 peticiones/minuto, constantes en `src/middleware/rate-limit.ts`).
+- [x] Límite diario configurable (100 peticiones / 24 h móviles, constantes en `src/middleware/rate-limit.ts`).
+- [x] Configurar la expiración de los contadores (ventana fija con reset automático del plugin).
+- [x] Devolver una respuesta `429` clara al superar el límite (formato JSON de errores + `Retry-After`).
 - [ ] Configurar CORS para el origen permitido.
 - [ ] Configurar límites de tamaño de petición.
 - [ ] Mantener logs mínimos sin secretos ni contenido sensible.
 - [ ] Documentar variables de entorno, migración, ingesta y arranque.
 - [ ] Documentar una llamada válida a `POST /api/chat`.
-- [ ] Verificar que el límite se aplica y se restablece al expirar el contador.
+- [ ] Verificar que el límite se aplica y se restablece al expirar el contador (test automatizado).
 - [ ] Verificar el flujo completo desde un entorno limpio.
 
 ## Paso 5 — Streaming de respuestas (SSE) ✅ planificado

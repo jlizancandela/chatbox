@@ -1,8 +1,11 @@
 import type { FastifyPluginAsync } from "fastify";
+import rateLimitMiddleware from "../../middleware/rate-limit";
 import { chatOptions } from "../../schemas/chat";
 import { chatService } from "../../services/chat";
 
 const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
+	await fastify.register(rateLimitMiddleware);
+
 	fastify.post("/chat", chatOptions, async (request, reply) => {
 		const { question } = request.body as { question: string };
 

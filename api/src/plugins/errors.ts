@@ -12,6 +12,15 @@ const errors: FastifyPluginAsync = async (fastify) => {
 			});
 		}
 
+		if (error.statusCode === 429) {
+			return reply.code(429).send({
+				error: {
+					code: "RATE_LIMIT_EXCEEDED",
+					message: error.message ?? "Rate limit exceeded",
+				},
+			});
+		}
+
 		if (error.statusCode === 404) {
 			return reply.code(404).send({
 				error: {
