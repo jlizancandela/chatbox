@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import * as assert from 'node:assert'
 import { build } from '../helper'
+import { CHAT_BODY_LIMIT_BYTES } from '../../src/schemas/chat'
 
 test('chat route returns insufficient context for an unrelated question', async (t) => {
   const app = await build(t)
@@ -131,6 +132,26 @@ test('chat route rejects malformed JSON', async (t) => {
     error: {
       code: 'VALIDATION_ERROR',
       message: 'Request validation failed'
+    }
+  })
+})
+
+test('chat route rejects a request body larger than the configured limit', async (t) => {
+  const app = await build(t)
+
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/chat',
+    payload: {
+      question: 'a'.repeat(CHAT_BODY_LIMIT_BYTES)
+    }
+  })
+
+  assert.equal(res.statusCode, 413)
+  assert.deepStrictEqual(res.json(), {
+    error: {
+      code: 'REQUEST_TOO_LARGE',
+      message: 'Request body is too large'
     }
   })
 })
