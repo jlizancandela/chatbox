@@ -11,6 +11,9 @@ importers:
       '@fastify/autoload':
         specifier: ^6.0.0
         version: 6.5.0
+      '@fastify/cors':
+        specifier: ^11.3.0
+        version: 11.3.0
       '@fastify/postgres':
         specifier: ^6.1.0
         version: 6.1.0(pg@8.22.0)
@@ -148,6 +151,9 @@ packages:
 
   '@fastify/autoload@6.5.0':
     resolution: {integrity: sha512-JkjNcIia6PW1EhHLhAbI4vR6sO++8dW7hBwkcZ/p3ewBTQzrjyPXvQ0ChaUpkd+3/wNqg7W6GLsc0Az+KpW0Qw==}
+
+  '@fastify/cors@11.3.0':
+    resolution: {integrity: sha512-ggQGua+xHv1MvePbPr0v//xLYEsCXbWspquXCJS9Ot5YoRXq8J8ZWzHnxDBVnbtXosvistXo6LtNzOJswf64Fw==}
 
   '@fastify/deepmerge@3.2.1':
     resolution: {integrity: sha512-N5Oqvltoa2r9z1tbx4xjky0oRR60v+T47Ic4J1ukoVQcptLOrIdRnCSdTGmOmajZuHVKlTnfcmrjyqsGEW1ztA==}
@@ -1219,6 +1225,11 @@ snapshots:
       fast-uri: 3.1.5
 
   '@fastify/autoload@6.5.0': {}
+
+  '@fastify/cors@11.3.0':
+    dependencies:
+      fastify-plugin: 6.0.0
+      toad-cache: 3.7.4
 
   '@fastify/deepmerge@3.2.1': {}
 
