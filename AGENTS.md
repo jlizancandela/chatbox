@@ -41,7 +41,7 @@ Ver `api/database/erd.md`. Migraciones en `api/database/migrations/`.
 
 ## Variables de entorno (api/.env, gitignored)
 DATABASE_URL, GEMINI_API_KEY, GEMINI_EMBEDDING_MODEL, GEMINI_VECTOR_DIMENSION,
-GROQ_API_KEY, GROQ_MODEL_DEFAULT. Compose: POSTGRES_USER/PASSWORD/DB.
+GROQ_API_KEY, GROQ_MODEL_DEFAULT, CORS_ORIGIN. Compose: POSTGRES_USER/PASSWORD/DB.
 
 ## Estado del proyecto
 Ver `api/TODO.md` para el estado actual del MVP.
