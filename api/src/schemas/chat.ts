@@ -1,3 +1,5 @@
+const CHAT_BODY_LIMIT_BYTES = 16 * 1024;
+
 const chatSchema = {
 	type: "object",
 	required: ["question"],
@@ -11,9 +13,10 @@ const chatSchema = {
 };
 
 const chatOptions = {
+	bodyLimit: CHAT_BODY_LIMIT_BYTES,
 	schema: {
 		body: chatSchema,
 	},
 };
 
-export { chatOptions };
+export { CHAT_BODY_LIMIT_BYTES, chatOptions };

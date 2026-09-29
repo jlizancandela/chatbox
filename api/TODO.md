@@ -44,7 +44,7 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Configurar la expiración de los contadores (ventana fija con reset automático del plugin).
 - [x] Devolver una respuesta `429` clara al superar el límite (formato JSON de errores + `Retry-After`).
 - [x] Configurar CORS para el origen permitido.
-- [ ] Configurar límites de tamaño de petición.
+- [x] Configurar límites de tamaño de petición (16 KiB para `POST /api/chat`, con respuesta `413`).
 - [ ] Mantener logs mínimos sin secretos ni contenido sensible.
 - [ ] Documentar variables de entorno, migración, ingesta y arranque.
 - [ ] Documentar una llamada válida a `POST /api/chat`.

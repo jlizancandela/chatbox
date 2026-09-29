@@ -3,6 +3,15 @@ import fp from "fastify-plugin";
 
 const errors: FastifyPluginAsync = async (fastify) => {
 	fastify.setErrorHandler<FastifyError>((error, _request, reply) => {
+		if (error.code === "FST_ERR_CTP_BODY_TOO_LARGE") {
+			return reply.code(413).send({
+				error: {
+					code: "REQUEST_TOO_LARGE",
+					message: "Request body is too large",
+				},
+			});
+		}
+
 		if (error.validation || error.code === "FST_ERR_CTP_INVALID_JSON_BODY") {
 			return reply.code(400).send({
 				error: {
