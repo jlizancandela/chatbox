@@ -8,13 +8,13 @@
   },
   "scripts": {
     "test": "npm run build:ts && tsc -p test/tsconfig.json && c8 node --test --env-file=.env -r ts-node/register \"test/**/*.ts\"",
-    "start": "npm run build:ts && fastify start -l info dist/app.js",
+    "start": "npm run build:ts && fastify start -l warn dist/app.js",
     "build:ts": "tsc",
     "db:migrate": "node-pg-migrate up --migrations-dir database/migrations --migrations-table pgmigrations",
     "ingest": "npm run build:ts && node --env-file=.env dist/cli/ingest.js",
     "watch:ts": "tsc -w",
     "dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
-    "dev:start": "fastify start -a 0.0.0.0 -p 7000 --ignore-watch=.ts$ -w -l info -P dist/app.js"
+    "dev:start": "fastify start -a 0.0.0.0 -p 7000 --ignore-watch=.ts$ -w -l warn -P dist/app.js"
   },
   "keywords": [],
   "author": "",
