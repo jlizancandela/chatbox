@@ -45,3 +45,8 @@ GROQ_API_KEY, GROQ_MODEL_DEFAULT, CORS_ORIGIN. Compose: POSTGRES_USER/PASSWORD/D
 
 ## Estado del proyecto
 Ver `api/TODO.md` para el estado actual del MVP.
+
+## Regla de trabajo
+- Antes de implementar cambios, presentar un plan concreto con alcance, archivos afectados, riesgos y verificaciones.
+- No modificar archivos ni ejecutar acciones de implementación hasta recibir aprobación explícita del usuario.
+- Tras la aprobación, ejecutar el plan y verificar los cambios con las pruebas o comprobaciones adecuadas.
