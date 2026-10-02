@@ -1,40 +1,196 @@
 # Chatbox API
 
-## Database
+API Fastify en TypeScript para ingesta de documentos, recuperación vectorial con
+PostgreSQL/pgvector y respuestas fundamentadas mediante Gemini y Groq.
 
-Start PostgreSQL with pgvector and apply all pending migrations:
+## Requisitos
+
+- Node.js compatible con el proyecto.
+- pnpm.
+- Docker y Docker Compose, para ejecutar PostgreSQL con pgvector.
+- Claves de API de Gemini y Groq para embeddings y generación.
+
+Todos los comandos de esta guía se ejecutan desde `api/`.
+
+## Instalación y variables de entorno
+
+Instala las dependencias y crea el archivo local de configuración:
+
+```bash
+pnpm install
+cp .env.example .env
+```
+
+Edita `.env` y sustituye los placeholders por valores reales. `.env` está
+ignorado por Git y no debe versionarse ni compartirse.
+
+### Variables de la API
+
+| Variable | Obligatoria | Valor por defecto | Uso |
+|---|---:|---|---|
+| `DATABASE_URL` | Sí | — | Conexión de la API a PostgreSQL. |
+| `GEMINI_API_KEY` | Sí | — | Generación de embeddings con Gemini. |
+| `GEMINI_EMBEDDING_MODEL` | No | `gemini-embedding-001` | Modelo de embeddings. |
+| `GEMINI_VECTOR_DIMENSION` | Sí | — | Dimensión de los vectores; debe ser `768` para este esquema. |
+| `GROQ_API_KEY` | Sí | — | Acceso al modelo generativo de Groq. |
+| `GROQ_MODEL_DEFAULT` | No | `openai/gpt-oss-20b` | Modelo usado para responder. |
+| `SIMILARITY_THRESHOLD` | No | `0.5` | Umbral de similitud coseno para recuperar contexto. |
+| `CORS_ORIGIN` | Sí | — | Único origen permitido por CORS, por ejemplo `http://localhost:3000`. |
+
+### Variables de Docker Compose
+
+Estas variables configuran el contenedor de PostgreSQL definido en
+`compose.yaml`:
+
+| Variable | Obligatoria | Valor por defecto | Uso |
+|---|---:|---|---|
+| `POSTGRES_USER` | No | `postgres` | Usuario creado en PostgreSQL. |
+| `POSTGRES_PASSWORD` | Sí | — | Contraseña del usuario de PostgreSQL. |
+| `POSTGRES_DB` | No | `chatbox` | Base de datos creada. |
+
+`DATABASE_URL` debe apuntar al mismo usuario, contraseña, host, puerto y base de
+datos que utiliza Compose. `api/.env.example` contiene una plantilla segura con
+placeholders; no contiene credenciales reales.
+
+## PostgreSQL y migraciones
+
+Arranca PostgreSQL con la imagen que incluye pgvector:
 
 ```bash
 docker compose up -d db
-DATABASE_URL=postgresql://postgres:password@localhost:5432/chatbox pnpm db:migrate
 ```
 
-Migrations live in `database/migrations` and are applied in filename order by
-`node-pg-migrate`. Applied migrations are recorded in `pgmigrations`.
+Carga las variables en la shell y aplica todas las migraciones pendientes:
 
-`DATABASE_URL` must be available in the environment when running the command.
+```bash
+set -a
+source .env
+set +a
+pnpm db:migrate
+```
 
-The migration from the old `vector(384)` column removes incompatible stored
-embeddings. Documents must then be ingested again to generate `vector(768)`
-embeddings.
+Las migraciones se encuentran en `database/migrations/`, se ejecutan en orden
+por nombre y quedan registradas en la tabla `pgmigrations`. Es seguro volver a
+ejecutar el comando: solo se aplican las migraciones pendientes.
 
-## Available Scripts
+La migración de embeddings cambia el esquema de `vector(384)` a `vector(768)`.
+Los embeddings antiguos no se pueden convertir de forma segura, por lo que esa
+migración elimina los documentos almacenados. Después de aplicarla hay que
+volver a ingerir los documentos.
 
-In the project directory, you can run:
+Para detener el contenedor sin borrar los datos:
 
-### `pnpm dev`
+```bash
+docker compose stop db
+```
 
-To start the app in dev mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Ingesta de documentos
 
-### `pnpm start`
+Coloca archivos Markdown o texto plano en `ingest/`. El comando recibe uno o
+más nombres de archivo relativos a ese directorio:
 
-For production mode
+```bash
+pnpm ingest curriculum-jorge-lizan.md
+pnpm ingest curriculum-jorge-lizan.md informe-github-jlizancandela.md
+```
 
-### `pnpm test`
+La ingesta:
 
-Run the test cases.
+1. Lee cada archivo desde `ingest/`.
+2. Lo divide en fragmentos de 512 caracteres con solapamiento de 50.
+3. Genera embeddings de 768 dimensiones con Gemini.
+4. Guarda el documento, sus fragmentos y vectores en PostgreSQL.
+5. Informa los archivos y fragmentos procesados; termina con código de error si
+   algún archivo falla.
 
-## Learn More
+Asegúrate de haber aplicado las migraciones y de tener configurados
+`DATABASE_URL`, `GEMINI_API_KEY` y `GEMINI_VECTOR_DIMENSION` antes de ingerir.
 
-To learn Fastify, check out the [Fastify documentation](https://fastify.dev/docs/latest/).
+## Arranque de la API
+
+Para desarrollo, con compilación y recarga durante los cambios:
+
+```bash
+pnpm dev
+```
+
+La API queda disponible en `http://localhost:7000`. Para comprobar que está
+levantada:
+
+```bash
+curl http://localhost:7000/health
+```
+
+Para arrancar la versión de producción local:
+
+```bash
+pnpm start
+```
+
+Los comandos de arranque usan logging mínimo (`warn`) para no registrar cuerpos
+de petición ni contenido sensible.
+
+## Llamada a `POST /api/chat`
+
+Con la API arrancada y desde cualquier directorio, realiza una petición JSON
+incluyendo una pregunta:
+
+```bash
+curl -X POST http://localhost:7000/api/chat \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "question": "¿Qué tecnologías usa Jorge en el proyecto?"
+  }'
+```
+
+El cuerpo debe contener únicamente `question`. Debe ser una cadena de entre 1 y
+1000 caracteres después de quitar espacios al principio y al final. Una
+respuesta con contexto tiene esta forma:
+
+```json
+{
+  "answer": "Respuesta basada en los documentos recuperados.",
+  "sources": [
+    {
+      "documentId": "123",
+      "chunkIndex": 0,
+      "content": "Fragmento documental de ejemplo.",
+      "distance": 0.23
+    }
+  ],
+  "insufficientContext": false
+}
+```
+
+Si no se encuentra contexto suficiente, la API no invoca al modelo generativo y
+devuelve:
+
+```json
+{
+  "answer": null,
+  "sources": [],
+  "insufficientContext": true
+}
+```
+
+## Tests
+
+Ejecuta la suite completa desde `api/`:
+
+```bash
+pnpm test
+```
+
+Los tests compilan TypeScript, ejecutan las pruebas HTTP e integración y
+recogen cobertura. Necesitan el entorno local configurado según `.env` y los
+servicios que requieran las pruebas disponibles.
+
+## Scripts disponibles
+
+| Comando | Descripción |
+|---|---|
+| `pnpm dev` | Desarrollo con compilación y recarga. |
+| `pnpm start` | Arranque local de producción. |
+| `pnpm test` | Compilación y suite de tests. |
+| `pnpm db:migrate` | Aplica migraciones pendientes. |
+| `pnpm ingest <archivos>` | Ingresa uno o más archivos desde `ingest/`. |
