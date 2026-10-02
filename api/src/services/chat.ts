@@ -6,18 +6,86 @@ import {
 import { chatConfig } from "./chat.config";
 import { embeddingService } from "./embedding";
 
-type ChatSource = {
+export type ChatSource = {
 	documentId: string;
 	chunkIndex: number;
 	content: string;
 	distance: number;
 };
 
-type ChatResult = {
-	answer: string | null;
-	sources: ChatSource[];
-	insufficientContext: boolean;
+export type ChatEvent =
+	| { type: "sources"; sources: ChatSource[] }
+	| { type: "token"; token: string }
+	| { type: "done" }
+	| { type: "error"; message: string };
+
+type CompletionChunk = {
+	choices?: Array<{ delta?: { content?: string | null } }>;
 };
+
+type AskStreamDeps = {
+	retrieve: (question: string) => Promise<ChatSource[]>;
+	groqClient: Groq;
+	modelDefault: string;
+};
+
+const GENERIC_ERROR_MESSAGE =
+	"An unexpected error occurred while generating the answer";
+
+export const createAskStream =
+	({ retrieve, groqClient, modelDefault }: AskStreamDeps) =>
+	async function* askStream(
+		question: string,
+		signal?: AbortSignal,
+	): AsyncIterable<ChatEvent> {
+		let sources: ChatSource[];
+		try {
+			sources = await retrieve(question);
+		} catch {
+			yield { type: "error", message: GENERIC_ERROR_MESSAGE };
+			return;
+		}
+
+		yield { type: "sources", sources };
+
+		if (sources.length === 0) {
+			yield { type: "done" };
+			return;
+		}
+
+		const context = sources.map((source) => source.content).join("\n\n");
+
+		try {
+			const completion = (await groqClient.chat.completions.create(
+				{
+					model: modelDefault,
+					stream: true,
+					messages: [
+						{
+							role: "system",
+							content: `You are a helpful assistant that answers questions based only on the provided context. If the context does not contain the answer, say you do not know.\n\nContext:\n${context}`,
+						},
+						{ role: "user", content: question },
+					],
+				},
+				{ signal },
+			)) as AsyncIterable<CompletionChunk>;
+
+			for await (const chunk of completion) {
+				const delta = chunk.choices?.[0]?.delta?.content;
+				if (typeof delta === "string" && delta.length > 0) {
+					yield { type: "token", token: delta };
+				}
+			}
+
+			yield { type: "done" };
+		} catch {
+			if (signal?.aborted) {
+				return;
+			}
+			yield { type: "error", message: GENERIC_ERROR_MESSAGE };
+		}
+	};
 
 export const chatService = (
 	pg: QueryClient,
@@ -35,40 +103,25 @@ export const chatService = (
 			5,
 		);
 
-		const sources: ChatSource[] = relevantChunks.map((chunk) => ({
-			documentId: chunk.document_id,
-			chunkIndex: chunk.chunk_index,
-			content: chunk.content,
-			distance: chunk.distance,
-		}));
+		const sources: ChatSource[] = relevantChunks.map(
+			(chunk: {
+				document_id: string;
+				chunk_index: number;
+				content: string;
+				distance: number;
+			}) => ({
+				documentId: chunk.document_id,
+				chunkIndex: chunk.chunk_index,
+				content: chunk.content,
+				distance: chunk.distance,
+			}),
+		);
 
 		return sources;
 	};
 
-	const ask = async (question: string): Promise<ChatResult> => {
-		const sources = await retrieve(question);
-
-		if (sources.length === 0) {
-			return { answer: null, sources, insufficientContext: true };
-		}
-
-		const context = sources.map((source) => source.content).join("\n\n");
-
-		const completion = await groqClient.chat.completions.create({
-			model: modelDefault,
-			messages: [
-				{
-					role: "system",
-					content: `You are a helpful assistant that answers questions based only on the provided context. If the context does not contain the answer, say you do not know.\n\nContext:\n${context}`,
-				},
-				{ role: "user", content: question },
-			],
-		});
-
-		const answer = completion.choices[0]?.message?.content ?? "";
-
-		return { answer, sources, insufficientContext: false };
+	return {
+		askStream: createAskStream({ retrieve, groqClient, modelDefault }),
+		retrieve,
 	};
-
-	return { ask, retrieve };
 };

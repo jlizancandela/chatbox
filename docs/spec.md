@@ -63,8 +63,11 @@ Por qué: garantizar que la similitud entre pregunta y fragmentos sea comparable
 
 **RF-09 — Contrato de `POST /api/chat`**
 Cuando se reciba una petición a `POST /api/chat`, el sistema deberá aceptar un
-cuerpo JSON con una pregunta y responder siempre con JSON.
-Por qué: exponer una interfaz predecible y fácil de consumir.
+cuerpo JSON con una pregunta. Las validaciones previas al procesamiento deberán
+responder con JSON; las peticiones válidas deberán responder como un stream
+Server-Sent Events (`text/event-stream`).
+Por qué: exponer una interfaz predecible y permitir mostrar la respuesta
+progresivamente.
 
 **RF-10 — Validación de la pregunta**
 Cuando se reciba una pregunta, el sistema deberá validar su tipo, presencia y
@@ -83,15 +86,22 @@ Por qué: seleccionar únicamente el contexto relevante para la respuesta.
 
 **RF-13 — Respuesta con contexto**
 Cuando exista contexto suficiente, el sistema deberá enviar a Groq únicamente la
-pregunta y los fragmentos recuperados y devolver la respuesta junto con sus
-fuentes.
+pregunta y los fragmentos recuperados y emitir primero las fuentes, después los
+fragmentos de respuesta generados y finalmente el evento de finalización.
 Por qué: generar una respuesta fundamentada en los documentos, no en
 conocimiento no recuperado.
 
 **RF-14 — Respuesta sin contexto**
 Si no hay contexto suficiente, el sistema deberá responder que no dispone de
-información, sin invocar a Groq ni inventar contenido.
+información mediante los eventos `sources` y `done`, sin invocar a Groq ni
+inventar contenido.
 Por qué: evitar respuestas inventadas o fuera de los documentos ingeridos.
+
+**RF-14a — Eventos del stream**
+Cuando una petición válida se procese, el sistema deberá emitir los eventos
+`sources`, `token`, `done` y `error` con el contrato documentado para el front.
+Los errores que ocurran después de iniciar el stream deberán emitirse como
+`error` sin filtrar detalles internos.
 
 ### Protecciones
 
@@ -131,7 +141,6 @@ Por qué: permitir instalar y operar el MVP desde un entorno limpio.
 - Versionado documental sofisticado o reemplazo atómico.
 - Filtros avanzados de recuperación.
 - Presupuestos globales de consumo.
-- Streaming o Server-Sent Events (SSE).
 - Observabilidad avanzada, métricas o trazas distribuidas.
 - LangChain.
 - Panel de administración.
@@ -142,11 +151,12 @@ El MVP se considera completo cuando se verifican todos estos puntos:
 
 - Los embeddings reales se almacenan y consultan mediante `pgvector`.
 - Documentos y preguntas comparten `gemini-embedding-001` y 768 dimensiones.
-- Las respuestas con contexto se generan con Groq e indican sus fuentes.
+- Las respuestas con contexto se generan con Groq, emiten sus fuentes y tokens
+  mediante SSE, y terminan con `done`.
 - Las preguntas sin contexto no producen respuestas inventadas.
 - El endpoint valida las entradas, limita el abuso por IP en memoria (ráfaga +
   diario) y no expone secretos.
-- La migración, la ingesta, el arranque y una llamada de ejemplo a
-  `POST /api/chat` quedan documentados.
+- La migración, la ingesta, el arranque y el contrato SSE de `POST /api/chat`
+  quedan documentados.
 - El flujo completo funciona desde un entorno limpio: instalar, ingerir un
   documento y responder consultas con rate limiting activo y errores JSON.

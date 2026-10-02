@@ -14,5 +14,5 @@ POST http://localhost:7000/api/chat
 Content-Type: application/json
 
 {
-    "message": "Hello, world!"
+    "question": "Hello, world!"
 }
