@@ -31,12 +31,12 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Implementar la búsqueda vectorial top-k.
 - [x] Definir cuándo el contexto recuperado es insuficiente.
 - [x] Integrar Groq usando únicamente la pregunta y el contexto recuperado.
-- [x] Devolver la respuesta y sus fuentes en JSON.
+- [x] Devolver la respuesta y sus fuentes mediante el contrato de chat.
 - [x] Evitar la llamada a Groq cuando no exista contexto suficiente.
 - [x] Sustituir la respuesta temporal `501 CHAT_NOT_IMPLEMENTED`.
 - [x] Calibrar `SIMILARITY_THRESHOLD`: cambiar de L2 (`<->`) a coseno (`<=>`), índice HNSW, umbral `0.5`.
 
-## Paso 4 — Protecciones mínimas y entrega (en progreso)
+## Paso 4 — Protecciones mínimas y entrega ✅
 
 - [x] Añadir rate limiting por IP en memoria (sin Redis) — ráfaga + tope diario con `@fastify/rate-limit`.
 - [x] Límite de ráfaga configurable (20 peticiones/minuto, constantes en `src/middleware/rate-limit.ts`).
@@ -51,21 +51,16 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Verificar que el límite se aplica y se restablece al expirar el contador (test automatizado).
 - [x] Verificar el flujo completo desde un entorno limpio (instalación, migraciones, ingesta, API, chat y tests).
 
-## Paso 5 — Streaming de respuestas (SSE) ✅ planificado
+## Paso 5 — Streaming de respuestas (SSE) ✅
 
 - [x] Refactorizar `chatService`: extraer `retrieve(question)` (embedding + búsqueda vectorial) reutilizable.
-- [ ] Reemplazar `ask(question)` por `askStream(question, signal)` que devuelva `AsyncIterable<ChatEvent>`.
-- [ ] Definir el contrato de eventos: `sources`, `token`, `done`, `error`.
-- [ ] Convertir `POST /api/chat` para responder siempre `Content-Type: text/event-stream`.
-- [ ] Emitir `sources` antes de llamar a Groq (incluido el caso de contexto insuficiente, sin llamar al LLM).
-- [ ] Propagar `stream: true` de Groq como eventos `token`.
-- [ ] Cancelar el stream de Groq al desconectarse el cliente (`AbortController`).
-- [ ] Mantener los errores previos al stream (validación) como JSON `400`.
-- [ ] Manejar errores mid-stream con un frame `error` sin filtrar detalles internos.
-- [ ] Reescribir los tests de `/api/chat` para parsear frames SSE y validar la secuencia.
-- [ ] Documentar el contrato de eventos para el front (`fetch` + `ReadableStream`).
-
-## Próximo trabajo
-
-Paso 4 — Protecciones mínimas y entrega.
-Paso 5 — Streaming de respuestas (SSE).
+- [x] Reemplazar `ask(question)` por `askStream(question, signal)` que devuelva `AsyncIterable<ChatEvent>`.
+- [x] Definir el contrato de eventos: `sources`, `token`, `done`, `error`.
+- [x] Convertir `POST /api/chat` para responder siempre `Content-Type: text/event-stream`.
+- [x] Emitir `sources` antes de llamar a Groq (incluido el caso de contexto insuficiente, sin llamar al LLM).
+- [x] Propagar `stream: true` de Groq como eventos `token`.
+- [x] Cancelar el stream de Groq al desconectarse el cliente (`AbortController`).
+- [x] Mantener los errores previos al stream (validación) como JSON `400`.
+- [x] Manejar errores mid-stream con un frame `error` sin filtrar detalles internos.
+- [x] Reescribir los tests de `/api/chat` para parsear frames SSE y validar la secuencia.
+- [x] Documentar el contrato de eventos para el front (`fetch` + `ReadableStream`).

@@ -1,7 +1,6 @@
-import type { FastifyInstance } from "fastify";
+import type { PoolClient } from "pg";
 
-type TransactionCallback = Parameters<FastifyInstance["pg"]["transact"]>[0];
-type TransactionClient = Parameters<TransactionCallback>[0];
+type TransactionClient = Pick<PoolClient, "query">;
 export type QueryClient = { query: TransactionClient["query"] };
 
 export type DocumentChunk = {

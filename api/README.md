@@ -136,7 +136,7 @@ Con la API arrancada y desde cualquier directorio, realiza una petición JSON
 incluyendo una pregunta:
 
 ```bash
-curl -X POST http://localhost:7000/api/chat \
+curl -N -X POST http://localhost:7000/api/chat \
   -H 'Content-Type: application/json' \
   -d '{
     "question": "¿Qué tecnologías usa Jorge en el proyecto?"
@@ -144,34 +144,84 @@ curl -X POST http://localhost:7000/api/chat \
 ```
 
 El cuerpo debe contener únicamente `question`. Debe ser una cadena de entre 1 y
-1000 caracteres después de quitar espacios al principio y al final. Una
-respuesta con contexto tiene esta forma:
+1000 caracteres después de quitar espacios al principio y al final.
 
-```json
-{
-  "answer": "Respuesta basada en los documentos recuperados.",
-  "sources": [
-    {
-      "documentId": "123",
-      "chunkIndex": 0,
-      "content": "Fragmento documental de ejemplo.",
-      "distance": 0.23
-    }
-  ],
-  "insufficientContext": false
+La respuesta es un stream Server-Sent Events (`Content-Type:
+text/event-stream`): el servidor emite eventos mientras genera la respuesta, en
+lugar de esperar al resultado completo.
+
+### Contrato de eventos
+
+| Evento | Datos | Significado |
+|---|---|---|
+| `sources` | `{"sources":[...]}` | Fragmentos recuperados; se emite antes de llamar a Groq. |
+| `token` | `{"token":"..."}` | Fragmento de la respuesta generada por el modelo. |
+| `done` | `{}` | Fin del stream. |
+| `error` | `{"message":"..."}` | Error durante el stream (no filtra detalles internos). |
+
+Secuencia normal: `sources`, uno o más `token`, `done`. Sin contexto
+suficiente, la API no invoca al modelo generativo y emite únicamente
+`sources` (con lista vacía) y `done`. Los errores de validación previos al
+stream vuelven a responder como JSON con código `400`.
+
+Ejemplo de frames:
+
+```text
+event: sources
+data: {"sources":[{"documentId":"123","chunkIndex":0,"content":"Fragmento documental de ejemplo.","distance":0.23}]}
+
+event: token
+data: {"token":"La respuesta basada en los documentos recuperados"}
+
+event: done
+data: {}
+```
+
+### Consumo desde el front
+
+Ejemplo con `fetch` y `ReadableStream`:
+
+```js
+const response = await fetch('/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ question })
+})
+
+if (response.status !== 200) {
+  const error = await response.json()
+  throw new Error(error.error?.message ?? 'Request failed')
+}
+
+const reader = response.body.getReader()
+const decoder = new TextDecoder()
+let buffer = ''
+
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+
+  buffer += decoder.decode(value, { stream: true })
+  const frames = buffer.split('\n\n')
+  buffer = frames.pop() ?? ''
+
+  for (const frame of frames) {
+    const event = frame.match(/^event: (.+)$/m)?.[1]
+    const data = frame.match(/^data: (.+)$/m)?.[1]
+    if (!event || !data) continue
+
+    const payload = JSON.parse(data)
+    if (event === 'sources') renderSources(payload.sources)
+    if (event === 'token') appendToken(payload.token)
+    if (event === 'done') finish()
+    if (event === 'error') fail(payload.message)
+  }
 }
 ```
 
-Si no se encuentra contexto suficiente, la API no invoca al modelo generativo y
-devuelve:
-
-```json
-{
-  "answer": null,
-  "sources": [],
-  "insufficientContext": true
-}
-```
+Si el cliente se desconecta a mitad de la respuesta, el servidor cancela la
+petición a Groq mediante un `AbortController` ligado a la señal de la
+petición, de modo que no se sigue consumiendo el modelo generativo.
 
 ## Tests
 

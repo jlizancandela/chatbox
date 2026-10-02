@@ -1,9 +1,37 @@
 import { test } from 'node:test'
 import * as assert from 'node:assert'
+import type Groq from 'groq-sdk'
 import { build } from '../helper'
 import { CHAT_BODY_LIMIT_BYTES } from '../../src/schemas/chat'
 
-test('chat route returns insufficient context for an unrelated question', async (t) => {
+type SSEFrame = {
+  event: string
+  data: unknown
+}
+
+function parseSSE (payload: string): SSEFrame[] {
+  const frames: SSEFrame[] = []
+  let current: { event?: string; data?: string } = {}
+
+  for (const line of payload.split('\n')) {
+    if (line === '') {
+      if (current.event !== undefined && current.data !== undefined) {
+        frames.push({
+          event: current.event,
+          data: JSON.parse(current.data)
+        })
+      }
+      current = {}
+      continue
+    }
+    if (line.startsWith('event:')) current.event = line.slice(6).trim()
+    else if (line.startsWith('data:')) current.data = line.slice(5).trim()
+  }
+
+  return frames
+}
+
+test('chat stream returns empty sources and done for an unrelated question', async (t) => {
   const app = await build(t)
 
   const res = await app.inject({
@@ -15,12 +43,97 @@ test('chat route returns insufficient context for an unrelated question', async 
   })
 
   assert.equal(res.statusCode, 200)
-  const body = res.json()
-  assert.deepStrictEqual(body, {
-    answer: null,
-    sources: [],
-    insufficientContext: true
+  assert.equal(res.headers['content-type'], 'text/event-stream')
+
+  const frames = parseSSE(res.payload)
+  assert.equal(frames.length, 2)
+  assert.equal(frames[0].event, 'sources')
+  assert.deepStrictEqual(frames[0].data, { sources: [] })
+  assert.equal(frames[1].event, 'done')
+  assert.deepStrictEqual(frames[1].data, {})
+})
+
+test('chat stream returns sources, tokens and done for a relevant question', async (t) => {
+  const app = await build(t)
+
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/chat',
+    payload: {
+      question: '¿Qué tecnologías usa Jorge en el proyecto de reservas de peluquería?'
+    }
   })
+
+  assert.equal(res.statusCode, 200)
+  assert.equal(res.headers['content-type'], 'text/event-stream')
+
+  const frames = parseSSE(res.payload)
+
+  assert.ok(frames.length >= 3, `expected at least 3 frames, got ${frames.length}`)
+
+  const [first] = frames
+  assert.equal(first.event, 'sources')
+  const sources = (first.data as { sources: Array<unknown> }).sources
+  assert.ok(Array.isArray(sources))
+  assert.ok(sources.length > 0, 'expected at least one source')
+  assert.ok(sources.length <= 5)
+
+  for (const source of sources as Array<{
+    documentId: string
+    chunkIndex: number
+    content: string
+    distance: number
+  }>) {
+    assert.equal(typeof source.documentId, 'string')
+    assert.equal(typeof source.chunkIndex, 'number')
+    assert.equal(typeof source.content, 'string')
+    assert.equal(typeof source.distance, 'number')
+    assert.ok(source.distance < 0.5)
+  }
+
+  const tokenFrames = frames.filter((frame) => frame.event === 'token')
+  assert.ok(tokenFrames.length > 0, 'expected at least one token frame')
+  for (const frame of tokenFrames) {
+    const token = (frame.data as { token: string }).token
+    assert.equal(typeof token, 'string')
+    assert.ok(token.length > 0)
+  }
+
+  const last = frames[frames.length - 1]
+  assert.equal(last.event, 'done')
+  assert.deepStrictEqual(last.data, {})
+})
+
+test('chat stream emits a generic error when Groq fails after sources', async (t) => {
+  const app = await build(t)
+  app.groq.client = {
+    chat: {
+      completions: {
+        create: async () => {
+          throw new Error('provider secret that must not leak')
+        }
+      }
+    }
+  } as unknown as Groq
+
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/chat',
+    payload: {
+      question: '¿Qué tecnologías usa Jorge en el proyecto de reservas de peluquería?'
+    }
+  })
+
+  assert.equal(res.statusCode, 200)
+  assert.equal(res.headers['content-type'], 'text/event-stream')
+
+  const frames = parseSSE(res.payload)
+  assert.equal(frames[0].event, 'sources')
+  assert.equal(frames[frames.length - 1].event, 'error')
+  assert.deepStrictEqual(frames[frames.length - 1].data, {
+    message: 'An unexpected error occurred while generating the answer'
+  })
+  assert.equal(res.payload.includes('provider secret that must not leak'), false)
 })
 
 test('chat route rejects a whitespace-only question', async (t) => {
@@ -61,36 +174,6 @@ test('chat route rejects a question longer than 1000 characters', async (t) => {
       message: 'Question must be between 1 and 1000 characters long.'
     }
   })
-})
-
-test('chat route returns an answer and sources for a relevant question', async (t) => {
-  const app = await build(t)
-
-  const res = await app.inject({
-    method: 'POST',
-    url: '/api/chat',
-    payload: {
-      question: '¿Qué tecnologías usa Jorge en el proyecto de reservas de peluquería?'
-    }
-  })
-
-  assert.equal(res.statusCode, 200)
-  const body = res.json()
-
-  assert.equal(typeof body.answer, 'string')
-  assert.ok(body.answer.length > 0)
-  assert.equal(body.insufficientContext, false)
-  assert.ok(Array.isArray(body.sources))
-  assert.ok(body.sources.length > 0)
-  assert.ok(body.sources.length <= 5)
-
-  for (const source of body.sources) {
-    assert.equal(typeof source.documentId, 'string')
-    assert.equal(typeof source.chunkIndex, 'number')
-    assert.equal(typeof source.content, 'string')
-    assert.equal(typeof source.distance, 'number')
-    assert.ok(source.distance < 0.5)
-  }
 })
 
 for (const [name, payload] of [
