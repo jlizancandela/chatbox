@@ -24,7 +24,7 @@ export const chatService = (
 	groqClient: Groq,
 	modelDefault: string,
 ) => {
-	const ask = async (question: string): Promise<ChatResult> => {
+	const retrieve = async (question: string): Promise<ChatSource[]> => {
 		const { embedText } = embeddingService();
 		const sqlEmbedding = await embedText(question, "question");
 
@@ -41,6 +41,12 @@ export const chatService = (
 			content: chunk.content,
 			distance: chunk.distance,
 		}));
+
+		return sources;
+	};
+
+	const ask = async (question: string): Promise<ChatResult> => {
+		const sources = await retrieve(question);
 
 		if (sources.length === 0) {
 			return { answer: null, sources, insufficientContext: true };
@@ -64,5 +70,5 @@ export const chatService = (
 		return { answer, sources, insufficientContext: false };
 	};
 
-	return { ask };
+	return { ask, retrieve };
 };

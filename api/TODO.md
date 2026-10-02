@@ -53,7 +53,7 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 
 ## Paso 5 — Streaming de respuestas (SSE) ✅ planificado
 
-- [ ] Refactorizar `chatService`: extraer `retrieve(question)` (embedding + búsqueda vectorial) reutilizable.
+- [x] Refactorizar `chatService`: extraer `retrieve(question)` (embedding + búsqueda vectorial) reutilizable.
 - [ ] Reemplazar `ask(question)` por `askStream(question, signal)` que devuelva `AsyncIterable<ChatEvent>`.
 - [ ] Definir el contrato de eventos: `sources`, `token`, `done`, `error`.
 - [ ] Convertir `POST /api/chat` para responder siempre `Content-Type: text/event-stream`.
