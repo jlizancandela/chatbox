@@ -90,8 +90,12 @@ El contrato del historial ya está definido (`api/src/services/history.contract.
 y RF-20 en `docs/spec.md`): mensajes `user` y `assistant` ordenados por un `seq`
 monótono por sesión, turnos de uno o dos mensajes que nunca empiezan por
 `assistant`, y límites de 20 mensajes, 2000 caracteres por mensaje y 8000 en
-total, configurables por entorno. La persistencia y el consumo de ese contrato
-siguen pendientes.
+total, configurables por entorno.
+
+La limpieza automática de sesiones expiradas se hace en la propia API con
+`node-cron`, configurable vía `HISTORY_CLEANUP_SCHEDULE` (por defecto
+`0 3 * * *`). La tarea ejecuta `DELETE FROM conversation_sessions WHERE expires_at < NOW()`
+y los mensajes caen por la cascada de la migración 004.
 
 ## Criterios de éxito
 

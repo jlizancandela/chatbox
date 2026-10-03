@@ -173,6 +173,12 @@ La primera fase deberá:
   necesaria para el historial;
 - probar aislamiento, expiración, borrado en cascada y límites.
 
+La limpieza periódica se realiza en la propia API mediante `node-cron`,
+ejecutando `DELETE FROM conversation_sessions WHERE expires_at < NOW()` con
+el schedule configurable `HISTORY_CLEANUP_SCHEDULE` (por defecto `0 3 * * *`).
+La tarea se programa al arrancar y se detiene al cerrar la aplicación; los
+mensajes se eliminan por la cascada de la migración 004.
+
 La IP no es una identidad fiable: puede ser compartida por varias personas,
 cambiar en redes móviles o estar ocultada por una VPN. Esta fase es por tanto
 transitoria y no garantiza aislamiento por usuario.
