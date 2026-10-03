@@ -223,6 +223,65 @@ Si el cliente se desconecta a mitad de la respuesta, el servidor cancela la
 petición a Groq mediante un `AbortController` ligado a la señal de la
 petición, de modo que no se sigue consumiendo el modelo generativo.
 
+## Contrato del historial (Paso 6)
+
+El historial temporal de conversación se recupera en `POST /api/chat`. El
+servidor deriva la sesión mediante HMAC de la IP, recupera los mensajes más
+ recientes y los incluye en el contexto enviado a Groq. El cliente sigue
+enviando únicamente `{ question }`. Las respuestas completadas se guardan
+ atómicamente al finalizar el stream.
+
+El historial lo resuelve siempre el servidor a partir de la sesión, no el
+cliente. El front mantiene su propia copia de la conversación para pintarla,
+pero no la envía.
+
+### Mensajes
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `seq` | `number` | Entero de 1 en adelante, monótono y creciente por sesión, nunca reutilizado. |
+| `role` | `"user" \| "assistant"` | Único origen y único destino. No se guarda ningún rol de sistema. |
+| `content` | `string` | Contenido normalizado: sin espacios en los extremos y recortado al máximo por mensaje. |
+| `createdAt` | `string` | Fecha ISO 8601 informativa. El orden lo determina `seq`, no la fecha. |
+
+El prompt de sistema se construye en cada petición a partir del contexto
+recuperado y nunca se guarda como mensaje del historial.
+
+### Orden y turnos
+
+- El historial se lee en orden `seq` ascendente.
+- Un turno es un mensaje de usuario seguido del mensaje del asistente que lo
+  responde.
+- Un turno puede quedar sin respuesta: si no hubo contexto suficiente, si el
+  cliente se desconectó o si el proveedor falló, la pregunta del usuario se
+  conserva y el siguiente turno vuelve a empezar por un mensaje de usuario.
+- Por tanto el historial **nunca empieza por un mensaje del asistente**: al
+  recortar, si el primer mensaje superviviente fuera del asistente, se
+  descarta por quedarse sin su pregunta.
+- Al recortar no se renumera `seq`. Los huecos son válidos y reflejan que el
+  orden almacenado no se reescribe.
+- Si la lectura de la sesión falla, el chat continúa con historial vacío y no
+  registra el contenido de los mensajes.
+- Dos mensajes `user` consecutivos se fusionan con una línea en blanco antes
+  de enviarse a Groq.
+
+### Límites
+
+| Límite | Valor por defecto | Variable |
+|---|---|---|
+| Mensajes conservados por sesión | 20 | `HISTORY_MAX_MESSAGES` |
+| Caracteres por mensaje | 2000 | `HISTORY_MAX_MESSAGE_CHARS` |
+| Caracteres totales por sesión | 8000 | `HISTORY_MAX_TOTAL_CHARS` |
+| TTL de sesión inactiva (minutos) | 15 | `HISTORY_SESSION_TTL_MINUTES` |
+
+Las cuatro variables aceptan enteros positivos y se validan al arrancar; un valor
+inválido detiene el arranque. El TTL se renueva con cada reutilización válida de
+la sesión mediante `last_activity_at` y `expires_at`; si transcurre el TTL sin
+actividad, la sesión expira. Al superar un límite se recortan los turnos más
+antiguos primero, nunca el mensaje más reciente. El contenido que exceda el
+máximo por mensaje se trunca en lugar de rechazarse, para que una petición
+válida nunca falle por su longitud.
+
 ## Tests
 
 Ejecuta la suite completa desde `api/`:

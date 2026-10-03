@@ -3,6 +3,7 @@ import type { FastifyPluginAsync } from "fastify";
 import rateLimitMiddleware from "../../middleware/rate-limit";
 import { chatOptions } from "../../schemas/chat";
 import { chatService, type ChatEvent } from "../../services/chat";
+import { deriveSessionKey } from "../../services/history.session";
 
 const SSE_HEADERS = {
 	"content-type": "text/event-stream",
@@ -59,7 +60,12 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 			fastify.pg,
 			fastify.groq.client,
 			fastify.groq.options.modelDefault,
+			request.log,
 		);
+
+		// The session is derived from the client IP on the server side: the
+		// client never sends the history, only the IP identifies the turn.
+		const sessionKey = deriveSessionKey(request.ip);
 
 		const controller = new AbortController();
 
@@ -72,7 +78,14 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 		reply.headers(SSE_HEADERS);
 
 		return reply.send(
-			Readable.from(toSSE(chat.askStream(question, controller.signal))),
+			Readable.from(
+				toSSE(
+					chat.askStream(question, {
+						sessionKey,
+						signal: controller.signal,
+					}),
+				),
+			),
 		);
 	});
 };
