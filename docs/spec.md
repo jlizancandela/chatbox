@@ -81,7 +81,7 @@ Por qué: poder compararla con los fragmentos almacenados.
 
 **RF-12 — Búsqueda top-k**
 Cuando se disponga del embedding de la pregunta, el sistema deberá recuperar los
-`k` fragmentos más similares, con `k` configurable.
+`k` fragmentos más similares. En el MVP, `k` es `5` y el umbral de similitud coseno es `0.5`.
 Por qué: seleccionar únicamente el contexto relevante para la respuesta.
 
 **RF-13 — Respuesta con contexto**
@@ -121,8 +121,9 @@ rechazarla.
 Por qué: evitar cargas excesivas o malintencionadas.
 
 **RF-18 — Logs mínimos sin secretos**
-Mientras se registre actividad, el sistema deberá registrar solo método, ruta,
-estado, duración y categoría de error, sin secretos ni contenido completo.
+Mientras se registre actividad, el sistema deberá mantener un nivel mínimo
+(`warn` en los comandos de arranque) y no registrar cuerpos, preguntas,
+contexto, respuestas ni secretos.
 Por qué: permitir depurar sin exponer datos sensibles ni información del usuario.
 
 ### Entrega
@@ -132,18 +133,65 @@ Donde se entregue el sistema, deberá documentarse las variables de entorno, la
 migración, la ingesta, el arranque y una llamada de ejemplo a `POST /api/chat`.
 Por qué: permitir instalar y operar el MVP desde un entorno limpio.
 
-## Fuera de alcance
+### Roadmap de memoria temporal
+
+La memoria conversacional no forma parte todavía del contrato implementado de
+`POST /api/chat`. Se planifica como un único Paso 6, asociado inicialmente a
+una clave HMAC derivada de la IP, sin guardar la IP en claro. El MVP no
+introducirá cookies ni tokens de sesión anónimos.
+
+**RF-20 — Contrato del historial**
+Cuando se defina el historial de una sesión, el sistema deberá representarlo
+como una lista ordenada de mensajes de roles `user` y `assistant` únicamente,
+ordenados por un `seq` monótono por sesión y nunca renumerado, con el
+contenido normalizado y acotado por un número de mensajes, un número de
+caracteres por mensaje y un número total de caracteres. Un turno podrá quedar
+sin respuesta y, en ese caso, la pregunta del usuario se conservará; el
+historial no podrá empezar por un mensaje del asistente. El prompt de sistema
+no se almacenará como mensaje.
+Por qué: fijar una estructura estable, acotada y ordenada antes de tocar la
+base de datos, para que la migración y la recuperación no interpreten el
+historial de formas distintas.
+
+#### Paso 6 — Historial temporal por sesión/IP
+
+La primera fase deberá:
+
+- guardar mensajes de usuario y asistente en PostgreSQL, manteniendo el orden
+  definido en RF-20 (`seq` monótono por sesión);
+- separar sesiones y mensajes para permitir `ON DELETE CASCADE`;
+- guardar solo una clave derivada mediante HMAC y un secreto del servidor, nunca
+  la IP directamente;
+- usar un TTL configurable de 15 minutos por defecto, con
+  `last_activity_at` y `expires_at`;
+- actualizar la actividad de la sesión en cada petición válida;
+- recuperar el historial antes de construir el contexto enviado a Groq;
+- guardar los mensajes de usuario y asistente de forma atómica;
+- eliminar automáticamente sesiones expiradas y sus mensajes;
+- limitar el número de mensajes, el tamaño de cada mensaje y el tamaño total;
+- no guardar claves API, cabeceras, prompts internos ni información que no sea
+  necesaria para el historial;
+- probar aislamiento, expiración, borrado en cascada y límites.
+
+La IP no es una identidad fiable: puede ser compartida por varias personas,
+cambiar en redes móviles o estar ocultada por una VPN. Esta fase es por tanto
+transitoria y no garantiza aislamiento por usuario.
+
+## Fuera de alcance actual
 
 - Embeddings locales.
 - Escalado horizontal e infraestructura distribuida avanzada.
-- Cookies, identidad anónima o identidad firmada.
-- Conversaciones persistentes o memoria de chat.
+- Autenticación de usuarios, cuentas y sesiones permanentes.
 - Versionado documental sofisticado o reemplazo atómico.
 - Filtros avanzados de recuperación.
 - Presupuestos globales de consumo.
 - Observabilidad avanzada, métricas o trazas distribuidas.
 - LangChain.
 - Panel de administración.
+
+La memoria temporal del Paso 6 queda fuera de la implementación actual hasta
+que se complete su checklist en `api/TODO.md`. Cuando se implemente, seguirá
+sin ser una cuenta de usuario ni una conversación permanente.
 
 ## Criterios de finalización
 

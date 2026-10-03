@@ -1,3 +1,4 @@
+import { request } from 'node:http'
 import { test } from 'node:test'
 import * as assert from 'node:assert'
 import type Groq from 'groq-sdk'
@@ -134,6 +135,84 @@ test('chat stream emits a generic error when Groq fails after sources', async (t
     message: 'An unexpected error occurred while generating the answer'
   })
   assert.equal(res.payload.includes('provider secret that must not leak'), false)
+})
+
+test('chat stream aborts Groq when the HTTP client disconnects', async (t) => {
+  const app = await build(t)
+  let groqSignal: AbortSignal | undefined
+  let resolveGroqStarted: (() => void) | undefined
+  const groqStarted = new Promise<void>((resolve) => {
+    resolveGroqStarted = resolve
+  })
+
+  app.groq.client = {
+    chat: {
+      completions: {
+        create: async (
+          _params: Record<string, unknown>,
+          options?: { signal?: AbortSignal | null }
+        ) => {
+          groqSignal = options?.signal ?? undefined
+          resolveGroqStarted?.()
+
+          return (async function* () {
+            await new Promise<void>((resolve) => {
+              if (groqSignal?.aborted) {
+                resolve()
+                return
+              }
+              groqSignal?.addEventListener('abort', () => resolve(), { once: true })
+            })
+          })()
+        }
+      }
+    }
+  } as unknown as Groq
+
+  await app.listen({ host: '127.0.0.1', port: 0 })
+  const address = app.server.address()
+  assert.ok(address && typeof address === 'object')
+
+  const clientRequest = request({
+    host: '127.0.0.1',
+    port: address.port,
+    method: 'POST',
+    path: '/api/chat',
+    headers: { 'content-type': 'application/json' }
+  })
+
+  const sourcesReceived = new Promise<void>((resolve, reject) => {
+    clientRequest.once('response', (response) => {
+      response.once('data', () => resolve())
+      response.once('error', reject)
+    })
+    clientRequest.once('error', (error) => {
+      if ((error as NodeJS.ErrnoException).code !== 'ECONNRESET') reject(error)
+    })
+  })
+
+  clientRequest.end(JSON.stringify({
+    question: '¿Qué tecnologías usa Jorge en el proyecto de reservas de peluquería?'
+  }))
+
+  await sourcesReceived
+  await groqStarted
+  clientRequest.destroy()
+
+  await new Promise<void>((resolve, reject) => {
+    const deadline = setTimeout(() => reject(new Error('Groq signal was not aborted')), 1000)
+    const check = () => {
+      if (groqSignal?.aborted) {
+        clearTimeout(deadline)
+        resolve()
+      } else {
+        setImmediate(check)
+      }
+    }
+    check()
+  })
+
+  await app.close()
 })
 
 test('chat route rejects a whitespace-only question', async (t) => {

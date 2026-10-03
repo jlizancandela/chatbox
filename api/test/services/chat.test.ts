@@ -2,10 +2,12 @@ import assert from "node:assert";
 import { test } from "node:test";
 import type Groq from "groq-sdk";
 import {
+	buildChatMessages,
 	createAskStream,
 	type ChatEvent,
 	type ChatSource,
 } from "../../src/services/chat";
+import type { HistoryMessage } from "../../src/services/history.contract";
 
 type FakeDelta = { content?: string | null };
 type FakeChunk = { choices?: Array<{ delta?: FakeDelta }> };
@@ -51,6 +53,7 @@ test("askStream emits sources and done without context and skips Groq", async ()
 
 	const askStream = createAskStream({
 		retrieve: async () => [],
+		loadHistory: async () => [],
 		groqClient: createFakeGroq(async () => {
 			groqCalled = true;
 			return emptyStream();
@@ -58,7 +61,7 @@ test("askStream emits sources and done without context and skips Groq", async ()
 		modelDefault: "model-test",
 	});
 
-	const events = await collect(askStream("question"));
+	const events = await collect(askStream("question", { sessionKey: "session-test" }));
 
 	assert.strictEqual(groqCalled, false);
 	assert.deepStrictEqual(events, [
@@ -72,6 +75,7 @@ test("askStream emits sources, tokens and done with context", async () => {
 
 	const askStream = createAskStream({
 		retrieve: async () => [source()],
+		loadHistory: async () => [],
 		groqClient: createFakeGroq(async (params) => {
 			capturedParams = params;
 			return (async function* () {
@@ -84,7 +88,7 @@ test("askStream emits sources, tokens and done with context", async () => {
 		modelDefault: "model-test",
 	});
 
-	const events = await collect(askStream("question"));
+	const events = await collect(askStream("question", { sessionKey: "session-test" }));
 
 	assert.strictEqual(capturedParams?.stream, true);
 	assert.strictEqual(capturedParams?.model, "model-test");
@@ -102,6 +106,7 @@ test("askStream forwards the abort signal to Groq", async () => {
 
 	const askStream = createAskStream({
 		retrieve: async () => [source()],
+		loadHistory: async () => [],
 		groqClient: createFakeGroq(async (_params, options) => {
 			capturedSignal = options?.signal;
 			return (async function* () {
@@ -111,7 +116,10 @@ test("askStream forwards the abort signal to Groq", async () => {
 		modelDefault: "model-test",
 	});
 
-	await collect(askStream("question", controller.signal));
+	await collect(askStream("question", {
+				sessionKey: "session-test",
+				signal: controller.signal,
+			}));
 
 	assert.strictEqual(capturedSignal, controller.signal);
 });
@@ -119,6 +127,7 @@ test("askStream forwards the abort signal to Groq", async () => {
 test("askStream emits an error event when the provider fails mid-stream", async () => {
 	const askStream = createAskStream({
 		retrieve: async () => [source()],
+		loadHistory: async () => [],
 		groqClient: createFakeGroq(async () => {
 			return (async function* () {
 				yield chunkOf("Hola");
@@ -128,7 +137,7 @@ test("askStream emits an error event when the provider fails mid-stream", async 
 		modelDefault: "model-test",
 	});
 
-	const events = await collect(askStream("question"));
+	const events = await collect(askStream("question", { sessionKey: "session-test" }));
 
 	assert.deepStrictEqual(events, [
 		{ type: "sources", sources: [source()] },
@@ -145,6 +154,7 @@ test("askStream stops silently when aborted mid-stream", async () => {
 
 	const askStream = createAskStream({
 		retrieve: async () => [source()],
+		loadHistory: async () => [],
 		groqClient: createFakeGroq(async (_params, options) => {
 			const signal = options?.signal;
 			return (async function* () {
@@ -160,7 +170,10 @@ test("askStream stops silently when aborted mid-stream", async () => {
 
 	const events: ChatEvent[] = [];
 	const collecting = (async () => {
-		for await (const event of askStream("question", controller.signal)) {
+		for await (const event of askStream("question", {
+			sessionKey: "session-test",
+		signal: controller.signal,
+		})) {
 			events.push(event);
 		}
 	})();
@@ -178,6 +191,7 @@ test("askStream emits an error event when retrieval fails", async () => {
 		retrieve: async () => {
 			throw new Error("embedding provider failure");
 		},
+		loadHistory: async () => [],
 		groqClient: createFakeGroq(async () => {
 			groqCalled = true;
 			return emptyStream();
@@ -185,7 +199,7 @@ test("askStream emits an error event when retrieval fails", async () => {
 		modelDefault: "model-test",
 	});
 
-	const events = await collect(askStream("question"));
+	const events = await collect(askStream("question", { sessionKey: "session-test" }));
 
 	assert.strictEqual(groqCalled, false);
 	assert.deepStrictEqual(events, [
@@ -193,5 +207,68 @@ test("askStream emits an error event when retrieval fails", async () => {
 			type: "error",
 			message: "An unexpected error occurred while generating the answer",
 		},
+	]);
+});
+
+test("buildChatMessages includes history and merges consecutive user turns", () => {
+	const history: HistoryMessage[] = [
+		{
+			seq: 1,
+			role: "user",
+			content: "Primera pregunta",
+			createdAt: "2026-01-01T00:00:00.000Z",
+		},
+		{
+			seq: 2,
+			role: "assistant",
+			content: "Primera respuesta",
+			createdAt: "2026-01-01T00:00:01.000Z",
+		},
+		{
+			seq: 3,
+			role: "user",
+			content: "Pregunta sin respuesta",
+			createdAt: "2026-01-01T00:00:02.000Z",
+		},
+	];
+
+	assert.deepStrictEqual(buildChatMessages("Contexto", history, "Nueva pregunta"), [
+		{
+			role: "system",
+			content:
+				"You are a helpful assistant that answers questions based only on the provided context. If the context does not contain the answer, say you do not know.\n\nContext:\nContexto",
+		},
+		{ role: "user", content: "Primera pregunta" },
+		{ role: "assistant", content: "Primera respuesta" },
+		{
+			role: "user",
+			content: "Pregunta sin respuesta\n\nNueva pregunta",
+		},
+	]);
+});
+
+test("askStream continues without history when the loader fails", async () => {
+	let capturedMessages: unknown;
+	const askStream = createAskStream({
+		retrieve: async () => [source()],
+		loadHistory: async () => {
+			throw new Error("history database unavailable");
+		},
+		groqClient: createFakeGroq(async (params) => {
+			capturedMessages = params.messages;
+			return emptyStream();
+		}),
+		modelDefault: "model-test",
+	});
+
+	await collect(askStream("question", { sessionKey: "session-test" }));
+
+	assert.deepStrictEqual(capturedMessages, [
+		{
+			role: "system",
+			content:
+				"You are a helpful assistant that answers questions based only on the provided context. If the context does not contain the answer, say you do not know.\n\nContext:\nContexto de ejemplo.",
+		},
+		{ role: "user", content: "question" },
 	]);
 });
