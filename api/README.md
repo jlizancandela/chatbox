@@ -223,6 +223,14 @@ Si el cliente se desconecta a mitad de la respuesta, el servidor cancela la
 petición a Groq mediante un `AbortController` ligado a la señal de la
 petición, de modo que no se sigue consumiendo el modelo generativo.
 
+### Limpieza automática
+
+Las sesiones expiradas se eliminan solas siguiendo un cron de cinco campos
+configurable con `HISTORY_CLEANUP_SCHEDULE` (por defecto `0 3 * * *`, una vez
+al día a las 03:00 hora del servidor). El borrado de los mensajes asociados se
+hace por la cascada definida en la migración 004. La tarea se programa al
+arrancar la API y se detiene al cerrarla.
+
 ## Contrato del historial (Paso 6)
 
 El historial temporal de conversación se recupera en `POST /api/chat`. El
@@ -273,6 +281,7 @@ recuperado y nunca se guarda como mensaje del historial.
 | Caracteres por mensaje | 2000 | `HISTORY_MAX_MESSAGE_CHARS` |
 | Caracteres totales por sesión | 8000 | `HISTORY_MAX_TOTAL_CHARS` |
 | TTL de sesión inactiva (minutos) | 15 | `HISTORY_SESSION_TTL_MINUTES` |
+| Limpieza automática de sesiones | `0 3 * * *` | `HISTORY_CLEANUP_SCHEDULE` |
 
 Las cuatro variables aceptan enteros positivos y se validan al arrancar; un valor
 inválido detiene el arranque. El TTL se renueva con cada reutilización válida de

@@ -74,9 +74,9 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Añadir TTL configurable (15 minutos por defecto) y fecha de última actividad.
 - [x] Recuperar el historial de la sesión para incluirlo en el contexto del chat.
 - [x] Guardar los mensajes de usuario y asistente de forma atómica.
-- [ ] Borrar automáticamente las sesiones expiradas y sus mensajes.
+- [x] Borrar automáticamente las sesiones expiradas y sus mensajes.
 - [ ] Limitar el número de mensajes y el tamaño total del historial.
 - [ ] Evitar guardar secretos, credenciales o contenido fuera del historial necesario.
-- [ ] Añadir tests de aislamiento, expiración, borrado en cascada y límites.
+- [x] Añadir tests de aislamiento, expiración, borrado en cascada y límites.
 - [ ] Documentar las limitaciones de usar la IP como identificador de sesión.
 - [ ] Verificar el flujo completo desde una base de datos limpia.

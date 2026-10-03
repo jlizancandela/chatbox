@@ -76,6 +76,27 @@ export const readHistoryTTLMinutes = (env: NodeJS.ProcessEnv): number =>
 
 export const historyTTLMinutes: number = readHistoryTTLMinutes(process.env);
 
+const DEFAULT_CLEANUP_SCHEDULE = "0 3 * * *";
+
+const CRON_PATTERN = /^\S+ \S+ \S+ \S+ \S+$/;
+
+export const readHistoryCleanupSchedule = (
+	env: NodeJS.ProcessEnv = process.env,
+): string => {
+	const value = env.HISTORY_CLEANUP_SCHEDULE?.trim();
+	if (!value) {
+		return DEFAULT_CLEANUP_SCHEDULE;
+	}
+	if (!CRON_PATTERN.test(value)) {
+		throw new Error(
+			"HISTORY_CLEANUP_SCHEDULE must be a 5 field cron expression",
+		);
+	}
+	return value;
+};
+
+export const historyCleanupSchedule: string = readHistoryCleanupSchedule();
+
 export const normalizeMessageContent = (
 	content: string,
 	limits: HistoryLimits = historyLimits,
