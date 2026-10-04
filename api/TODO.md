@@ -66,7 +66,7 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Documentar el contrato de eventos para el front (`fetch` + `ReadableStream`).
 - [x] Añadir un test de integración que simule una desconexión HTTP real y verifique el aborto del stream de Groq.
 
-## Paso 6 — Historial de conversación enviado por el cliente
+## Paso 6 — Historial de conversación enviado por el cliente ✅
 
 - [x] ~~Definir el contrato del historial en el servidor (sesiones, TTL, cascade delete)~~.
 - [x] ~~Migración PostgreSQL para sesiones y mensajes temporales~~.
@@ -76,3 +76,13 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Eliminar archivos de persistencia: `history.*`, `conversations.ts`, `cleanup.ts`.
 - [x] Migración de rollback `005_drop_conversation_history.sql`.
 - [x] Actualizar tests y documentación.
+
+## Paso 7 — Historial seguro y recortado por el servidor ✅
+
+- [x] System prompt estricto con delimitadores `=== CONTEXT ===` y reglas anti-injection.
+- [x] `trimHistory()` server-side: límites de mensajes, caracteres por mensaje y totales.
+- [x] Evento `sources` lleva el historial canónico para sync del cliente.
+- [x] Schema valida `content.maxLength=2000` por mensaje (400 si excede).
+- [x] Variables `HISTORY_MAX_MESSAGES`, `HISTORY_MAX_MESSAGE_CHARS`, `HISTORY_MAX_TOTAL_CHARS`.
+- [x] Tests de `trimHistory` y actualización del contrato SSE.
+- [x] Documentación en README.md y .env.example.

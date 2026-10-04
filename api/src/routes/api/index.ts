@@ -2,7 +2,6 @@ import { Readable } from "node:stream";
 import type { FastifyPluginAsync } from "fastify";
 import rateLimitMiddleware from "../../middleware/rate-limit";
 import { chatOptions } from "../../schemas/chat";
-import type { ChatMessage } from "../../services/chat";
 import { chatService, type ChatEvent } from "../../services/chat";
 
 const SSE_HEADERS = {
@@ -17,7 +16,7 @@ const encodeEvent = (event: ChatEvent): string => {
 
 	switch (event.type) {
 		case "sources":
-			data = { sources: event.sources };
+			data = { sources: event.sources, history: event.history };
 			break;
 		case "token":
 			data = { token: event.token };
@@ -47,7 +46,7 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 	fastify.post("/chat", chatOptions, async (request, reply) => {
 		const { question, history = [] } = request.body as {
 			question: string;
-			history?: ChatMessage[];
+			history?: ChatEvent extends { type: "sources"; history: infer H } ? H : never;
 		};
 
 		if (question.trim().length === 0 || question.trim().length > 1000) {

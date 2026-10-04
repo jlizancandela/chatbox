@@ -138,10 +138,30 @@ Por qué: permitir instalar y operar el MVP desde un entorno limpio.
 **RF-20 — Historial enviado por el cliente**
 Cuando se reciba una petición a `POST /api/chat`, el sistema podrá aceptar un
 campo opcional `history` con una lista de mensajes de roles `user` o `assistant`.
-El servidor no persiste el historial; lo recibe del cliente y lo incluye en el
-contexto enviado a Groq sin transformarlo.
+El servidor no persiste el historial; lo recibe del cliente, lo recorta según
+los límites configurados y lo incluye en el contexto enviado a Groq.
 Por qué: simplificar la infraestructura, eliminar la necesidad de identificar
 sesiones por IP y evitar limitaciones de NAT, VPNs o IPs compartidas.
+
+**RF-20a — Recorte y sync del historial**
+Cuando se reciba el campo `history`, el sistema deberá recortarlo antes de
+usarlo: mantener los mensajes más recientes hasta `HISTORY_MAX_MESSAGES`, truncar
+la suma de caracteres a `HISTORY_MAX_TOTAL_CHARS` y truncar cada mensaje
+individual a `HISTORY_MAX_MESSAGE_CHARS`. Si el mensaje más antiguo recortado es
+un `assistant` sin par de usuario, se descartará. El historial recortado se
+devolverá al cliente en el evento `sources` para que pueda sincronizar su estado.
+El servidor validará que cada mensaje del cliente no supere `HISTORY_MAX_MESSAGE_CHARS`
+y lo rechazará con `400` si lo excede.
+Por qué: controlar el coste de tokens, prevenir payloads excesivos y mantener
+cliente y servidor sincronizados sobre cuál es el historial canónico.
+
+**RF-20b — System prompt endurecido**
+Cuando se genere una respuesta, el sistema utilizará un prompt de sistema con
+reglas explícitas contra inyección de instrucciones a través de mensajes del
+usuario o del historial, y delimitadores claros que separen el contexto
+recuperado del resto de la conversación.
+Por qué: prevenir que contenido malicioso en mensajes del historial del cliente
+manipule el comportamiento del modelo.
 
 ## Fuera de alcance actual
 

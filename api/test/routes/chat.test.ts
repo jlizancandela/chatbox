@@ -49,7 +49,7 @@ test('chat stream returns empty sources and done for an unrelated question', asy
   const frames = parseSSE(res.payload)
   assert.equal(frames.length, 2)
   assert.equal(frames[0].event, 'sources')
-  assert.deepStrictEqual(frames[0].data, { sources: [] })
+  assert.deepStrictEqual(frames[0].data, { sources: [], history: [] })
   assert.equal(frames[1].event, 'done')
   assert.deepStrictEqual(frames[1].data, {})
 })
