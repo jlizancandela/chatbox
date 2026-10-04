@@ -2,8 +2,8 @@ import { Readable } from "node:stream";
 import type { FastifyPluginAsync } from "fastify";
 import rateLimitMiddleware from "../../middleware/rate-limit";
 import { chatOptions } from "../../schemas/chat";
+import type { ChatMessage } from "../../services/chat";
 import { chatService, type ChatEvent } from "../../services/chat";
-import { deriveSessionKey } from "../../services/history.session";
 
 const SSE_HEADERS = {
 	"content-type": "text/event-stream",
@@ -45,13 +45,17 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 	await fastify.register(rateLimitMiddleware);
 
 	fastify.post("/chat", chatOptions, async (request, reply) => {
-		const { question } = request.body as { question: string };
+		const { question, history = [] } = request.body as {
+			question: string;
+			history?: ChatMessage[];
+		};
 
 		if (question.trim().length === 0 || question.trim().length > 1000) {
 			return reply.code(400).send({
 				error: {
 					code: "INVALID_QUESTION",
-					message: "Question must be between 1 and 1000 characters long.",
+					message:
+						"Question must be between 1 and 1000 characters long.",
 				},
 			});
 		}
@@ -60,12 +64,7 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 			fastify.pg,
 			fastify.groq.client,
 			fastify.groq.options.modelDefault,
-			request.log,
 		);
-
-		// The session is derived from the client IP on the server side: the
-		// client never sends the history, only the IP identifies the turn.
-		const sessionKey = deriveSessionKey(request.ip);
 
 		const controller = new AbortController();
 
@@ -81,7 +80,7 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 			Readable.from(
 				toSSE(
 					chat.askStream(question, {
-						sessionKey,
+						history,
 						signal: controller.signal,
 					}),
 				),

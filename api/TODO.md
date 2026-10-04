@@ -66,17 +66,13 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Documentar el contrato de eventos para el front (`fetch` + `ReadableStream`).
 - [x] Añadir un test de integración que simule una desconexión HTTP real y verifique el aborto del stream de Groq.
 
-## Paso 6 — Historial temporal de conversación por sesión/IP
+## Paso 6 — Historial de conversación enviado por el cliente
 
-- [x] Definir el contrato del historial: mensajes de usuario y asistente, orden y límites.
-- [x] Crear migración para sesiones y mensajes temporales en PostgreSQL.
-- [x] Asociar cada sesión a una clave derivada de la IP, sin guardar la IP en claro.
-- [x] Añadir TTL configurable (15 minutos por defecto) y fecha de última actividad.
-- [x] Recuperar el historial de la sesión para incluirlo en el contexto del chat.
-- [x] Guardar los mensajes de usuario y asistente de forma atómica.
-- [x] Borrar automáticamente las sesiones expiradas y sus mensajes.
-- [ ] Limitar el número de mensajes y el tamaño total del historial.
-- [ ] Evitar guardar secretos, credenciales o contenido fuera del historial necesario.
-- [x] Añadir tests de aislamiento, expiración, borrado en cascada y límites.
-- [ ] Documentar las limitaciones de usar la IP como identificador de sesión.
-- [ ] Verificar el flujo completo desde una base de datos limpia.
+- [x] ~~Definir el contrato del historial en el servidor (sesiones, TTL, cascade delete)~~.
+- [x] ~~Migración PostgreSQL para sesiones y mensajes temporales~~.
+- [x] El cliente envía `history` en cada petición; el servidor no persiste nada.
+- [x] Actualizar esquema de `POST /api/chat` para aceptar `history?: ChatMessage[]`.
+- [x] Simplificar `chatService`: eliminar `loadHistory` y `saveTurn`.
+- [x] Eliminar archivos de persistencia: `history.*`, `conversations.ts`, `cleanup.ts`.
+- [x] Migración de rollback `005_drop_conversation_history.sql`.
+- [x] Actualizar tests y documentación.

@@ -133,55 +133,15 @@ Donde se entregue el sistema, deberá documentarse las variables de entorno, la
 migración, la ingesta, el arranque y una llamada de ejemplo a `POST /api/chat`.
 Por qué: permitir instalar y operar el MVP desde un entorno limpio.
 
-### Roadmap de memoria temporal
+### Historial de conversación
 
-La memoria conversacional no forma parte todavía del contrato implementado de
-`POST /api/chat`. Se planifica como un único Paso 6, asociado inicialmente a
-una clave HMAC derivada de la IP, sin guardar la IP en claro. El MVP no
-introducirá cookies ni tokens de sesión anónimos.
-
-**RF-20 — Contrato del historial**
-Cuando se defina el historial de una sesión, el sistema deberá representarlo
-como una lista ordenada de mensajes de roles `user` y `assistant` únicamente,
-ordenados por un `seq` monótono por sesión y nunca renumerado, con el
-contenido normalizado y acotado por un número de mensajes, un número de
-caracteres por mensaje y un número total de caracteres. Un turno podrá quedar
-sin respuesta y, en ese caso, la pregunta del usuario se conservará; el
-historial no podrá empezar por un mensaje del asistente. El prompt de sistema
-no se almacenará como mensaje.
-Por qué: fijar una estructura estable, acotada y ordenada antes de tocar la
-base de datos, para que la migración y la recuperación no interpreten el
-historial de formas distintas.
-
-#### Paso 6 — Historial temporal por sesión/IP
-
-La primera fase deberá:
-
-- guardar mensajes de usuario y asistente en PostgreSQL, manteniendo el orden
-  definido en RF-20 (`seq` monótono por sesión);
-- separar sesiones y mensajes para permitir `ON DELETE CASCADE`;
-- guardar solo una clave derivada mediante HMAC y un secreto del servidor, nunca
-  la IP directamente;
-- usar un TTL configurable de 15 minutos por defecto, con
-  `last_activity_at` y `expires_at`;
-- actualizar la actividad de la sesión en cada petición válida;
-- recuperar el historial antes de construir el contexto enviado a Groq;
-- guardar los mensajes de usuario y asistente de forma atómica;
-- eliminar automáticamente sesiones expiradas y sus mensajes;
-- limitar el número de mensajes, el tamaño de cada mensaje y el tamaño total;
-- no guardar claves API, cabeceras, prompts internos ni información que no sea
-  necesaria para el historial;
-- probar aislamiento, expiración, borrado en cascada y límites.
-
-La limpieza periódica se realiza en la propia API mediante `node-cron`,
-ejecutando `DELETE FROM conversation_sessions WHERE expires_at < NOW()` con
-el schedule configurable `HISTORY_CLEANUP_SCHEDULE` (por defecto `0 3 * * *`).
-La tarea se programa al arrancar y se detiene al cerrar la aplicación; los
-mensajes se eliminan por la cascada de la migración 004.
-
-La IP no es una identidad fiable: puede ser compartida por varias personas,
-cambiar en redes móviles o estar ocultada por una VPN. Esta fase es por tanto
-transitoria y no garantiza aislamiento por usuario.
+**RF-20 — Historial enviado por el cliente**
+Cuando se reciba una petición a `POST /api/chat`, el sistema podrá aceptar un
+campo opcional `history` con una lista de mensajes de roles `user` o `assistant`.
+El servidor no persiste el historial; lo recibe del cliente y lo incluye en el
+contexto enviado a Groq sin transformarlo.
+Por qué: simplificar la infraestructura, eliminar la necesidad de identificar
+sesiones por IP y evitar limitaciones de NAT, VPNs o IPs compartidas.
 
 ## Fuera de alcance actual
 

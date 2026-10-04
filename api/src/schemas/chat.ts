@@ -9,6 +9,18 @@ const chatSchema = {
 			type: "string",
 			minLength: 1,
 		},
+		history: {
+			type: "array",
+			items: {
+				type: "object",
+				required: ["role", "content"],
+				additionalProperties: false,
+				properties: {
+					role: { type: "string", enum: ["user", "assistant"] },
+					content: { type: "string" },
+				},
+			},
+		},
 	},
 };
 

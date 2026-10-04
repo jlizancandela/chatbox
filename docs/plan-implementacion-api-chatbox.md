@@ -77,25 +77,23 @@ Todo se implementa en un único backend Fastify con TypeScript. Las claves de Ge
 - [x] Cancelar Groq cuando el cliente HTTP se desconecta.
 - [x] Cubrir el flujo con tests unitarios, de ruta y de desconexión HTTP real.
 
-## Paso 6 - Historial temporal por sesión/IP (planificado)
+## Paso 6 - Historial de conversación enviado por el cliente
 
-El historial será temporal y se almacenará en PostgreSQL. La primera fase usará
-una clave HMAC derivada de la IP, sin guardar la IP en claro, con TTL inicial de
-15 minutos de inactividad por defecto (configurable). Las sesiones y mensajes se borrarán en cascada; se
-limitarán cantidad y tamaño, y el guardado de usuario y asistente será atómico.
-La IP tiene limitaciones con NAT, móviles y VPN, por lo que esta fase será
-transitoria.
+El cliente envía el historial de la conversación en cada petición `POST /api/chat`
+dentro del campo `history`. El servidor no persiste nada: no hay sesión, ni TTL,
+ni tabla en la base de datos.
 
-El contrato del historial ya está definido (`api/src/services/history.contract.ts`
-y RF-20 en `docs/spec.md`): mensajes `user` y `assistant` ordenados por un `seq`
-monótono por sesión, turnos de uno o dos mensajes que nunca empiezan por
-`assistant`, y límites de 20 mensajes, 2000 caracteres por mensaje y 8000 en
-total, configurables por entorno.
+Esta decisión simplifica la infraestructura (sin limpieza, sin clave HMAC, sin TTL)
+y elimina las limitaciones de usar la IP como identificador. El almacenamiento
+corre por cuenta del cliente.
 
-La limpieza automática de sesiones expiradas se hace en la propia API con
-`node-cron`, configurable vía `HISTORY_CLEANUP_SCHEDULE` (por defecto
-`0 3 * * *`). La tarea ejecuta `DELETE FROM conversation_sessions WHERE expires_at < NOW()`
-y los mensajes caen por la cascada de la migración 004.
+**Implementado:**
+- Esquema de `POST /api/chat` acepta `history?: { role: "user"|"assistant", content: string }[]`.
+- `chatService` ya no carga ni guarda historial en BD.
+- Archivos eliminados: `history.contract.ts`, `history.load.ts`, `history.session.ts`,
+  `conversations.ts`, `cleanup.ts`, migración 004.
+- Migración de rollback `005_drop_conversation_history.sql` disponible.
+- Tests y documentación actualizados.
 
 ## Criterios de éxito
 
