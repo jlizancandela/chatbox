@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"inverse-surface":"#2f3038","tertiary-fixed-dim":"#ffb59a","on-tertiary-container":"#fffbff","surface-container-lowest":"#ffffff","surface-container":"#eeedf7","on-primary":"#ffffff","primary-fixed":"#89f5e7","surface-bright":"#fbf8ff","surface-tint":"#006a61","primary-fixed-dim":"#6bd8cb","inverse-on-surface":"#f1effa","on-primary-fixed":"#00201d","tertiary-fixed":"#ffdbce","on-secondary-container":"#00476e","on-tertiary-fixed-variant":"#773215","primary":"#00685f","surface":"#fbf8ff","secondary":"#006398","on-secondary":"#ffffff","surface-container-high":"#e8e7f1","on-primary-fixed-variant":"#005049","on-secondary-fixed-variant":"#004b73","surface-container-low":"#f4f2fd","tertiary-container":"#b05e3d","on-tertiary":"#ffffff","error":"#ba1a1a","error-container":"#ffdad6","on-error":"#ffffff","on-surface-variant":"#3d4947","outline-variant":"#bcc9c6","primary-container":"#008378","secondary-fixed-dim":"#93ccff","on-surface":"#1a1b22","on-background":"#1a1b22","surface-dim":"#dad9e3","surface-container-highest":"#e3e1ec","secondary-container":"#5bb8fe","on-secondary-fixed":"#001d31","secondary-fixed":"#cce5ff","surface-variant":"#e3e1ec","tertiary":"#924628","background":"#fbf8ff","on-error-container":"#93000a","outline":"#6d7a77","inverse-primary":"#6bd8cb","on-primary-container":"#f4fffc","on-tertiary-fixed":"#370e00"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"gutter":"0.75rem","space-sm":"0.5rem","space-md":"0.75rem","space-xs":"0.25rem","space-xl":"1.5rem","margin":"1rem","space-lg":"1rem"},fontFamily:{"label-md":["Inter"],"label-sm":["Inter"],"headline-sm":["Inter"],"code-sm":["JetBrains Mono"],"body-lg":["Inter"],"body-sm":["Inter"],"body-md":["Inter"]},fontSize:{"label-md":["13px",{lineHeight:"16px",letterSpacing:"0em",fontWeight:"500"}],"label-sm":["11px",{lineHeight:"14px",letterSpacing:"0.02em",fontWeight:"600"}],"headline-sm":["18px",{lineHeight:"24px",letterSpacing:"-0.015em",fontWeight:"600"}],"code-sm":["12px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"400"}],"body-lg":["15px",{lineHeight:"22px",letterSpacing:"-0.01em",fontWeight:"400"}],"body-sm":["12px",{lineHeight:"16px",letterSpacing:"0em",fontWeight:"400"}],"body-md":["14px",{lineHeight:"20px",letterSpacing:"-0.006em",fontWeight:"400"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-fixed selection:text-on-primary-fixed"><header class="fixed top-0 w-full z-40 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-14 max-w-7xl mx-auto px-margin lg:px-space-xl flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">Jorge<span class="text-primary">.dev</span></span><span class="hidden sm:inline-block px-space-xs py-0.5 rounded bg-surface-container-high text-on-surface-variant font-code-sm text-code-sm">Staff Systems Engineer</span></div><nav class="flex items-center gap-space-xs sm:gap-space-sm" data-active-classes="bg-surface-container-high text-on-surface font-medium"><a class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-colors" data-path="portfolio-showcase" href="#">Showcase</a><a class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-colors" data-path="architecture-systems" href="#">Architecture</a><a class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-colors" data-path="experience-specs" href="#">Background</a><a class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-colors" data-path="widget-lab" href="#">Agent Lab</a></nav><div class="flex items-center gap-space-md"><a class="hidden md:flex items-center gap-space-xs px-space-md py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-sm text-label-sm shadow-[0_2px_6px_rgba(0,104,95,0.2)] hover:opacity-95 transition-opacity" data-path="widget-lab" href="#"><span class="material-symbols-outlined text-[14px]">smart_toy</span><span>Demo Agent</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-14 bg-surface min-h-[calc(100vh-3.5rem)]"><div class="flex flex-col w-full relative">
+<!-- Interactive Controller & Spec Bar (Top Diagnostic Ribbon) -->
+<aside aria-label="Controlador de estados del widget" class="w-full bg-surface-container-high py-space-sm px-margin lg:px-space-xl flex flex-wrap items-center justify-between gap-space-md z-30 shadow-sm">
+<div class="flex items-center gap-space-md flex-wrap">
+<div class="flex items-center gap-space-xs text-primary font-code-sm text-code-sm">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+<span class="font-medium">Spec Visualizer: Modo Burbuja &amp; Launcher States</span>
+</div>
+<div class="flex items-center gap-1 bg-surface-container rounded-lg p-0.5" role="tablist">
+<button class="px-space-md py-1 rounded text-on-surface font-label-sm text-label-sm transition-all bg-surface-container-lowest shadow-sm" id="btn-state-closed" onclick="setWidgetState('closed')">
+          1. Burbuja Colapsada
+        </button>
+<button class="px-space-md py-1 rounded text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-all" id="btn-state-teaser" onclick="setWidgetState('teaser')">
+          2. Teaser Proactivo
+        </button>
+<button class="px-space-md py-1 rounded text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-all" id="btn-state-opened" onclick="setWidgetState('opened')">
+          3. Widget 420x640px Expandido
+        </button>
+</div>
+</div>
+<!-- Live Telemetry Tokens -->
+<div class="flex items-center gap-space-lg text-on-surface-variant font-code-sm text-code-sm">
+<span class="hidden xl:flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-primary"></span>z-index: 50 [Fixed Anchor]</span>
+<span class="hidden md:inline">Touch Target: 56x56px min</span>
+<span class="hidden lg:inline bg-surface-container px-space-xs py-0.5 rounded text-on-surface">Storage: chat_state:active</span>
+</div>
+</aside>
+<!-- Main Background Showcase: Jorge's Portfolio -->
+<div class="w-full max-w-7xl mx-auto px-margin lg:px-space-xl py-space-xl space-y-space-xl">
+<!-- Hero Technical Profile Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center pt-space-md">
+<div class="lg:col-span-8 space-y-space-md">
+<div class="inline-flex items-center gap-space-xs px-space-md py-1 rounded-full bg-primary-container/10 text-primary font-code-sm text-code-sm">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>Disponible para Staff / Principal Roles &amp; Consultoría</span>
+</div>
+<h1 class="text-on-surface font-headline-sm text-headline-sm tracking-tight text-[32px] sm:text-[42px] leading-tight font-bold">
+          Arquitectura de Sistemas Distribuidos, Protocolos de Tiempo Real y Agentes LLM Autónomos
+        </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+          Diseño infraestructuras resilientes de ultra-baja latencia con Rust, Go y Kubernetes. Especializado en integración de orquestadores semánticos y modelos locales de contexto extendido.
+        </p>
+<div class="flex flex-wrap items-center gap-space-md pt-space-xs">
+<a class="inline-flex items-center gap-space-xs px-space-xl py-space-md rounded-lg bg-primary text-on-primary font-label-md text-label-md shadow-md hover:bg-primary-container transition-colors" href="#proyectos">
+<span class="material-symbols-outlined text-[18px]">layers</span>
+<span>Explorar Arquitecturas</span>
+</a>
+<button class="inline-flex items-center gap-space-xs px-space-xl py-space-md rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors" onclick="setWidgetState('opened')">
+<span class="material-symbols-outlined text-[18px] text-primary">chat</span>
+<span>Interrogar Agente de Jorge</span>
+</button>
+</div>
+<!-- Metric micro-strip -->
+<div class="grid grid-cols-3 gap-space-md pt-space-lg max-w-lg">
+<div class="bg-surface-container-low p-space-md rounded-lg">
+<span class="block font-code-sm text-code-sm text-on-surface-variant">Latencia P99</span>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">4.2 ms</span>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-lg">
+<span class="block font-code-sm text-code-sm text-on-surface-variant">Throughput</span>
+<span class="font-headline-sm text-headline-sm text-secondary font-bold">180k req/s</span>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-lg">
+<span class="block font-code-sm text-code-sm text-on-surface-variant">Disponibilidad</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">99.995%</span>
+</div>
+</div>
+</div>
+<!-- Engineer Portrait / Terminal Visual -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<div class="relative rounded-xl overflow-hidden shadow-lg bg-surface-container-low">
+<img class="w-full h-72 object-cover" data-alt="High-end modern developer workspace with ultra-wide screens displaying code graphs, subtle teal and slate backlighting, clean desk with an ergonomic mechanical keyboard and coffee cup in a minimalist architectural studio." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAugIYbYfM2uHhfRnAJSs2_tbpUfmhYPwlHSXtah4t9Z8s7D2jQP7qx7pm2-KM6b7fP1rdhCK80vVRWT_GxZMcoFo3KPkI56A1qm0OI07oOxGxzD5Gi2dyNiDmLIQiKfFp5SwPhVUH0tLZPMgTLqbWFkk6EuQYWf8Rk1regkDk4-f2r6VjiGhFK_U8tNBbb0jHEUWNWyg7tNHsJ8PkVFLwYoEXKNjomlL_2CHudWINkZaCXnQSyGVc"/>
+<div class="p-space-md bg-surface-container-highest flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<span class="font-code-sm text-code-sm text-on-surface-variant ml-space-xs">agent_daemon.rs:88</span>
+</div>
+<span class="font-code-sm text-code-sm text-primary">OK 200</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Bento Grid: Systems Showcase & Active Projects -->
+<section class="space-y-space-md pt-space-lg" id="proyectos">
+<div class="flex items-center justify-between">
+<div>
+<span class="font-code-sm text-code-sm text-primary uppercase tracking-wider font-semibold">01 // Case Studies</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface text-xl">Sistemas en Producción</h2>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Actualizado Q1 2025</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- Project 1 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-space-md">
+<div class="space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-primary font-code-sm text-code-sm">Rust + Raft</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">dns</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Khepri Engine</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Base de datos embebida con consenso distribuido y sincronización en tiempo real vía WebSockets para streaming financiero.
+            </p>
+</div>
+<div class="flex items-center justify-between pt-space-sm">
+<span class="font-code-sm text-code-sm text-on-surface-variant">Stars: 1.4k</span>
+<span class="font-label-sm text-label-sm text-primary flex items-center gap-0.5">Ver detalles <span class="material-symbols-outlined text-[14px]">arrow_forward</span></span>
+</div>
+</div>
+<!-- Project 2 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-space-md">
+<div class="space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed font-code-sm text-code-sm">Go + eBPF</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">security</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">MeshProbe Guardian</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Observabilidad en kernel para topologías de microservicios sin sobrecarga de instrumentación ni sidecars pesados.
+            </p>
+</div>
+<div class="flex items-center justify-between pt-space-sm">
+<span class="font-code-sm text-code-sm text-on-surface-variant">Stars: 890</span>
+<span class="font-label-sm text-label-sm text-primary flex items-center gap-0.5">Ver detalles <span class="material-symbols-outlined text-[14px]">arrow_forward</span></span>
+</div>
+</div>
+<!-- Project 3 -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-space-md">
+<div class="space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-code-sm text-code-sm">Python + LanceDB</span>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">smart_toy</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Jorge-Agent RAG</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+              Pipeline de recuperación contextual híbrida (BM25 + Dense Vectors) que alimenta el widget interactivo que estás probando.
+            </p>
+</div>
+<div class="flex items-center justify-between pt-space-sm">
+<span class="font-code-sm text-code-sm text-on-surface-variant">Tokens: ~180ms</span>
+<span class="font-label-sm text-label-sm text-primary flex items-center gap-0.5">Ver detalles <span class="material-symbols-outlined text-[14px]">arrow_forward</span></span>
+</div>
+</div>
+</div>
+</section>
+<!-- Technical Specs & Launcher Architecture Documentation Matrix -->
+<section class="bg-surface-container-low rounded-xl p-space-xl space-y-space-lg">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">architecture</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Especificaciones Técnicas del Componente Launcher (Floating Widget)</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<div class="bg-surface-container-lowest p-space-md rounded-lg shadow-sm space-y-space-xs">
+<span class="font-code-sm text-code-sm text-primary font-bold">1. Posicionamiento Fijo</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Anclaje <code class="bg-surface-container px-1 rounded text-on-surface">fixed bottom-6 right-6</code> con z-index 50 para flotar sobre canvas sin colisionar con sticky headers ni tooltips. Margen de seguridad 24px en desktop.
+          </p>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-lg shadow-sm space-y-space-xs">
+<span class="font-code-sm text-code-sm text-primary font-bold">2. Accesibilidad &amp; Ergonomía</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Touch Target de 56×56px (superior al umbral WCAG de 44px). Compatible con lectura de pantalla mediante <code class="bg-surface-container px-1 rounded text-on-surface">aria-expanded</code> y foco con teclado (Esc / Tab).
+          </p>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-lg shadow-sm space-y-space-xs">
+<span class="font-code-sm text-code-sm text-primary font-bold">3. Lógica Proactiva de Teaser</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Disparador tras 8s de inactividad o scroll &gt; 40%. Persiste dismiss en <code class="bg-surface-container px-1 rounded text-on-surface">sessionStorage</code> para no repetir interrupciones en la misma sesión.
+          </p>
+</div>
+</div>
+</section>
+</div>
+<!-- ========================================================================= -->
+<!-- FLOATING ANCHOR SYSTEM: JORGE AI ASSISTANT (Bottom-Right Anchor) -->
+<!-- ========================================================================= -->
+<div class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 select-none pointer-events-none">
+<!-- STATE 3: FULL EXPANDED 420x640px WINDOW (Hidden by default, controlled via JS) -->
+<div class="pointer-events-auto hidden w-[380px] sm:w-[420px] h-[600px] max-h-[calc(100vh-6rem)] bg-surface-container-lowest rounded-xl shadow-2xl flex-col overflow-hidden transition-all duration-300 transform scale-95 opacity-0" id="agent-chat-modal">
+<!-- Window Header (56px standard) -->
+<div class="h-14 bg-surface-container px-space-md flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-space-sm">
+<div class="relative">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[18px]">smart_toy</span>
+</div>
+<span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-primary ring-2 ring-surface"></span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1">
+              Asistente de Jorge
+              <span class="font-code-sm text-[10px] text-primary px-1 bg-primary/10 rounded">v2.4</span>
+</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+              En línea · Respuestas técnicas en directo
+            </span>
+</div>
+</div>
+<!-- Window Actions -->
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" onclick="setWidgetState('closed')" title="Minimizar">
+<span class="material-symbols-outlined text-[18px]">minimize</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" onclick="setWidgetState('closed')" title="Cerrar">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+<!-- Window Message Stream -->
+<div class="flex-1 p-space-md overflow-y-auto space-y-space-md bg-surface">
+<!-- Timestamp divider -->
+<div class="text-center">
+<span class="font-code-sm text-[10px] text-on-surface-variant uppercase tracking-wider bg-surface-container px-2 py-0.5 rounded-full">
+            Hoy · Sesión Iniciada
+          </span>
+</div>
+<!-- Bot Greeting -->
+<div class="flex items-start gap-space-xs max-w-[90%]">
+<div class="w-6 h-6 rounded-full bg-primary flex-shrink-0 flex items-center justify-center text-on-primary mt-1">
+<span class="material-symbols-outlined text-[14px]">terminal</span>
+</div>
+<div class="space-y-space-xs">
+<div class="bg-surface-container p-space-md rounded-xl text-on-surface font-body-sm text-body-sm shadow-sm space-y-space-xs">
+<p>
+                Hola, soy el gemelo digital de <strong>Jorge</strong>. He indexado toda su experiencia en sistemas distribuidos, microservicios en Rust y benchmarks en Kubernetes.
+              </p>
+<p>¿Qué te gustaría validar primero?</p>
+</div>
+<span class="font-code-sm text-[10px] text-on-surface-variant px-1">11:42 AM</span>
+</div>
+</div>
+<!-- Suggested Prompt Chips -->
+<div class="space-y-1.5 pl-7">
+<button class="w-full text-left p-space-xs px-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm shadow-sm transition-colors flex items-center justify-between" onclick="fillAndSend('¿Cuál fue su rol en la migración a Kubernetes?')">
+<span>☸️ Experiencia en migración a K8s</span>
+<span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+</button>
+<button class="w-full text-left p-space-xs px-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm shadow-sm transition-colors flex items-center justify-between" onclick="fillAndSend('Explícame la arquitectura de Khepri Engine')">
+<span>🦀 Arquitectura de Khepri Engine (Rust)</span>
+<span class="material-symbols-outlined text-[14px] text-primary">arrow_forward</span>
+</button>
+</div>
+<!-- Simulated Active Turn -->
+<div class="flex flex-col items-end gap-1">
+<div class="bg-primary text-on-primary p-space-md rounded-xl max-w-[85%] font-body-sm text-body-sm shadow-sm">
+            ¿Jorge tiene disponibilidad para proyectos remotos Staff Engineer?
+          </div>
+<span class="font-code-sm text-[10px] text-on-surface-variant">11:43 AM · Leído</span>
+</div>
+<!-- Agent Response Card -->
+<div class="flex items-start gap-space-xs max-w-[92%]">
+<div class="w-6 h-6 rounded-full bg-primary flex-shrink-0 flex items-center justify-center text-on-primary mt-1">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="space-y-space-xs">
+<div class="bg-surface-container p-space-md rounded-xl text-on-surface font-body-sm text-body-sm shadow-sm space-y-space-sm">
+<p>
+<strong>Sí, totalmente.</strong> Jorge está considerando posiciones remotas para roles Staff / Principal o asesorías puntuales de arquitectura.
+              </p>
+<div class="bg-surface-container-lowest p-space-sm rounded-lg shadow-sm space-y-1">
+<span class="font-code-sm text-[11px] text-secondary font-semibold block">Contacto Rápido:</span>
+<span class="font-code-sm text-[12px] text-on-surface">jorge@jorge.dev</span>
+<div class="flex gap-2 pt-1">
+<a class="px-2 py-1 rounded bg-primary-container text-on-primary-container font-label-sm text-[11px]" href="mailto:jorge@jorge.dev">Enviar Email</a>
+<a class="px-2 py-1 rounded bg-surface-container-high text-on-surface font-label-sm text-[11px]" href="#">Agendar 15 min</a>
+</div>
+</div>
+</div>
+<span class="font-code-sm text-[10px] text-on-surface-variant px-1">11:43 AM · Latencia: 142ms</span>
+</div>
+</div>
+</div>
+<!-- Window Input Composer -->
+<div class="p-space-sm bg-surface-container-lowest shadow-md">
+<form class="relative flex items-center" onsubmit="handleChatSubmit(event)">
+<input class="w-full pl-space-md pr-12 py-2.5 rounded-lg bg-surface-container text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm outline-none focus:bg-surface-container-lowest focus:shadow-sm transition-all" id="chat-input" placeholder="Pregunta sobre stack, métricas o casos..." type="text"/>
+<button class="absolute right-1.5 w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center hover:opacity-90 transition-opacity" type="submit">
+<span class="material-symbols-outlined text-[16px]">send</span>
+</button>
+</form>
+<div class="flex items-center justify-between pt-1 px-1 text-[10px] text-on-surface-variant font-code-sm">
+<span>Esc para cerrar</span>
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span>RAG Vectorial Activo</span>
+</div>
+</div>
+</div>
+<!-- STATE 2: PROACTIVE PROMPT / TEASER CHIP (Pill hovering above launcher) -->
+<div class="pointer-events-auto flex items-center gap-space-sm bg-surface-container-lowest text-on-surface p-space-sm pl-space-md rounded-xl shadow-xl transition-all duration-300 max-w-xs animate-bounce" id="teaser-chip">
+<div class="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-ping"></div>
+<p class="font-label-sm text-label-sm text-on-surface leading-tight cursor-pointer" onclick="setWidgetState('opened')">
+        👋 <strong>¿Dudas técnicas?</strong> Pregúntale a mi IA sobre mi experiencia con Rust, Raft o K8s.
+      </p>
+<button class="w-6 h-6 rounded flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" onclick="dismissTeaser(event)" title="Descartar">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- STATE 1: FLOATING ACTION BUTTON LAUNCHER (≥56x56px touch target) -->
+<div class="pointer-events-auto relative group">
+<!-- Tooltip on Hover (Desktop) -->
+<div class="absolute bottom-full right-0 mb-2 hidden group-hover:flex items-center gap-1 bg-surface-container-highest text-on-surface px-space-md py-1 rounded-lg text-code-sm font-code-sm shadow-md whitespace-nowrap">
+<span>Preguntar a la IA de Jorge</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+</div>
+<!-- Ergonomic Capsule / Floating Action Button -->
+<button aria-label="Abrir asistente de Jorge" class="w-14 h-14 rounded-full bg-primary hover:bg-primary-container text-on-primary flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none" id="floating-launcher-btn" onclick="toggleWidgetState()">
+<!-- Dynamic Icon based on state -->
+<span class="material-symbols-outlined text-[26px]" id="launcher-icon-chat">chat_spark</span>
+<span class="material-symbols-outlined text-[26px] hidden" id="launcher-icon-close">close</span>
+<!-- Online status indicator dot -->
+<span class="absolute top-0.5 right-0.5 flex h-3.5 w-3.5" id="online-pip">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-fixed opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-primary-fixed-dim"></span>
+</span>
+</button>
+</div>
+</div>
+<!-- Inline Micro-Controller Logic -->
+<script>
+    let currentState = 'teaser'; // default demo state
+
+    function updateView() {
+      const modal = document.getElementById('agent-chat-modal');
+      const teaser = document.getElementById('teaser-chip');
+      const chatIcon = document.getElementById('launcher-icon-chat');
+      const closeIcon = document.getElementById('launcher-icon-close');
+      const pip = document.getElementById('online-pip');
+
+      // Update Top Ribbon Buttons
+      const btnClosed = document.getElementById('btn-state-closed');
+      const btnTeaser = document.getElementById('btn-state-teaser');
+      const btnOpened = document.getElementById('btn-state-opened');
+
+      [btnClosed, btnTeaser, btnOpened].forEach(b => {
+        b.classList.remove('bg-surface-container-lowest', 'shadow-sm', 'text-on-surface');
+        b.classList.add('text-on-surface-variant');
+      });
+
+      if (currentState === 'closed') {
+        btnClosed.classList.add('bg-surface-container-lowest', 'shadow-sm', 'text-on-surface');
+        modal.classList.add('hidden', 'scale-95', 'opacity-0');
+        modal.classList.remove('flex', 'scale-100', 'opacity-100');
+        teaser.classList.add('hidden');
+        chatIcon.classList.remove('hidden');
+        closeIcon.classList.add('hidden');
+        pip.classList.remove('hidden');
+      } else if (currentState === 'teaser') {
+        btnTeaser.classList.add('bg-surface-container-lowest', 'shadow-sm', 'text-on-surface');
+        modal.classList.add('hidden', 'scale-95', 'opacity-0');
+        modal.classList.remove('flex', 'scale-100', 'opacity-100');
+        teaser.classList.remove('hidden');
+        chatIcon.classList.remove('hidden');
+        closeIcon.classList.add('hidden');
+        pip.classList.remove('hidden');
+      } else if (currentState === 'opened') {
+        btnOpened.classList.add('bg-surface-container-lowest', 'shadow-sm', 'text-on-surface');
+        modal.classList.remove('hidden');
+        // trigger animation transition
+        setTimeout(() => {
+          modal.classList.add('flex', 'scale-100', 'opacity-100');
+          modal.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+        teaser.classList.add('hidden');
+        chatIcon.classList.add('hidden');
+        closeIcon.classList.remove('hidden');
+        pip.classList.add('hidden');
+      }
+    }
+
+    function setWidgetState(state) {
+      currentState = state;
+      updateView();
+    }
+
+    function toggleWidgetState() {
+      if (currentState === 'opened') {
+        setWidgetState('closed');
+      } else {
+        setWidgetState('opened');
+      }
+    }
+
+    function dismissTeaser(event) {
+      event.stopPropagation();
+      setWidgetState('closed');
+    }
+
+    function fillAndSend(query) {
+      const input = document.getElementById('chat-input');
+      input.value = query;
+      input.focus();
+    }
+
+    function handleChatSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      if (!input.value.trim()) return;
+      input.value = '';
+    }
+
+    // Keyboard support: Escape closes modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && currentState === 'opened') {
+        setWidgetState('closed');
+      }
+    });
+
+    // Initialize initial visual state
+    updateView();
+  </script>
+</div></main><footer class="w-full bg-surface-container-low mt-space-xl"><div class="max-w-7xl mx-auto px-margin lg:px-space-xl py-space-xl flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm text-on-surface-variant font-body-sm text-body-sm"><span class="material-symbols-outlined text-[16px] text-primary">terminal</span><span>Jorge — Distributed Systems, Real-time Protocols &amp; LLM Agents</span></div><div class="flex items-center gap-space-lg text-on-surface-variant font-code-sm text-code-sm"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-primary"></span>Asistente de Jorge v2.4 (Active)</span><span>Latency ~180ms</span></div></div></footer></body></html>

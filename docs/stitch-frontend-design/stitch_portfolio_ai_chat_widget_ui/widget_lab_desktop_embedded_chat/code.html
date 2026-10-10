@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"inverse-surface":"#2f3038","tertiary-fixed-dim":"#ffb59a","on-tertiary-container":"#fffbff","surface-container-lowest":"#ffffff","surface-container":"#eeedf7","on-primary":"#ffffff","primary-fixed":"#89f5e7","surface-bright":"#fbf8ff","surface-tint":"#006a61","primary-fixed-dim":"#6bd8cb","inverse-on-surface":"#f1effa","on-primary-fixed":"#00201d","tertiary-fixed":"#ffdbce","on-secondary-container":"#00476e","on-tertiary-fixed-variant":"#773215","primary":"#00685f","surface":"#fbf8ff","secondary":"#006398","on-secondary":"#ffffff","surface-container-high":"#e8e7f1","on-primary-fixed-variant":"#005049","on-secondary-fixed-variant":"#004b73","surface-container-low":"#f4f2fd","tertiary-container":"#b05e3d","on-tertiary":"#ffffff","error":"#ba1a1a","error-container":"#ffdad6","on-error":"#ffffff","on-surface-variant":"#3d4947","outline-variant":"#bcc9c6","primary-container":"#008378","secondary-fixed-dim":"#93ccff","on-surface":"#1a1b22","on-background":"#1a1b22","surface-dim":"#dad9e3","surface-container-highest":"#e3e1ec","secondary-container":"#5bb8fe","on-secondary-fixed":"#001d31","secondary-fixed":"#cce5ff","surface-variant":"#e3e1ec","tertiary":"#924628","background":"#fbf8ff","on-error-container":"#93000a","outline":"#6d7a77","inverse-primary":"#6bd8cb","on-primary-container":"#f4fffc","on-tertiary-fixed":"#370e00"},borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},spacing:{"gutter":"0.75rem","space-sm":"0.5rem","space-md":"0.75rem","space-xs":"0.25rem","space-xl":"1.5rem","margin":"1rem","space-lg":"1rem"},fontFamily:{"label-md":["Inter"],"label-sm":["Inter"],"headline-sm":["Inter"],"code-sm":["JetBrains Mono"],"body-lg":["Inter"],"body-sm":["Inter"],"body-md":["Inter"]},fontSize:{"label-md":["13px",{lineHeight:"16px",letterSpacing:"0em",fontWeight:"500"}],"label-sm":["11px",{lineHeight:"14px",letterSpacing:"0.02em",fontWeight:"600"}],"headline-sm":["18px",{lineHeight:"24px",letterSpacing:"-0.015em",fontWeight:"600"}],"code-sm":["12px",{lineHeight:"18px",letterSpacing:"0em",fontWeight:"400"}],"body-lg":["15px",{lineHeight:"22px",letterSpacing:"-0.01em",fontWeight:"400"}],"body-sm":["12px",{lineHeight:"16px",letterSpacing:"0em",fontWeight:"400"}],"body-md":["14px",{lineHeight:"20px",letterSpacing:"-0.006em",fontWeight:"400"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased selection:bg-primary-fixed selection:text-on-primary-fixed"><header class="fixed top-0 w-full z-40 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-14 max-w-7xl mx-auto px-margin lg:px-space-xl flex items-center justify-between"><div class="flex items-center gap-space-md"><div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface">Jorge<span class="text-primary">.dev</span></span><span class="hidden sm:inline-block px-space-xs py-0.5 rounded bg-surface-container-high text-on-surface-variant font-code-sm text-code-sm">Staff Systems Engineer</span></div><nav class="flex items-center gap-space-xs sm:gap-space-sm" data-active-classes="bg-surface-container-high text-on-surface font-medium"><a class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-colors" data-path="portfolio-showcase" href="#">Showcase</a><a class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-colors" data-path="architecture-systems" href="#">Architecture</a><a class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-label-md text-label-md transition-colors" data-path="experience-specs" href="#">Background</a><a aria-current="page" class="px-space-md py-1.5 rounded-lg transition-colors bg-surface-container-high text-on-surface font-medium" data-path="widget-lab" href="#">Agent Lab</a></nav><div class="flex items-center gap-space-md"><a class="hidden md:flex items-center gap-space-xs px-space-md py-1.5 rounded-full bg-primary-container text-on-primary-container font-label-sm text-label-sm shadow-[0_2px_6px_rgba(0,104,95,0.2)] hover:opacity-95 transition-opacity" data-path="widget-lab" href="#"><span class="material-symbols-outlined text-[14px]">smart_toy</span><span>Demo Agent</span></a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-14 bg-surface min-h-[calc(100vh-3.5rem)]"><div class="flex flex-col w-full">
+<div class="w-full max-w-7xl mx-auto px-margin lg:px-space-xl py-space-xl">
+<!-- Top Showcase Banner & Interactive State Navigation Controls -->
+<div class="mb-space-xl flex flex-col xl:flex-row xl:items-end justify-between gap-space-lg">
+<div class="space-y-space-xs max-w-2xl">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="font-code-sm text-code-sm uppercase tracking-wider text-primary">Interactive Component Harness</span>
+</div>
+<h1 class="font-headline-sm text-headline-sm text-on-surface">Embeddable Portfolio AI Agent</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          Engineered for low cognitive friction and high technical density. Explore the 10 discrete UX states of the 420×640px widget architecture.
+        </p>
+</div>
+<!-- Quick Theme & Reset Utility -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<div class="bg-surface-container px-space-md py-space-xs rounded-lg flex items-center gap-space-sm text-on-surface-variant font-code-sm text-code-sm">
+<span>Viewport: 420 × 640px</span>
+<span class="w-1 h-1 rounded-full bg-outline"></span>
+<span id="active-state-indicator">State A: Initial Ready</span>
+</div>
+<button class="h-10 px-space-md rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-md text-label-md flex items-center gap-space-xs transition-colors" id="theme-toggle-btn">
+<span class="material-symbols-outlined text-[18px]" id="theme-icon">dark_mode</span>
+<span id="theme-label">Simulate Dark Surface</span>
+</button>
+</div>
+</div>
+<!-- State Switcher Horizontal Scroll Bar -->
+<div class="mb-space-xl w-full bg-surface-container-low rounded-xl p-space-xs flex items-center gap-1 overflow-x-auto shadow-sm">
+<button class="state-tab-btn active-state px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap transition-colors bg-primary text-on-primary shadow-sm" data-state="A">
+<span class="font-code-sm font-semibold">A</span> Empty State
+      </button>
+<button class="state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-state="B">
+<span class="font-code-sm font-semibold">B</span> Active Thread
+      </button>
+<button class="state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-state="C">
+<span class="font-code-sm font-semibold">C</span> Waiting / Typing
+      </button>
+<button class="state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-state="D">
+<span class="font-code-sm font-semibold">D</span> Streaming + Scroll Pill
+      </button>
+<button class="state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-state="E">
+<span class="font-code-sm font-semibold">E</span> Interrupted
+      </button>
+<button class="state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-state="F">
+<span class="font-code-sm font-semibold">F</span> Network Error
+      </button>
+<button class="state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-state="G">
+<span class="font-code-sm font-semibold">G</span> Rate Limit
+      </button>
+<button class="state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-state="H">
+<span class="font-code-sm font-semibold">H</span> No-Context
+      </button>
+<button class="state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-state="I">
+<span class="font-code-sm font-semibold">I</span> Context Pruned
+      </button>
+<button class="state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-state="J">
+<span class="font-code-sm font-semibold">J</span> Reset Confirmation
+      </button>
+</div>
+<!-- Workspace Main Grid: Left Context/Metrics & Center/Right Floating Widget Frame -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-start">
+<!-- Specifications & Systems Context Column (5 cols) -->
+<div class="lg:col-span-5 flex flex-col gap-space-lg">
+<!-- Engineer System Summary Card -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm space-y-space-md">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wide text-primary">Context Grounding</span>
+<span class="px-2 py-0.5 rounded bg-primary-container/10 text-primary font-code-sm text-code-sm">v2.4.0 LLM-Proxy</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Embed Specifications</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            Deterministic persona constraints applied to a single-threaded lightweight conversation client. Strict retrieval grounded only in Jorge's engineering CV and verified GitHub repositories.
+          </p>
+<div class="space-y-space-xs font-code-sm text-code-sm bg-surface-container-low p-space-md rounded-lg">
+<div class="flex justify-between text-on-surface-variant">
+<span>Dimensions:</span>
+<span class="text-on-surface font-semibold">420 × 640 px (Desktop)</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Token Boundary:</span>
+<span class="text-on-surface font-semibold">1,000 characters / prompt</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Pruning Strategy:</span>
+<span class="text-on-surface font-semibold">Sliding Context FIFO</span>
+</div>
+<div class="flex justify-between text-on-surface-variant">
+<span>Fallback:</span>
+<span class="text-on-surface font-semibold">Direct mailto / LinkedIn routing</span>
+</div>
+</div>
+</div>
+<!-- Live Diagnostics & State Inspector -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm space-y-space-sm">
+<h3 class="font-label-md text-label-md text-on-surface flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-primary">memory</span>
+            State Inspector: <span class="font-code-sm text-primary" id="inspector-state-id">State A</span>
+</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant" id="inspector-desc">
+            Zero conversation history. 4 rapid query chips ready for instant injection. Input is pristine with zero character payload.
+          </p>
+<div class="pt-space-xs flex items-center gap-space-xs text-on-surface-variant font-code-sm text-code-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span>Agent latency: <strong class="text-on-surface">142ms</strong></span>
+<span class="mx-1 text-outline">|</span>
+<span>Temperature: <strong class="text-on-surface">0.15</strong></span>
+</div>
+</div>
+<!-- Architecture Quick Card -->
+<div class="bg-surface-container p-space-lg rounded-xl space-y-space-xs">
+<div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Host Integration Guide</div>
+<div class="font-headline-sm text-headline-sm text-on-surface">Zero external dependencies</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Integrates into any static portfolio, Next.js, Astro, or Vite deployment via an isolated shadow DOM embed or responsive standard iframe.
+          </p>
+</div>
+</div>
+<!-- Live Widget Preview Area (7 cols, centered canvas) -->
+<div class="lg:col-span-7 flex flex-col items-center justify-center">
+<!-- Ambient subtle background container simulating target portfolio website corner -->
+<div class="w-full flex items-center justify-center p-space-lg sm:p-space-xl bg-surface-container-low rounded-xl relative overflow-hidden transition-colors duration-300" id="widget-stage">
+<!-- Subtle corner tech watermark -->
+<div class="absolute top-space-md left-space-md text-on-surface-variant/40 font-code-sm text-code-sm select-none pointer-events-none">
+            // portfolio_widget_sandbox
+          </div>
+<!-- THE 420x640 PIXEL WIDGET COMPONENT -->
+<div class="w-[420px] h-[640px] max-w-full rounded-2xl bg-surface-container-lowest text-on-surface shadow-2xl flex flex-col relative overflow-hidden transition-all duration-300 select-text" id="jorge-chat-widget">
+<!-- 1. Header (Fixed 56px height) -->
+<div class="h-14 px-space-md flex items-center justify-between bg-surface-container-lowest shadow-sm z-20 shrink-0" id="widget-header">
+<div class="flex items-center gap-space-xs min-w-0">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shrink-0">
+<span class="material-symbols-outlined text-[18px]">smart_toy</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-on-surface truncate">Asistente de Jorge</span>
+<span class="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-label-sm text-label-sm leading-none shrink-0 font-semibold">IA</span>
+</div>
+<span class="font-code-sm text-[10px] text-on-surface-variant truncate max-w-[210px]" title="Responde solo con información del CV y GitHub de Jorge.">
+                    CV &amp; GitHub Grounded
+                  </span>
+</div>
+</div>
+<!-- Header Quick Actions -->
+<div class="flex items-center gap-1 shrink-0">
+<a class="text-primary hover:underline font-label-sm text-label-sm px-1.5 py-1 text-center" href="mailto:jorge@example.dev" title="Escribir directamente">
+                  Contactar
+                </a>
+<button aria-label="Nueva conversación" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors" id="header-reset-btn" title="Nueva conversación">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+</button>
+</div>
+</div>
+<!-- Disclaimer Notice Line (System Bounds) -->
+<div class="px-space-md py-1 bg-surface-container-low text-on-surface-variant font-body-sm text-[11px] leading-tight text-center z-10 shrink-0">
+              Responde solo con información de Jorge. Puede equivocarse.
+            </div>
+<!-- 2. Chat Messages Stream Area (Scrollable body) -->
+<div class="flex-1 overflow-y-auto p-space-md space-y-space-md relative scroll-smooth" id="chat-messages-container">
+<!-- ================= STATE A: EMPTY STATE ================= -->
+<div class="h-full flex flex-col justify-end space-y-space-md pb-2" id="state-a-view">
+<div class="space-y-space-xs text-center px-space-md my-auto">
+<div class="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center text-primary mb-space-sm">
+<span class="material-symbols-outlined text-[26px]">chat_bubble</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Hola, soy el asistente de Jorge</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                    Pregúntame sobre sus 8+ años en arquitectura distribuida, microservicios, TypeScript o proyectos de alto tráfico.
+                  </p>
+</div>
+<!-- 4 Suggestion Chips -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<div class="font-label-sm text-label-sm text-on-surface-variant px-1">Sugerencias rápidas:</div>
+<button class="chip-suggestion w-full min-h-[44px] px-space-md py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-left font-body-sm text-body-sm flex items-center justify-between group transition-colors shadow-sm">
+<span>¿Qué stack usa Jorge?</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">arrow_outward</span>
+</button>
+<button class="chip-suggestion w-full min-h-[44px] px-space-md py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-left font-body-sm text-body-sm flex items-center justify-between group transition-colors shadow-sm">
+<span>¿Qué proyectos ha hecho?</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">arrow_outward</span>
+</button>
+<button class="chip-suggestion w-full min-h-[44px] px-space-md py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-left font-body-sm text-body-sm flex items-center justify-between group transition-colors shadow-sm">
+<span>¿Dónde ha trabajado?</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">arrow_outward</span>
+</button>
+<button class="chip-suggestion w-full min-h-[44px] px-space-md py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-left font-body-sm text-body-sm flex items-center justify-between group transition-colors shadow-sm">
+<span>¿Cómo puedo contactarle?</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant group-hover:text-primary transition-colors">arrow_outward</span>
+</button>
+</div>
+</div>
+<!-- ================= STATE B: ACTIVE CONVERSATION ================= -->
+<div class="space-y-space-md hidden" id="state-b-view">
+<!-- User Msg 1 -->
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-tr-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                    ¿Cuál es el stack principal que Jorge domina a fondo?
+                  </div>
+</div>
+<!-- Bot Response 1 -->
+<div class="flex items-start gap-space-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="max-w-[85%] bg-surface-container text-on-surface rounded-2xl rounded-tl-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm space-y-space-xs">
+<p>
+                      Jorge se especializa en arquitecturas de backend y full-stack moderno. Su núcleo diario está construido con <code class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface font-code-sm text-code-sm">TypeScript</code>, <code class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface font-code-sm text-code-sm">Node.js</code> y <code class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface font-code-sm text-code-sm">React</code>.
+                    </p>
+<p>
+                      Para sistemas distribuidos implementa <strong>Kafka</strong>, <strong>Redis Sentinel</strong> y bases de datos PostgreSQL optimizadas con particionado.
+                    </p>
+</div>
+</div>
+<!-- User Msg 2 -->
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-tr-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                    ¿Tiene proyectos de código abierto para ver el código?
+                  </div>
+</div>
+<!-- Bot Response 2 with links -->
+<div class="flex items-start gap-space-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="max-w-[85%] bg-surface-container text-on-surface rounded-2xl rounded-tl-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm space-y-space-xs">
+<p>
+                      Sí. Puedes inspeccionar su motor distribuido <a class="text-primary underline font-medium hover:text-primary-container" href="#mesh-cache">MeshCache-Core</a> y el template de producción <a class="text-primary underline font-medium hover:text-primary-container" href="#ts-event-stream">TS-EventStream</a> directo en su repositorio público.
+                    </p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                      Ambos repositorios incluyen CI/CD con GitHub Actions y suites completas de pruebas unitarias.
+                    </p>
+</div>
+</div>
+</div>
+<!-- ================= STATE C: WAITING / TYPING ================= -->
+<div class="space-y-space-md hidden" id="state-c-view">
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-tr-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                    ¿Cómo maneja la resiliencia en microservicios?
+                  </div>
+</div>
+<!-- Assistant typing indicator bubble -->
+<div class="flex items-start gap-space-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="bg-surface-container rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5 shadow-sm">
+<span class="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style="animation-delay: 0ms"></span>
+<span class="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style="animation-delay: 150ms"></span>
+<span class="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style="animation-delay: 300ms"></span>
+</div>
+</div>
+</div>
+<!-- ================= STATE D: STREAMING RESPONSE ================= -->
+<div class="space-y-space-md hidden" id="state-d-view">
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-tr-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                    Detalla su experiencia en fintech.
+                  </div>
+</div>
+<div class="flex items-start gap-space-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="max-w-[85%] bg-surface-container text-on-surface rounded-2xl rounded-tl-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm space-y-space-xs">
+<p>
+                      Durante su etapa en Banco Nexo (2021–2023), Jorge lideró el equipo de pagos instantáneos procesando más de 12.000 transacciones por segundo. Rediseñó la capa de conciliación con <code class="px-1 py-0.5 rounded bg-surface-container-highest font-code-sm text-code-sm">TypeScript</code> y Kafka<span class="inline-block w-2 h-4 ml-0.5 bg-primary animate-pulse align-middle"></span>
+</p>
+</div>
+</div>
+<!-- Extended dummy history so scrollable state is obvious -->
+<div class="bg-surface-container-low p-space-sm rounded-lg text-on-surface-variant font-code-sm text-code-sm">
+                  // Event stream tokens received: 248 | Latency: 19ms/token
+                </div>
+</div>
+<!-- ================= STATE E: INTERRUPTED RESPONSE ================= -->
+<div class="space-y-space-md hidden" id="state-e-view">
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-tr-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                    Explica la topología de base de datos de su último proyecto
+                  </div>
+</div>
+<div class="flex items-start gap-space-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="max-w-[85%] space-y-1">
+<div class="bg-surface-container text-on-surface rounded-2xl rounded-tl-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                      La topología consistía en un cluster primario PostgreSQL con 3 réplicas de solo lectura y conexión en pool mediante PgBouncer...
+                    </div>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-sm text-[11px] px-1">
+<span class="material-symbols-outlined text-[14px] text-tertiary">stop_circle</span>
+<span class="italic text-tertiary">Respuesta interrumpida por el usuario</span>
+</div>
+</div>
+</div>
+</div>
+<!-- ================= STATE F: NETWORK ERROR ================= -->
+<div class="space-y-space-md hidden" id="state-f-view">
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-tr-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                    ¿Cuál es su expectativa salarial o disponibilidad?
+                  </div>
+</div>
+<!-- Error Bubble -->
+<div class="flex items-start gap-space-xs">
+<div class="w-6 h-6 rounded-full bg-error-container flex items-center justify-center text-on-error-container shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px]">error</span>
+</div>
+<div class="max-w-[85%] bg-surface-container text-on-surface rounded-2xl rounded-tl-sm p-space-md shadow-sm space-y-space-sm">
+<div class="flex items-center gap-1.5 text-error font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">wifi_off</span>
+<span>No se pudo conectar. Comprueba tu conexión.</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                      El servidor del agente no respondió dentro de la ventana de 5000ms.
+                    </p>
+<button class="min-h-[44px] px-space-md py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-primary font-label-md text-label-md flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Reintentar</span>
+</button>
+</div>
+</div>
+</div>
+<!-- ================= STATE G: RATE LIMIT NOTIFICATION ================= -->
+<div class="space-y-space-md hidden" id="state-g-view">
+<!-- Thread prior message -->
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-tr-sm px-space-md py-2.5 font-body-md text-body-md opacity-75">
+                    ¿Y qué certificaciones Cloud posee?
+                  </div>
+</div>
+<!-- Rate Limit Banner Overlay -->
+<div class="p-space-md rounded-xl bg-tertiary-container/15 text-on-surface flex items-start gap-space-sm shadow-sm">
+<span class="material-symbols-outlined text-tertiary text-[20px] shrink-0 mt-0.5">hourglass_empty</span>
+<div class="space-y-1">
+<div class="font-label-md text-label-md font-semibold text-tertiary">Límite de cuota alcanzado</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">
+                      Has alcanzado el límite de preguntas por sesión. Inténtalo más tarde o ponte en contacto con Jorge directamente vía email.
+                    </div>
+</div>
+</div>
+</div>
+<!-- ================= STATE H: NO CONTEXT FALLBACK ================= -->
+<div class="space-y-space-md hidden" id="state-h-view">
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-tr-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                    ¿Cuál es su tarifa diaria para proyectos freelance de Web3 en Rust?
+                  </div>
+</div>
+<!-- Assistant graceful no-context bubble -->
+<div class="flex items-start gap-space-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="max-w-[85%] bg-surface-container text-on-surface rounded-2xl rounded-tl-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm space-y-space-xs">
+<p>
+                      Eso no lo tengo en la información que manejo. Puedes <a class="text-primary underline font-medium" href="mailto:jorge@example.dev">escribirle a Jorge directamente</a> para consultarle tarifas y proyectos fuera de su CV publicado.
+                    </p>
+</div>
+</div>
+</div>
+<!-- ================= STATE I: TRIMMED CONTEXT NOTICE ================= -->
+<div class="space-y-space-md hidden" id="state-i-view">
+<!-- Pruned Context Marker -->
+<div class="py-space-xs flex items-center justify-center">
+<div class="px-space-md py-1.5 rounded-full bg-surface-container-high text-on-surface-variant font-code-sm text-[11px] flex items-center gap-1.5 shadow-sm text-center">
+<span class="material-symbols-outlined text-[14px]">history</span>
+<span>Los mensajes más antiguos ya no forman parte del contexto</span>
+</div>
+</div>
+<!-- User continuing -->
+<div class="flex justify-end">
+<div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-tr-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                    ¿Y cuál de esos patrones recomendó para el frontend?
+                  </div>
+</div>
+<!-- Bot answer with active sliding context -->
+<div class="flex items-start gap-space-xs">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px]">smart_toy</span>
+</div>
+<div class="max-w-[85%] bg-surface-container text-on-surface rounded-2xl rounded-tl-sm px-space-md py-2.5 font-body-md text-body-md shadow-sm">
+                    Recomendó el patrón <code class="px-1 py-0.5 rounded bg-surface-container-highest font-code-sm text-code-sm">BFF (Backend for Frontend)</code> apoyado en React Server Components para reducir las solicitudes cliente-servidor.
+                  </div>
+</div>
+</div>
+<!-- ================= STATE J: CONFIRMATION POPOVER ================= -->
+<div class="h-full flex flex-col justify-center items-center relative hidden" id="state-j-view">
+<!-- Underneath blurred dummy chat snapshot -->
+<div class="space-y-space-sm w-full opacity-30 select-none pointer-events-none filter blur-[1px]">
+<div class="flex justify-end"><div class="bg-primary text-on-primary px-3 py-1.5 rounded-xl font-body-sm text-body-sm">Resume su experiencia en AWS</div></div>
+<div class="bg-surface-container p-3 rounded-xl font-body-sm text-body-sm">Cuenta con 5 años administrando ECS, Lambda y RDS...</div>
+</div>
+<!-- Modal Popover Overlay Card -->
+<div class="absolute inset-x-2 bg-surface-container-lowest p-space-lg rounded-2xl shadow-2xl space-y-space-md">
+<div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center mx-auto">
+<span class="material-symbols-outlined text-[22px]">delete_forever</span>
+</div>
+<div class="text-center space-y-1">
+<h4 class="font-headline-sm text-headline-sm text-on-surface">¿Borrar la conversación actual?</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                      Se restablecerá la memoria contextual de la sesión y volverás a la pantalla inicial.
+                    </p>
+</div>
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<button class="min-h-[44px] px-space-md py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors text-center" id="cancel-reset-btn">
+                      Cancelar
+                    </button>
+<button class="min-h-[44px] px-space-md py-2.5 rounded-xl bg-error hover:opacity-90 text-on-error font-label-md text-label-md transition-opacity text-center shadow-sm" id="confirm-reset-btn">
+                      Borrar
+                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Scroll Pill for State D (Ir al final) -->
+<div class="absolute bottom-20 left-1/2 -translate-x-1/2 z-30 hidden" id="scroll-bottom-pill">
+<button class="min-h-[44px] px-space-md py-1.5 rounded-full bg-inverse-surface text-inverse-on-surface font-label-sm text-label-sm shadow-xl flex items-center gap-1.5 hover:opacity-95 transition-opacity">
+<span>Ir al final</span>
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</button>
+</div>
+<!-- 3. Fixed Bottom Input Composer Area -->
+<div class="p-space-md bg-surface-container-lowest shadow-sm z-20 shrink-0" id="widget-composer">
+<!-- Character counter display row (visible when configured) -->
+<div class="hidden justify-between items-center mb-1 px-1" id="char-counter-row">
+<span class="font-code-sm text-[10px] text-tertiary">Cerca del límite de longitud</span>
+<span class="font-code-sm text-[10px] text-on-surface-variant" id="char-counter-text">850/1000</span>
+</div>
+<!-- Input Outer Container Frame -->
+<div class="flex items-end gap-space-xs bg-surface-container rounded-xl p-space-xs transition-colors" id="input-box-wrapper">
+<!-- Multi-line flexible textarea -->
+<textarea class="flex-1 max-h-24 bg-transparent border-0 outline-none text-on-surface placeholder:text-on-surface-variant font-body-md text-body-md resize-none py-2 px-space-xs" id="chat-textarea" placeholder="Pregunta sobre la experiencia o proyectos de Jorge…" rows="1"></textarea>
+<!-- Action Button 1: Normal Send (Minimum 44x44px target) -->
+<button aria-label="Enviar mensaje" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-primary text-on-primary flex items-center justify-center disabled:opacity-35 disabled:cursor-not-allowed hover:bg-primary-container transition-all shrink-0 shadow-sm" id="send-action-btn" title="Enviar">
+<span class="material-symbols-outlined text-[18px]">send</span>
+</button>
+<!-- Action Button 2: Stop Stream button (For state C & D) -->
+<button aria-label="Detener respuesta" class="hidden w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-tertiary text-on-tertiary flex items-center justify-center hover:opacity-90 transition-all shrink-0 shadow-sm" id="stop-action-btn" title="Detener">
+<span class="material-symbols-outlined text-[18px]">stop</span>
+</button>
+</div>
+<!-- Footer Micro-Metadata -->
+<div class="mt-1.5 flex items-center justify-between px-1 text-on-surface-variant font-code-sm text-[10px]">
+<span class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  Online • Jorge LLM Proxy
+                </span>
+<span>ESC to clear</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function () {
+    const states = {
+      A: {
+        name: "State A: Empty State",
+        desc: "Initial pristine session with Jorge's introduction and 4 click-to-ask suggestions. Clean composer without history.",
+        hasStop: false,
+        disabledInput: false,
+        showScrollPill: false,
+        highCharCount: false
+      },
+      B: {
+        name: "State B: Active Conversation",
+        desc: "Bilingual conversation showing multi-turn reasoning, bold technical terms, inline code tags (`TypeScript`, `Node.js`, `React`) and underline links.",
+        hasStop: false,
+        disabledInput: false,
+        showScrollPill: false,
+        highCharCount: false
+      },
+      C: {
+        name: "State C: Waiting for Response",
+        desc: "Agent is computing with an animated 3-dot typing pill. The send button swaps to a designated 44×44px 'Detener' action.",
+        hasStop: true,
+        disabledInput: false,
+        showScrollPill: false,
+        highCharCount: false
+      },
+      D: {
+        name: "State D: Streaming Response",
+        desc: "Token stream incoming with live flashing cursor. Composer shows 'Detener' and an elevated 'Ir al final' pill button appears above input.",
+        hasStop: true,
+        disabledInput: false,
+        showScrollPill: true,
+        highCharCount: false
+      },
+      E: {
+        name: "State E: Interrupted Response",
+        desc: "User stopped generation midway. Partial response retained with subtle 'Respuesta interrumpida' metadata indicator.",
+        hasStop: false,
+        disabledInput: false,
+        showScrollPill: false,
+        highCharCount: false
+      },
+      F: {
+        name: "State F: Network Error",
+        desc: "Server fault / timeout state with an error icon, helpful Spanish message and an inline 44px 'Reintentar' button.",
+        hasStop: false,
+        disabledInput: false,
+        showScrollPill: false,
+        highCharCount: false
+      },
+      G: {
+        name: "State G: Rate Limit Notice",
+        desc: "Session quota reached. Banner notification warning user with fully disabled composer textarea and send triggers.",
+        hasStop: false,
+        disabledInput: true,
+        showScrollPill: false,
+        highCharCount: false
+      },
+      H: {
+        name: "State H: No-Context Fallback",
+        desc: "Out-of-domain query safely caught by grounding constraints. Recommends contacting Jorge directly with an anchor link.",
+        hasStop: false,
+        disabledInput: false,
+        showScrollPill: false,
+        highCharCount: false
+      },
+      I: {
+        name: "State I: Trimmed Context",
+        desc: "Sliding memory window indicator showing that older turn tokens have been purged from the active context payload.",
+        hasStop: false,
+        disabledInput: false,
+        showScrollPill: false,
+        highCharCount: false
+      },
+      J: {
+        name: "State J: Reset Popover",
+        desc: "Explicit destructive confirmation dialog overlay asking '¿Borrar la conversación actual?' with Borrar / Cancelar buttons.",
+        hasStop: false,
+        disabledInput: false,
+        showScrollPill: false,
+        highCharCount: false
+      }
+    };
+
+    let currentState = 'A';
+    const stateButtons = document.querySelectorAll('.state-tab-btn');
+    const indicatorEl = document.getElementById('active-state-indicator');
+    const inspectorIdEl = document.getElementById('inspector-state-id');
+    const inspectorDescEl = document.getElementById('inspector-desc');
+
+    const views = {
+      A: document.getElementById('state-a-view'),
+      B: document.getElementById('state-b-view'),
+      C: document.getElementById('state-c-view'),
+      D: document.getElementById('state-d-view'),
+      E: document.getElementById('state-e-view'),
+      F: document.getElementById('state-f-view'),
+      G: document.getElementById('state-g-view'),
+      H: document.getElementById('state-h-view'),
+      I: document.getElementById('state-i-view'),
+      J: document.getElementById('state-j-view')
+    };
+
+    const sendBtn = document.getElementById('send-action-btn');
+    const stopBtn = document.getElementById('stop-action-btn');
+    const scrollPill = document.getElementById('scroll-bottom-pill');
+    const textarea = document.getElementById('chat-textarea');
+    const charCounterRow = document.getElementById('char-counter-row');
+    const widgetElement = document.getElementById('jorge-chat-widget');
+    const widgetStage = document.getElementById('widget-stage');
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeLabel = document.getElementById('theme-label');
+    const headerResetBtn = document.getElementById('header-reset-btn');
+    const confirmResetBtn = document.getElementById('confirm-reset-btn');
+    const cancelResetBtn = document.getElementById('cancel-reset-btn');
+
+    function applyState(stateKey) {
+      if (!states[stateKey]) return;
+      currentState = stateKey;
+      const stateObj = states[stateKey];
+
+      // Update state buttons visual
+      stateButtons.forEach(btn => {
+        if (btn.dataset.state === stateKey) {
+          btn.className = "state-tab-btn active-state px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap transition-colors bg-primary text-on-primary shadow-sm";
+        } else {
+          btn.className = "state-tab-btn px-space-md py-2 rounded-lg font-label-sm text-label-sm flex items-center gap-1.5 whitespace-nowrap text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors";
+        }
+      });
+
+      // Switch message views
+      Object.keys(views).forEach(key => {
+        if (views[key]) {
+          views[key].classList.toggle('hidden', key !== stateKey);
+        }
+      });
+
+      // Update diagnostic labels
+      if (indicatorEl) indicatorEl.textContent = stateObj.name;
+      if (inspectorIdEl) inspectorIdEl.textContent = "State " + stateKey;
+      if (inspectorDescEl) inspectorDescEl.textContent = stateObj.desc;
+
+      // Handle Buttons swapping (Stop vs Send)
+      if (stateObj.hasStop) {
+        sendBtn.classList.add('hidden');
+        stopBtn.classList.remove('hidden');
+      } else {
+        sendBtn.classList.remove('hidden');
+        stopBtn.classList.add('hidden');
+      }
+
+      // Handle Scroll Bottom Pill
+      if (stateObj.showScrollPill) {
+        scrollPill.classList.remove('hidden');
+      } else {
+        scrollPill.classList.add('hidden');
+      }
+
+      // Handle Disabled / Input locks (State G)
+      if (stateObj.disabledInput) {
+        textarea.disabled = true;
+        textarea.placeholder = "Entrada deshabilitada por límite de cuota.";
+        sendBtn.disabled = true;
+      } else {
+        textarea.disabled = false;
+        textarea.placeholder = "Pregunta sobre la experiencia o proyectos de Jorge…";
+        sendBtn.disabled = false;
+      }
+
+      // Character counter demo (visible on state B & D to showcase >80% limit)
+      if (stateKey === 'B' || stateKey === 'D') {
+        charCounterRow.classList.remove('hidden');
+        charCounterRow.classList.add('flex');
+      } else {
+        charCounterRow.classList.add('hidden');
+        charCounterRow.classList.remove('flex');
+      }
+    }
+
+    // Attach click events to state switcher pills
+    stateButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyState(btn.dataset.state);
+      });
+    });
+
+    // Suggestion chips click behavior (Fill text & simulate asking)
+    document.querySelectorAll('.chip-suggestion').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const text = chip.querySelector('span:first-child')?.textContent || "";
+        textarea.value = text;
+        applyState('C');
+        setTimeout(() => {
+          applyState('B');
+        }, 1200);
+      });
+    });
+
+    // Reset button in header triggers Confirmation popover (State J)
+    headerResetBtn.addEventListener('click', () => {
+      applyState('J');
+    });
+
+    // Confirmation buttons in State J
+    if (confirmResetBtn) {
+      confirmResetBtn.addEventListener('click', () => {
+        textarea.value = "";
+        applyState('A');
+      });
+    }
+    if (cancelResetBtn) {
+      cancelResetBtn.addEventListener('click', () => {
+        applyState('B');
+      });
+    }
+
+    // Stop button click triggers Interrupted (State E)
+    if (stopBtn) {
+      stopBtn.addEventListener('click', () => {
+        applyState('E');
+      });
+    }
+
+    // Dark Mode Local Sandbox Toggle
+    let isDark = false;
+    themeBtn.addEventListener('click', () => {
+      isDark = !isDark;
+      if (isDark) {
+        widgetStage.classList.remove('bg-surface-container-low');
+        widgetStage.classList.add('bg-inverse-surface');
+        
+        widgetElement.classList.remove('bg-surface-container-lowest', 'text-on-surface');
+        widgetElement.classList.add('bg-inverse-surface', 'text-inverse-on-surface');
+
+        themeIcon.textContent = 'light_mode';
+        themeLabel.textContent = 'Simulate Light Surface';
+      } else {
+        widgetStage.classList.add('bg-surface-container-low');
+        widgetStage.classList.remove('bg-inverse-surface');
+
+        widgetElement.classList.add('bg-surface-container-lowest', 'text-on-surface');
+        widgetElement.classList.remove('bg-inverse-surface', 'text-inverse-on-surface');
+
+        themeIcon.textContent = 'dark_mode';
+        themeLabel.textContent = 'Simulate Dark Surface';
+      }
+    });
+
+    // Initial state trigger
+    applyState('A');
+  })();
+</script></main><footer class="w-full bg-surface-container-low mt-space-xl"><div class="max-w-7xl mx-auto px-margin lg:px-space-xl py-space-xl flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm text-on-surface-variant font-body-sm text-body-sm"><span class="material-symbols-outlined text-[16px] text-primary">terminal</span><span>Jorge — Distributed Systems, Real-time Protocols &amp; LLM Agents</span></div><div class="flex items-center gap-space-lg text-on-surface-variant font-code-sm text-code-sm"><span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-primary"></span>Asistente de Jorge v2.4 (Active)</span><span>Latency ~180ms</span></div></div></footer></body></html>
