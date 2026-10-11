@@ -1,4 +1,4 @@
-import type { ChatMessage } from "./types";
+import type { ChatMessage } from "../types";
 
 export const HISTORY_MAX_MESSAGES = 20;
 export const HISTORY_MAX_MESSAGE_CHARS = 2000;

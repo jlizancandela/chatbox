@@ -6,7 +6,7 @@ import type {
 	ErrorEvent,
 	SourcesEvent,
 	TokenEvent,
-} from "../../types";
+} from "../types";
 
 export type ChatEvent = SourcesEvent | TokenEvent | DoneEvent | ErrorEvent;
 

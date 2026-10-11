@@ -13,10 +13,10 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 ## Paso 1 — Infraestructura de tipos y utilidades
 
-- [x] Crear `src/types.ts` con los tipos derivados del contrato SSE:
+- [x] Crear `src/chat/types.ts` con los tipos derivados del contrato SSE:
   - `ChatMessage`, `ChatSource`, `SourcesEvent`, `TokenEvent`, `DoneEvent`, `ErrorEvent`, `TurnState`.
 - [x] Crear `src/chat/infrastructure/sse.ts` — parser puro de frames SSE (`parseSSE(data: string)` → evento o null; maneja frames partidos entre chunks, varios frames en un chunk, y payloads con `history`).
-- [x] Crear `src/conversation.ts`:
+- [x] Crear `src/chat/domain/conversation.ts`:
   - `createConversationStore()` — estado `messages` y `context` por separado.
   - `trimHistory(messages, limits)` — recortes de 20 mensajes / 2000 chars por mensaje / 8000 total (alineados con `.env` del API).
   - `mergeContext(sourcesHistory)` — sustituye `context` por el historial del servidor.

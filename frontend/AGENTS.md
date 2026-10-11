@@ -84,9 +84,11 @@ Estructura actual y responsabilidades:
 ```text
 src/
 ├── chat/
-│   └── infrastructure/
-│       └── sse.ts       # Adaptador de frames SSE y payloads del API
-├── types.ts             # Tipos compartidos del contrato frontend/API
+│   ├── domain/
+│   │   └── conversation.ts # Estado y reglas de conversación
+│   ├── infrastructure/
+│   │   └── sse.ts          # Adaptador de frames SSE y payloads del API
+│   └── types.ts            # Tipos compartidos del contrato frontend/API
 ├── components/          # Componentes de UI del chat (pendiente)
 ├── hooks/               # Orquestación de interacción/streaming (pendiente)
 ├── assets/
