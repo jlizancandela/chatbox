@@ -3,7 +3,7 @@
 ## Scope
 
 - Move the chat SSE adapter from `src/sse.ts` to `src/chat/infrastructure/sse.ts`.
-- Keep the shared contract types in `src/types.ts`.
+- Keep the shared contract types in `src/chat/types.ts`.
 - Update the TODO path and verify the old location is no longer referenced.
 
 ## Verification

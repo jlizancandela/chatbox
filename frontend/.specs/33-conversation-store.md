@@ -8,7 +8,7 @@ contrato y restaurar la conversación durante la sesión del navegador.
 
 ## Alcance
 
-- Crear `src/conversation.ts`.
+- Crear `src/chat/domain/conversation.ts`.
 - Exponer un store mínimo para `messages` y `context`.
 - Recortar mensajes a 20 elementos, 2000 caracteres por mensaje y 8000
   caracteres totales.
