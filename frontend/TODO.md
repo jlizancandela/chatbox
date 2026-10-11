@@ -16,7 +16,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] Crear `src/types.ts` con los tipos derivados del contrato SSE:
   - `ChatMessage`, `ChatSource`, `SourcesEvent`, `TokenEvent`, `DoneEvent`, `ErrorEvent`, `TurnState`.
 - [x] Crear `src/chat/infrastructure/sse.ts` — parser puro de frames SSE (`parseSSE(data: string)` → evento o null; maneja frames partidos entre chunks, varios frames en un chunk, y payloads con `history`).
-- [ ] Crear `src/conversation.ts`:
+- [x] Crear `src/conversation.ts`:
   - `createConversationStore()` — estado `messages` y `context` por separado.
   - `trimHistory(messages, limits)` — recortes de 20 mensajes / 2000 chars por mensaje / 8000 total (alineados con `.env` del API).
   - `mergeContext(sourcesHistory)` — sustituye `context` por el historial del servidor.
@@ -52,11 +52,11 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [ ] `RF-F12` — Mensaje local de "no lo tengo" cuando `sources: []` + `done` sin tokens.
 - [ ] `RF-F14` — No mostrar nunca el `message` de un `error` ni JSON de error.
 - [ ] `RF-F15` — Guardar `sources` en estado sin mostrarlas (MVP).
-- [ ] `RF-F20` — Estado con `messages` y `context` separados.
-- [ ] `RF-F21` — Recorte de historial en cada petición.
-- [ ] `RF-F22` — `context` se sustituye por el `history` del evento `sources`.
+- [x] `RF-F20` — Estado con `messages` y `context` separados.
+- [x] `RF-F21` — Recorte de historial en cada petición.
+- [x] `RF-F22` — `context` se sustituye por el `history` del evento `sources`.
 - [ ] `RF-F23` — Al recibir `done`, añadir par `{user, assistant}` a `context`.
-- [ ] `RF-F24` — Persistencia en `sessionStorage` bajo clave versionada.
+- [x] `RF-F24` — Persistencia en `sessionStorage` bajo clave versionada.
 - [ ] `RF-F25` — Botón "Nueva conversación" con confirmación en línea.
 - [ ] `RF-F26` — Nota discreta cuando el servidor recorta el historial.
 
