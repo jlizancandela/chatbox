@@ -1,15 +1,41 @@
-# `create-preact`
+# Frontend Chatbox
 
-<h2 align="center">
-  <img height="256" width="256" src="./src/assets/preact.svg">
-</h2>
+Frontend del widget de chat RAG de Chatbox. Está construido con Preact, Vite y
+TypeScript, y consumirá `POST /api/chat` mediante Server-Sent Events.
 
-<h3 align="center">Get started using Preact and Vite!</h3>
+## Estado actual
 
-## Getting Started
+La implementación actual incluye:
 
--   `npm run dev` - Starts a dev server at http://localhost:5173/
+- Tipos del contrato del chat en `src/chat/types.ts`.
+- Parser SSE en `src/chat/infrastructure/sse.ts`.
+- Reglas de conversación y persistencia temporal en
+  `src/chat/domain/conversation.ts`.
+- Tests unitarios con Vitest.
 
--   `npm run build` - Builds for production, emitting to `dist/`
+La documentación técnica de estos módulos está en
+[`docs/chat-implementation.md`](docs/chat-implementation.md).
 
--   `npm run preview` - Starts a server at http://localhost:4173/ to test production build locally
+El hook de streaming y el componente visual todavía están pendientes. Consulta
+[`TODO.md`](TODO.md) para el estado completo.
+
+## Comandos
+
+Ejecutar desde `frontend/`:
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run preview
+npm run lint
+npm run format
+npm test -- --run
+npm run test:watch
+```
+
+## Integración prevista
+
+El componente se integrará posteriormente como una isla Preact en Astro. El
+frontend no ingiere documentos, no genera embeddings y no persiste datos en el
+servidor.
