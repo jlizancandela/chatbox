@@ -75,9 +75,10 @@ npm run format    # formatear src/
 
 ## Arquitectura y estructura
 
-La organización debe hacer visible la funcionalidad de chat (estilo Screaming
-Architecture), evitando una carpeta global `tools/` que se convierta en un
-cajón de utilidades.
+La organización debe hacer visible la funcionalidad de chat (Screaming
+Architecture). Todo código específico del chat debe vivir bajo `src/chat/`.
+La raíz de `src/` queda reservada para el arranque de la aplicación, estilos
+globales, assets y declaraciones de entorno.
 
 Estructura actual y responsabilidades:
 
@@ -89,25 +90,26 @@ src/
 │   ├── infrastructure/
 │   │   └── sse.ts          # Adaptador de frames SSE y payloads del API
 │   └── types.ts            # Tipos compartidos del contrato frontend/API
-├── components/          # Componentes de UI del chat (pendiente)
-├── hooks/               # Orquestación de interacción/streaming (pendiente)
+├── components/             # Componentes de UI del chat (pendiente)
+├── hooks/                  # Orquestación de interacción/streaming (pendiente)
 ├── assets/
-├── index.tsx
-└── style.css
+├── index.tsx               # Arranque de la aplicación
+└── style.css               # Estilos globales
 ```
 
-Cuando crezca el módulo, preferir separar por responsabilidad dentro de
-`src/chat/`:
+Ubicar cada archivo nuevo según su responsabilidad:
 
-- `components/`: presentación y eventos de UI.
-- `hooks/`: ciclo de vida del stream y estado de interacción.
-- `application/`: casos de uso como enviar una pregunta o cerrar un turno.
-- `infrastructure/`: fetch, SSE, storage y adaptadores externos.
-- `domain/`: reglas puras de conversación, límites y tipos específicos, cuando
-  el dominio lo justifique.
+- `chat/domain/`: reglas puras, límites y tipos específicos del dominio.
+- `chat/application/`: casos de uso y orquestación.
+- `chat/infrastructure/`: fetch, SSE, storage y adaptadores externos.
+- `chat/components/`: presentación y eventos de UI.
+- `chat/hooks/`: ciclo de vida del stream y estado de interacción.
 
-No mover carpetas solo por anticipación: cada nueva carpeta debe responder a
-una responsabilidad real.
+No crear archivos genéricos como `src/utils.ts`, `src/helpers.ts` o
+`src/types.ts` para funcionalidad del chat. Si una responsabilidad todavía no
+justifica una carpeta, mantenerla dentro del módulo de chat más cercano sin
+crear una estructura global prematura. No mover carpetas solo por anticipación:
+cada nueva carpeta debe responder a una responsabilidad real.
 
 ## Contrato con el API
 
