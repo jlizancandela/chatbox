@@ -22,7 +22,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
   - `mergeContext(sourcesHistory)` — sustituye `context` por el historial del servidor.
   - `buildChatRequest(text, context)` — genera el cuerpo de `POST /api/chat`.
   - `saveToSessionStorage(messages, context)` y `loadFromSessionStorage()` — validación tolerante, clave versionada `chatbox:v1`.
-- [ ] Tests unitarios de `sse.ts` y `trimHistory`.
+- [x] Tests unitarios de `sse.ts` y `trimHistory`.
 
 ## Paso 2 — Hook `useChatStream`
 
@@ -93,8 +93,8 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 ## Paso 8 — Pruebas y validación
 
-- [ ] Tests unitarios de `sse.ts` (frames partidos, varios en un chunk, payloads con `history`).
-- [ ] Tests de `trimHistory` y lectura tolerante de storage.
+- [x] Tests unitarios de `sse.ts` (frames partidos, varios en un chunk, payloads con `history`).
+- [x] Tests de `trimHistory` y lectura tolerante de storage.
 - [ ] Tests del hook con fetch simulado.
 - [ ] Tests del componente (`@testing-library/preact`): Enter/Shift+Enter, Enviar↔Detener, estado vacío, reintento.
 - [ ] Test de accesibilidad con axe-core.
