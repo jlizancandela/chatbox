@@ -99,11 +99,11 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [ ] Tests del componente (`@testing-library/preact`): Enter/Shift+Enter, Enviar↔Detener, estado vacío, reintento.
 - [ ] Test de accesibilidad con axe-core.
 - [ ] Prueba manual en móvil real (iOS Safari): teclado virtual, safe areas, zoom.
-- [ ] Verificar build de producción (`npm run build`) con react-markdown y Preact Compat.
+- [x] Verificar build de producción (`npm run build`) con react-markdown y Preact Compat.
 - [ ] Flujo completo: instalación limpia, `npm install`, dev server, chat con streaming real.
 
 ## Pendiente de decisión (no bloqueante)
 
 - **Formato de integración en Astro**: embebido en sección (`client:visible`) o botón flotante (`client:idle`).
-- **Persistencia**: `sessionStorage` (propuesta) vs `localStorage` vs solo memoria.
+- **Persistencia**: decidido `sessionStorage`; queda pendiente integrarla en el componente `Chatbox`.
 - **Timeout de 30 s y límites del cliente**: valores iniciales; ajustar tras medir latencia real.
