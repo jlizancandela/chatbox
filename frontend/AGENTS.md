@@ -11,6 +11,21 @@ El frontend no ingiere documentos, no genera embeddings y no persiste datos en
 el servidor. Es un cliente independiente del API y debe poder integrarse
 posteriormente en Astro.
 
+## Monorepo
+
+Chatbox es un monorepo cuya raíz está en la carpeta padre de `frontend/`:
+
+```text
+chatbox/
+├── api/       # Backend Fastify, RAG, PostgreSQL y SSE
+├── frontend/  # Aplicación Preact/Vite de este documento
+└── docs/      # Especificaciones y documentación compartida
+```
+
+Las operaciones Git, las ramas, las issues, las pull requests y los merges se
+gestionan desde la raíz del repositorio, no desde un repositorio Git separado
+dentro de `frontend/`.
+
 ## Estado del MVP
 
 La fuente de verdad del progreso es `TODO.md`. La especificación funcional está
@@ -165,16 +180,13 @@ Límites que deben mantenerse alineados con el API:
 
 ## Flujo de trabajo
 
-1. Antes de implementar, presentar un plan con alcance, archivos afectados,
-   riesgos y verificaciones.
-2. No modificar archivos ni ejecutar acciones de implementación hasta recibir
-   aprobación explícita.
-3. Guardar cada plan aprobado en `.specs/`, usando el identificador
-   del issue y un slug descriptivo cuando exista. Si no existe issue, usar un
-   nombre descriptivo y estable.
-4. Después de la aprobación, ejecutar el plan y verificar los cambios.
-5. Mantener `TODO.md` sincronizado con el estado real.
-6. Preservar cambios ajenos del worktree y evitar refactors fuera del alcance.
+El flujo global de planificación, aprobación, commits, PRs y merge está definido
+en los skills `plan` y `comitear`. Este proyecto debe seguirlo y no se deben
+modificar archivos de implementación sin un plan aprobado.
+
+Las specs de implementación se guardan en `.specs/` usando el identificador
+del issue y un slug descriptivo. Las decisiones generales de proceso se
+guardan en `../docs/decisions/`, no en `.specs/`.
 
 ## Verificación mínima
 
