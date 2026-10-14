@@ -1,42 +1,17 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "../types";
 import {
 	buildChatRequest,
-	createConversationStore,
 	HISTORY_MAX_MESSAGE_CHARS,
 	HISTORY_MAX_MESSAGES,
 	HISTORY_MAX_TOTAL_CHARS,
-	loadFromSessionStorage,
 	mergeContext,
-	STORAGE_KEY,
-	saveToSessionStorage,
 	trimHistory,
 } from "./conversation";
 
 const message = (role: ChatMessage["role"], content: string): ChatMessage => ({
 	role,
 	content,
-});
-
-const createStorage = () => {
-	const values = new Map<string, string>();
-	return {
-		get length() {
-			return values.size;
-		},
-		clear: () => values.clear(),
-		getItem: (key: string) => values.get(key) ?? null,
-		key: (index: number) => [...values.keys()][index] ?? null,
-		removeItem: (key: string) => values.delete(key),
-		setItem: (key: string, value: string) => values.set(key, value),
-	};
-};
-
-beforeEach(() => {
-	Object.defineProperty(globalThis, "sessionStorage", {
-		configurable: true,
-		value: createStorage(),
-	});
 });
 
 describe("trimHistory", () => {
@@ -77,18 +52,7 @@ describe("trimHistory", () => {
 	});
 });
 
-describe("conversation state", () => {
-	it("keeps visible messages and context separate", () => {
-		const store = createConversationStore();
-		store.addMessage(message("user", "visible"));
-		store.setContext([message("assistant", "context")]);
-
-		expect(store.getState()).toEqual({
-			messages: [message("user", "visible")],
-			context: [message("assistant", "context")],
-		});
-	});
-
+describe("conversation rules", () => {
 	it("builds a trimmed chat request and validates the question", () => {
 		expect(buildChatRequest("  hola  ", [message("user", "previous")])).toEqual({
 			question: "hola",
@@ -104,24 +68,5 @@ describe("conversation state", () => {
 		history[0].content = "changed";
 
 		expect(merged).toEqual([message("user", "canonical")]);
-	});
-});
-
-describe("session storage", () => {
-	it("round-trips messages and context under the versioned key", () => {
-		const messages = [message("user", "visible")];
-		const context = [message("assistant", "context")];
-
-		expect(saveToSessionStorage(messages, context)).toBe(true);
-		expect(sessionStorage.getItem(STORAGE_KEY)).not.toBeNull();
-		expect(loadFromSessionStorage()).toEqual({ messages, context });
-	});
-
-	it("returns null for corrupt or incomplete data", () => {
-		sessionStorage.setItem(STORAGE_KEY, "not-json");
-		expect(loadFromSessionStorage()).toBeNull();
-
-		sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ messages: [] }));
-		expect(loadFromSessionStorage()).toBeNull();
 	});
 });

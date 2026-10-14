@@ -15,12 +15,19 @@ hook de streaming y el componente visual todavía no están implementados.
 ```text
 src/
 ├── chat/
+│   ├── application/
+│   │   ├── chat-reducer.ts
+│   │   └── chat-reducer.test.ts
 │   ├── domain/
 │   │   ├── conversation.ts
 │   │   └── conversation.test.ts
+│   ├── hooks/
+│   │   └── useChat.ts
 │   ├── infrastructure/
 │   │   ├── sse.ts
-│   │   └── sse.test.ts
+│   │   ├── sse.test.ts
+│   │   ├── storage.ts
+│   │   └── storage.test.ts
 │   └── types.ts
 ├── assets/
 ├── index.tsx
@@ -29,9 +36,12 @@ src/
 ```
 
 - `chat/types.ts`: tipos del contrato compartido entre frontend y API.
-- `chat/domain/conversation.ts`: estado y reglas puras de conversación, además
-  de la persistencia temporal actual.
+- `chat/domain/conversation.ts`: reglas puras, límites y construcción de
+  peticiones.
+- `chat/application/chat-reducer.ts`: estado y transiciones puras del turno.
+- `chat/hooks/useChat.ts`: fachada reactiva local sobre `useReducer`.
 - `chat/infrastructure/sse.ts`: adaptación de frames SSE a eventos tipados.
+- `chat/infrastructure/storage.ts`: adaptación tolerante a `sessionStorage`.
 - `*.test.ts`: pruebas unitarias de los módulos implementados.
 
 ## Tipos del chat
@@ -150,7 +160,6 @@ HISTORY_MAX_MESSAGES = 20
 HISTORY_MAX_MESSAGE_CHARS = 2000
 HISTORY_MAX_TOTAL_CHARS = 8000
 QUESTION_MAX_CHARS = 1000
-STORAGE_KEY = "chatbox:v1"
 ```
 
 `DEFAULT_LIMITS` agrupa los tres límites del historial y permite pasarlos como
@@ -165,29 +174,42 @@ type ConversationState = {
 };
 ```
 
-### `ConversationStore`
+### `ChatState` y `chatReducer`
+
+Archivo: `src/chat/application/chat-reducer.ts`.
+
+El estado reactivo combina la conversación con el ciclo del turno:
 
 ```ts
-type ConversationStore = {
-  getState: () => ConversationState;
-  addMessage: (message: ChatMessage) => void;
-  setMessages: (messages: ChatMessage[]) => void;
-  setContext: (context: ChatMessage[]) => void;
-  reset: () => void;
+type ChatState = ConversationState & {
+  currentQuestion: string | null;
+  currentResponse: string;
+  sources: ChatSource[];
+  turnState: TurnState;
+  error: ChatError | null;
 };
 ```
 
-### `createConversationStore(initial?)`
+`chatReducer(state, action)` es una función pura. Gestiona las acciones
+`turn-started`, `sources-received`, `token-received`, `turn-completed`,
+`turn-failed`, `turn-aborted`, `state-restored` y `conversation-reset`.
+
+Al completar un turno con respuesta, añade el mensaje assistant a `messages` y
+el par user/assistant a `context`. Los errores, abortos y turnos sin respuesta
+no entran en `context`.
+
+### `useChat(initial?)`
+
+Archivo: `src/chat/hooks/useChat.ts`.
 
 ```ts
-createConversationStore(
-  initial?: Partial<ConversationState>,
-): ConversationStore
+useChat(initial?: Partial<ConversationState>): ChatController
 ```
 
-Crea un store en memoria. Copia los arrays al leer y escribir para evitar que
-el consumidor modifique accidentalmente el estado interno. `reset` vacía tanto
-la transcripción como el contexto.
+Crea un estado aislado por instancia del widget mediante `useReducer`. Expone
+el estado y acciones `startTurn`, `receiveSources`, `receiveToken`,
+`completeTurn`, `failTurn`, `abortTurn`, `restore` y `reset`. No realiza fetch
+ni consume SSE todavía; `useChatStream` usará esta fachada en la siguiente fase.
 
 ### `trimHistory(messages, limits?)`
 
@@ -238,6 +260,8 @@ Lanza:
 
 ### `saveToSessionStorage(messages, context)`
 
+Archivo: `src/chat/infrastructure/storage.ts`.
+
 ```ts
 saveToSessionStorage(
   messages: readonly ChatMessage[],
@@ -251,6 +275,8 @@ storage no existe, está bloqueado o lanza un error.
 
 ### `loadFromSessionStorage()`
 
+También vive en `src/chat/infrastructure/storage.ts`.
+
 ```ts
 loadFromSessionStorage(): ConversationState | null
 ```
@@ -261,13 +287,15 @@ campos, el storage no está disponible o se produce cualquier error de lectura.
 
 ## Tests actuales
 
-Vitest cubre actualmente 15 tests:
+Vitest cubre actualmente 20 tests:
 
 - Parser SSE: frames completos, frames partidos, varios eventos, `sources` con
   `history`, errores, payloads inválidos y reset.
 - Conversación: límites de historial, mensajes recientes, assistant huérfano,
-  mensajes inválidos, store, validación de preguntas, merge de contexto y
-  persistencia tolerante.
+  mensajes inválidos, validación de preguntas y merge de contexto.
+- Reducer: inicio, sources, tokens, finalización, error, aborto, restauración y
+  reset.
+- Storage: persistencia tolerante y datos corruptos.
 
 Comandos:
 
@@ -281,7 +309,7 @@ npm run build
 
 Todavía no están implementados:
 
-- `useChatStream` con `fetch`, abort, timeout y estados de turno.
+- `useChatStream` con `fetch`, abort, timeout y consumo de SSE.
 - Componente `Chatbox` y renderizado de mensajes.
 - Renderizado Markdown restringido en una interfaz real.
 - Accesibilidad, responsive e integración con Astro.

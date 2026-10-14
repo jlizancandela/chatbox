@@ -39,6 +39,9 @@ en `../docs/stitch-frontend-design/SPEC-FRONTEND.md`.
 - Tipos del contrato SSE en `src/types.ts`.
 - Adaptador SSE en `src/chat/infrastructure/sse.ts`, basado en
   `eventsource-parser`.
+- Estado local con `src/chat/application/chat-reducer.ts` y
+  `src/chat/hooks/useChat.ts`.
+- Persistencia tolerante en `src/chat/infrastructure/storage.ts`.
 - Build de producción verificado con `npm run build`.
 
 ### Pendiente principal
@@ -85,10 +88,15 @@ Estructura actual y responsabilidades:
 ```text
 src/
 ├── chat/
+│   ├── application/
+│   │   └── chat-reducer.ts # Estado y transiciones del turno
 │   ├── domain/
-│   │   └── conversation.ts # Estado y reglas de conversación
+│   │   └── conversation.ts # Reglas puras de conversación
+│   ├── hooks/
+│   │   └── useChat.ts      # Estado reactivo local
 │   ├── infrastructure/
-│   │   └── sse.ts          # Adaptador de frames SSE y payloads del API
+│   │   ├── sse.ts          # Adaptador de frames SSE y payloads del API
+│   │   └── storage.ts      # Adaptador de sessionStorage
 │   └── types.ts            # Tipos compartidos del contrato frontend/API
 ├── components/             # Componentes de UI del chat (pendiente)
 ├── hooks/                  # Orquestación de interacción/streaming (pendiente)
