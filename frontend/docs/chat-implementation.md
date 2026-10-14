@@ -34,7 +34,9 @@ test/
 └── unit/chat/
     ├── application/chat-reducer.test.ts
     ├── domain/conversation.test.ts
-    └── infrastructure/{sse,storage}.test.ts
+    └── infrastructure/
+        ├── sse.test.ts
+        └── storage.test.ts
 ```
 
 - `chat/types.ts`: tipos del contrato compartido entre frontend y API.
@@ -183,6 +185,11 @@ Archivo: `src/chat/application/chat-reducer.ts`.
 El estado reactivo combina la conversación con el ciclo del turno:
 
 ```ts
+type ChatError = {
+  code: string;
+  message: string;
+};
+
 type ChatState = ConversationState & {
   currentQuestion: string | null;
   currentResponse: string;
@@ -303,9 +310,12 @@ Comandos:
 
 ```bash
 npm test -- --run
-npx biome check src
+npm run lint
 npm run build
 ```
+
+`npm run lint` revisa tanto `src/` como `test/`. `npm run test:watch` ejecuta
+Vitest en modo watch durante el desarrollo.
 
 ## Estado pendiente
 
