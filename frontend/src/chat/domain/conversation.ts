@@ -4,7 +4,6 @@ export const HISTORY_MAX_MESSAGES = 20;
 export const HISTORY_MAX_MESSAGE_CHARS = 2000;
 export const HISTORY_MAX_TOTAL_CHARS = 8000;
 export const QUESTION_MAX_CHARS = 1000;
-export const STORAGE_KEY = "chatbox:v1";
 
 export type ChatLimits = {
 	maxMessages: number;
@@ -23,41 +22,9 @@ export type ConversationState = {
 	context: ChatMessage[];
 };
 
-export type ConversationStore = {
-	getState: () => ConversationState;
-	addMessage: (message: ChatMessage) => void;
-	setMessages: (messages: ChatMessage[]) => void;
-	setContext: (context: ChatMessage[]) => void;
-	reset: () => void;
-};
-
 export type ChatRequest = {
 	question: string;
 	history: ChatMessage[];
-};
-
-export const createConversationStore = (
-	initial: Partial<ConversationState> = {}
-): ConversationStore => {
-	let messages = [...(initial.messages ?? [])];
-	let context = [...(initial.context ?? [])];
-
-	return {
-		getState: () => ({ messages: [...messages], context: [...context] }),
-		addMessage: (message) => {
-			messages = [...messages, message];
-		},
-		setMessages: (nextMessages) => {
-			messages = [...nextMessages];
-		},
-		setContext: (nextContext) => {
-			context = [...nextContext];
-		},
-		reset: () => {
-			messages = [];
-			context = [];
-		},
-	};
 };
 
 const isChatMessage = (value: unknown): value is ChatMessage => {
@@ -131,56 +98,4 @@ export const buildChatRequest = (
 		question,
 		history: trimHistory(context, limits),
 	};
-};
-
-export const saveToSessionStorage = (
-	messages: readonly ChatMessage[],
-	context: readonly ChatMessage[]
-): boolean => {
-	try {
-		if (typeof sessionStorage === "undefined") {
-			return false;
-		}
-
-		sessionStorage.setItem(
-			STORAGE_KEY,
-			JSON.stringify({
-				messages: messages.filter(isChatMessage).map(copyMessage),
-				context: context.filter(isChatMessage).map(copyMessage),
-			})
-		);
-		return true;
-	} catch {
-		return false;
-	}
-};
-
-export const loadFromSessionStorage = (): ConversationState | null => {
-	try {
-		if (typeof sessionStorage === "undefined") {
-			return null;
-		}
-
-		const raw = sessionStorage.getItem(STORAGE_KEY);
-		if (!raw) {
-			return null;
-		}
-
-		const parsed: unknown = JSON.parse(raw);
-		if (typeof parsed !== "object" || parsed === null) {
-			return null;
-		}
-
-		const candidate = parsed as Record<string, unknown>;
-		if (!Array.isArray(candidate.messages) || !Array.isArray(candidate.context)) {
-			return null;
-		}
-
-		return {
-			messages: candidate.messages.filter(isChatMessage).map(copyMessage),
-			context: candidate.context.filter(isChatMessage).map(copyMessage),
-		};
-	} catch {
-		return null;
-	}
 };

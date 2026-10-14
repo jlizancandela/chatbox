@@ -17,16 +17,18 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
   - `ChatMessage`, `ChatSource`, `SourcesEvent`, `TokenEvent`, `DoneEvent`, `ErrorEvent`, `TurnState`.
 - [x] Crear `src/chat/infrastructure/sse.ts` — parser puro de frames SSE (`parseSSE(data: string)` → evento o null; maneja frames partidos entre chunks, varios frames en un chunk, y payloads con `history`).
 - [x] Crear `src/chat/domain/conversation.ts`:
-  - `createConversationStore()` — estado `messages` y `context` por separado.
+  - `chatReducer()` y `useChat()` — estado reactivo local de `messages`, `context` y ciclo del turno.
   - `trimHistory(messages, limits)` — recortes de 20 mensajes / 2000 chars por mensaje / 8000 total (alineados con `.env` del API).
   - `mergeContext(sourcesHistory)` — sustituye `context` por el historial del servidor.
   - `buildChatRequest(text, context)` — genera el cuerpo de `POST /api/chat`.
-  - `saveToSessionStorage(messages, context)` y `loadFromSessionStorage()` — validación tolerante, clave versionada `chatbox:v1`.
-- [x] Tests unitarios de `sse.ts` y `trimHistory`.
+  - `saveToSessionStorage(messages, context)` y `loadFromSessionStorage()` en `src/chat/infrastructure/storage.ts` — validación tolerante, clave versionada `chatbox:v1`.
+- [x] Crear `src/chat/application/chat-reducer.ts` y `src/chat/hooks/useChat.ts` para el estado reactivo local.
+- [x] Mover `sessionStorage` a `src/chat/infrastructure/storage.ts`.
+- [x] Tests unitarios de `sse.ts`, conversación, reducer y storage.
 
 ## Paso 2 — Hook `useChatStream`
 
-- [ ] Crear `src/hooks/useChatStream.ts`:
+- [ ] Crear `src/chat/hooks/useChatStream.ts`:
   - Estados internos: `idle | connecting | generating | streaming | error | aborted`.
   - `sendQuestion(text)` — fetch con `ReadableStream` + `AbortController`.
   - Parseo de frames SSE en un loop asíncrono con `requestAnimationFrame` para agrupar tokens.
@@ -55,7 +57,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F20` — Estado con `messages` y `context` separados.
 - [x] `RF-F21` — Recorte de historial en cada petición.
 - [x] `RF-F22` — `context` se sustituye por el `history` del evento `sources`.
-- [ ] `RF-F23` — Al recibir `done`, añadir par `{user, assistant}` a `context`.
+- [x] `RF-F23` — El reducer añade al recibir `done` el par `{user, assistant}` a `context`.
 - [x] `RF-F24` — Persistencia en `sessionStorage` bajo clave versionada.
 - [ ] `RF-F25` — Botón "Nueva conversación" con confirmación en línea.
 - [ ] `RF-F26` — Nota discreta cuando el servidor recorta el historial.

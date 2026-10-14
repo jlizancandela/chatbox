@@ -9,8 +9,9 @@ La implementación actual incluye:
 
 - Tipos del contrato del chat en `src/chat/types.ts`.
 - Parser SSE en `src/chat/infrastructure/sse.ts`.
-- Reglas de conversación y persistencia temporal en
-  `src/chat/domain/conversation.ts`.
+- Reglas puras de conversación en `src/chat/domain/conversation.ts`.
+- Estado local con `useChat()` y `chatReducer`.
+- Persistencia temporal en `src/chat/infrastructure/storage.ts`.
 - Tests unitarios con Vitest.
 
 La documentación técnica de estos módulos está en
