@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import type { ChatMessage } from "../types";
-import { loadFromSessionStorage, STORAGE_KEY, saveToSessionStorage } from "./storage";
+import {
+	loadFromSessionStorage,
+	STORAGE_KEY,
+	saveToSessionStorage,
+} from "../../../../src/chat/infrastructure/storage";
+import type { ChatMessage } from "../../../../src/chat/types";
 
 const message = (role: ChatMessage["role"], content: string): ChatMessage => ({
 	role,

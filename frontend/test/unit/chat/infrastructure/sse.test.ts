@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSSEParser, parseSSE } from "./sse";
+import { createSSEParser, parseSSE } from "../../../../src/chat/infrastructure/sse";
 
 describe("SSE parser", () => {
 	it("parses a complete token frame", () => {
