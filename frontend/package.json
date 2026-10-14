@@ -5,9 +5,9 @@
 		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview",
-		"lint": "biome check ./src",
-		"lint:fix": "biome check --write ./src",
-		"format": "biome format --write ./src",
+		"lint": "biome check ./src ./test",
+		"lint:fix": "biome check --write ./src ./test",
+		"format": "biome format --write ./src ./test",
 		"test": "vitest",
 		"test:watch": "vitest --watch"
 	},

@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { type ChatState, chatReducer, createInitialChatState } from "./chat-reducer";
+import {
+	type ChatState,
+	chatReducer,
+	createInitialChatState,
+} from "../../../../src/chat/application/chat-reducer";
 
 const source = {
 	documentId: "cv.md",

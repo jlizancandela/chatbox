@@ -12,7 +12,7 @@ La implementación actual incluye:
 - Reglas puras de conversación en `src/chat/domain/conversation.ts`.
 - Estado local con `useChat()` y `chatReducer`.
 - Persistencia temporal en `src/chat/infrastructure/storage.ts`.
-- Tests unitarios con Vitest.
+- Tests unitarios con Vitest en `test/unit/`, separados del código productivo.
 
 La documentación técnica de estos módulos está en
 [`docs/chat-implementation.md`](docs/chat-implementation.md).
@@ -34,6 +34,9 @@ npm run format
 npm test -- --run
 npm run test:watch
 ```
+
+Los tests se organizan por tipo bajo `test/`: `unit/`, `component/`,
+`integration/` y `accessibility/`. Actualmente solo existe `test/unit/`.
 
 ## Integración prevista
 

@@ -16,23 +16,25 @@ hook de streaming y el componente visual todavía no están implementados.
 src/
 ├── chat/
 │   ├── application/
-│   │   ├── chat-reducer.ts
-│   │   └── chat-reducer.test.ts
+│   │   └── chat-reducer.ts
 │   ├── domain/
-│   │   ├── conversation.ts
-│   │   └── conversation.test.ts
+│   │   └── conversation.ts
 │   ├── hooks/
 │   │   └── useChat.ts
 │   ├── infrastructure/
 │   │   ├── sse.ts
-│   │   ├── sse.test.ts
-│   │   ├── storage.ts
-│   │   └── storage.test.ts
+│   │   └── storage.ts
 │   └── types.ts
 ├── assets/
 ├── index.tsx
 ├── style.css
 └── vite-env.d.ts
+
+test/
+└── unit/chat/
+    ├── application/chat-reducer.test.ts
+    ├── domain/conversation.test.ts
+    └── infrastructure/{sse,storage}.test.ts
 ```
 
 - `chat/types.ts`: tipos del contrato compartido entre frontend y API.
@@ -42,7 +44,7 @@ src/
 - `chat/hooks/useChat.ts`: fachada reactiva local sobre `useReducer`.
 - `chat/infrastructure/sse.ts`: adaptación de frames SSE a eventos tipados.
 - `chat/infrastructure/storage.ts`: adaptación tolerante a `sessionStorage`.
-- `*.test.ts`: pruebas unitarias de los módulos implementados.
+- `test/unit/`: pruebas unitarias separadas del código productivo y organizadas por módulo.
 
 ## Tipos del chat
 

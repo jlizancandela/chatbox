@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import type { ChatMessage } from "../types";
 import {
 	buildChatRequest,
 	HISTORY_MAX_MESSAGE_CHARS,
@@ -7,7 +6,8 @@ import {
 	HISTORY_MAX_TOTAL_CHARS,
 	mergeContext,
 	trimHistory,
-} from "./conversation";
+} from "../../../../src/chat/domain/conversation";
+import type { ChatMessage } from "../../../../src/chat/types";
 
 const message = (role: ChatMessage["role"], content: string): ChatMessage => ({
 	role,

@@ -113,8 +113,10 @@ Ubicar cada archivo nuevo según su responsabilidad:
 - `chat/components/`: presentación y eventos de UI.
 - `chat/hooks/`: ciclo de vida del stream y estado de interacción.
 
-No crear archivos genéricos como `src/utils.ts`, `src/helpers.ts` o
-`src/types.ts` para funcionalidad del chat. Si una responsabilidad todavía no
+Los tests deben vivir fuera de `src/`, bajo `test/`, y organizarse por tipo
+(`unit/`, `component/`, `integration/` y `accessibility/`). No crear archivos
+genéricos como `src/utils.ts`, `src/helpers.ts` o `src/types.ts` para
+funcionalidad del chat. Si una responsabilidad todavía no
 justifica una carpeta, mantenerla dentro del módulo de chat más cercano sin
 crear una estructura global prematura. No mover carpetas solo por anticipación:
 cada nueva carpeta debe responder a una responsabilidad real.
