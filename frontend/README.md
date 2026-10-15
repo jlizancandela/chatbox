@@ -12,12 +12,13 @@ La implementación actual incluye:
 - Reglas puras de conversación en `src/chat/domain/conversation.ts`.
 - Estado local con `useChat()` y `chatReducer`.
 - Persistencia temporal en `src/chat/infrastructure/storage.ts`.
+- Hook `useChatStream` para fetch, SSE, abort y timeout.
 - Tests unitarios con Vitest en `test/unit/`, separados del código productivo.
 
 La documentación técnica de estos módulos está en
 [`docs/chat-implementation.md`](docs/chat-implementation.md).
 
-El hook de streaming y el componente visual todavía están pendientes. Consulta
+El componente visual todavía está pendiente. Consulta
 [`TODO.md`](TODO.md) para el estado completo.
 
 ## Comandos
