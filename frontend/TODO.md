@@ -28,14 +28,14 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 ## Paso 2 — Hook `useChatStream`
 
-- [ ] Crear `src/chat/hooks/useChatStream.ts`:
+- [x] Crear `src/chat/hooks/useChatStream.ts`:
   - Estados internos: `idle | connecting | generating | streaming | error | aborted`.
   - `sendQuestion(text)` — fetch con `ReadableStream` + `AbortController`.
   - Parseo de frames SSE en un loop asíncrono con `requestAnimationFrame` para agrupar tokens.
   - Timeout de 30 s (configurable).
   - `abort()` — callable desde el componente.
-- [ ] Manejo de errores de red/CORS (`TypeError`), 400/413/429/5xx con textos propios (sección 7 del spec).
-- [ ] Test del hook con `fetch` simulado: secuencia normal, sin contexto, error mid-stream, abort, timeout.
+- [x] Manejo de errores de red/CORS (`TypeError`), 400/413/429/5xx con textos propios (sección 7 del spec).
+- [x] Test del hook con `fetch` simulado: secuencia normal, sin contexto, error mid-stream, abort, timeout.
 
 ## Paso 3 — Componente `Chatbox`
 

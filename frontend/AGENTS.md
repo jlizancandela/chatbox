@@ -36,18 +36,18 @@ en `../docs/stitch-frontend-design/SPEC-FRONTEND.md`.
 - Proyecto base Vite + Preact + TypeScript.
 - Biome configurado como formatter y linter.
 - `react-markdown` instalado y compatible con Preact Compat.
-- Tipos del contrato SSE en `src/types.ts`.
+- Tipos del contrato SSE en `src/chat/types.ts`.
 - Adaptador SSE en `src/chat/infrastructure/sse.ts`, basado en
   `eventsource-parser`.
 - Estado local con `src/chat/application/chat-reducer.ts` y
   `src/chat/hooks/useChat.ts`.
 - Persistencia tolerante en `src/chat/infrastructure/storage.ts`.
+- Hook `useChatStream` en `src/chat/hooks/useChatStream.ts`.
 - Build de producción verificado con `npm run build`.
 
 ### Pendiente principal
 
-- Estado y persistencia de conversación.
-- Hook `useChatStream` con fetch, abort, timeout y estados del turno.
+- Integración del estado y persistencia con el componente `Chatbox`.
 - Componente `Chatbox` y renderizado de mensajes.
 - Accesibilidad, responsive, integración Astro y pruebas.
 
@@ -93,13 +93,14 @@ src/
 │   ├── domain/
 │   │   └── conversation.ts # Reglas puras de conversación
 │   ├── hooks/
-│   │   └── useChat.ts      # Estado reactivo local
+│   │   ├── useChat.ts      # Estado reactivo local
+│   │   └── useChatStream.ts # Fetch, SSE, abort y timeout
 │   ├── infrastructure/
 │   │   ├── sse.ts          # Adaptador de frames SSE y payloads del API
 │   │   └── storage.ts      # Adaptador de sessionStorage
 │   └── types.ts            # Tipos compartidos del contrato frontend/API
 ├── components/             # Componentes de UI del chat (pendiente)
-├── hooks/                  # Orquestación de interacción/streaming (pendiente)
+├── hooks/                  # Orquestación de interacción/streaming
 ├── assets/
 ├── index.tsx               # Arranque de la aplicación
 └── style.css               # Estilos globales

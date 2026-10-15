@@ -7,8 +7,9 @@ responsabilidad es enviar preguntas, consumir respuestas SSE y presentar una
 conversación sobre el perfil documental de Jorge.
 
 Actualmente están implementados los tipos del contrato, el adaptador SSE, las
-reglas de conversación, la persistencia temporal y sus pruebas unitarias. El
-hook de streaming y el componente visual todavía no están implementados.
+reglas de conversación, la persistencia temporal, el reducer, el hook de
+streaming y sus pruebas unitarias. El componente visual todavía no está
+implementado.
 
 ## Estructura actual
 
@@ -20,7 +21,8 @@ src/
 │   ├── domain/
 │   │   └── conversation.ts
 │   ├── hooks/
-│   │   └── useChat.ts
+│   │   ├── useChat.ts
+│   │   └── useChatStream.ts
 │   ├── infrastructure/
 │   │   ├── sse.ts
 │   │   └── storage.ts
@@ -44,6 +46,7 @@ test/
   peticiones.
 - `chat/application/chat-reducer.ts`: estado y transiciones puras del turno.
 - `chat/hooks/useChat.ts`: fachada reactiva local sobre `useReducer`.
+- `chat/hooks/useChatStream.ts`: coordinación de fetch, SSE, abort y timeout.
 - `chat/infrastructure/sse.ts`: adaptación de frames SSE a eventos tipados.
 - `chat/infrastructure/storage.ts`: adaptación tolerante a `sessionStorage`.
 - `test/unit/`: pruebas unitarias separadas del código productivo y organizadas por módulo.
@@ -218,7 +221,7 @@ useChat(initial?: Partial<ConversationState>): ChatController
 Crea un estado aislado por instancia del widget mediante `useReducer`. Expone
 el estado y acciones `startTurn`, `receiveSources`, `receiveToken`,
 `completeTurn`, `failTurn`, `abortTurn`, `restore` y `reset`. No realiza fetch
-ni consume SSE todavía; `useChatStream` usará esta fachada en la siguiente fase.
+ni consume SSE; `useChatStream` usa esta fachada para coordinar el turno.
 
 ### `trimHistory(messages, limits?)`
 
@@ -296,7 +299,7 @@ campos, el storage no está disponible o se produce cualquier error de lectura.
 
 ## Tests actuales
 
-Vitest cubre actualmente 20 tests:
+Vitest cubre actualmente 30 tests:
 
 - Parser SSE: frames completos, frames partidos, varios eventos, `sources` con
   `history`, errores, payloads inválidos y reset.
@@ -305,6 +308,8 @@ Vitest cubre actualmente 20 tests:
 - Reducer: inicio, sources, tokens, finalización, error, aborto, restauración y
   reset.
 - Storage: persistencia tolerante y datos corruptos.
+- Stream: flujo normal, sin contexto, errores HTTP y SSE, abort, timeout y
+  stream incompleto.
 
 Comandos:
 
@@ -321,7 +326,6 @@ Vitest en modo watch durante el desarrollo.
 
 Todavía no están implementados:
 
-- `useChatStream` con `fetch`, abort, timeout y consumo de SSE.
 - Componente `Chatbox` y renderizado de mensajes.
 - Renderizado Markdown restringido en una interfaz real.
 - Accesibilidad, responsive e integración con Astro.
