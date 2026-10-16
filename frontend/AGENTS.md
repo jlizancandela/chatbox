@@ -92,7 +92,7 @@ src/
 │   │   └── chat-reducer.ts # Estado y transiciones del turno
 │   ├── components/
 │   │   ├── AssistantMarkdown.tsx  # Renderer Markdown del asistente
-│   │   └── SafeLink.tsx           # Enlace externo seguro
+│   │   └── ExternalLink.tsx          # Enlace externo seguro
 │   ├── domain/
 │   │   └── conversation.ts # Reglas puras de conversación
 │   ├── hooks/

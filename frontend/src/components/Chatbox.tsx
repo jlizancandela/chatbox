@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { AssistantMarkdown } from "../chat/components/AssistantMarkdown";
-import { SafeLink } from "../chat/components/SafeLink";
+import { ExternalLink } from "../chat/components/ExternalLink";
 import { trimHistory } from "../chat/domain/conversation";
 import { useChat } from "../chat/hooks/useChat";
 import { useChatStream } from "../chat/hooks/useChatStream";
@@ -180,7 +180,8 @@ export function Chatbox({
 				)}
 				{localNotice && (
 					<p class="chatbox__notice">
-						{localNotice} {contactUrl && <SafeLink href={contactUrl}>Contactar con Jorge</SafeLink>}
+						{localNotice}{" "}
+						{contactUrl && <ExternalLink href={contactUrl}>Contactar con Jorge</ExternalLink>}
 					</p>
 				)}
 				{showScrollToEnd && (
@@ -252,7 +253,7 @@ export function Chatbox({
 						{question.length}/{MAX_QUESTION_LENGTH}
 					</small>
 				)}
-				{contactUrl && <SafeLink href={contactUrl}>Contactar con Jorge</SafeLink>}
+				{contactUrl && <ExternalLink href={contactUrl}>Contactar con Jorge</ExternalLink>}
 				<div class="chatbox__conversation-actions">
 					{confirmReset ? (
 						<>
