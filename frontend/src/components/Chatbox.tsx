@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "preact/hooks";
+import { AssistantMarkdown } from "../chat/components/AssistantMarkdown";
 import { trimHistory } from "../chat/domain/conversation";
 import { useChat } from "../chat/hooks/useChat";
 import { useChatStream } from "../chat/hooks/useChatStream";
 import { loadFromSessionStorage, saveToSessionStorage } from "../chat/infrastructure/storage";
 import type { ChatMessage } from "../chat/types";
-import { AssistantMarkdown } from "./AssistantMarkdown";
 
 export type ChatboxProps = {
 	apiUrl: string;
@@ -211,7 +211,11 @@ export function Chatbox({
 							>
 								<span class="chatbox__message-author">{messageLabel(message)}</span>
 								{message.role === "assistant" ? (
-									<AssistantMarkdown content={message.content} />
+									message.content ? (
+										<AssistantMarkdown content={message.content} />
+									) : (
+										<span>El asistente está escribiendo</span>
+									)
 								) : (
 									<p>{message.content}</p>
 								)}
