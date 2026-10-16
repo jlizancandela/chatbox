@@ -10,6 +10,7 @@ export type UseChatStreamOptions = {
 	apiUrl: string;
 	chat: ChatController;
 	timeoutMs?: number;
+	onSources?: (historyLength: number) => void;
 };
 
 export type UseChatStreamResult = {
@@ -167,6 +168,7 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 	const handleEvent = (event: ChatEvent): void => {
 		switch (event.type) {
 			case "sources":
+				options.onSources?.(event.history.length);
 				options.chat.receiveSources(event.sources, event.history);
 				break;
 			case "token":
