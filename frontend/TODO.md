@@ -64,7 +64,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 ## Paso 4 — Renderizado y estilos
 
-- [ ] `RF-F30` — `react-markdown` con `allowedElements` (`p`, `strong`, `em`, `code`, `a`, `ul`, `ol`, `li`), sin `rehype-raw`, `urlTransform` solo `http(s):` y `mailto:`. Carga diferida con `import()`.
+- [x] `RF-F30` — `react-markdown` con `allowedElements` (`p`, `strong`, `em`, `code`, `a`, `ul`, `ol`, `li`), sin `rehype-raw`, `urlTransform` solo `http(s):` y `mailto:`. Carga diferida con `import()`. Renderer, fallback seguro y tests de componente completados.
 - [ ] `RF-F31` — Enlaces en pestaña nueva con `rel="noopener noreferrer"`, color contrastante y subrayado.
 - [ ] `RF-F61` — Variables CSS `--chatbox-*` heredadas del sitio + `prefers-color-scheme`.
 - [ ] `RF-F62` — Textos de UI centralizados en `src/strings.es.ts`.
