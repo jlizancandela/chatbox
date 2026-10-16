@@ -4,6 +4,7 @@ import { useChat } from "../chat/hooks/useChat";
 import { useChatStream } from "../chat/hooks/useChatStream";
 import { loadFromSessionStorage, saveToSessionStorage } from "../chat/infrastructure/storage";
 import type { ChatMessage } from "../chat/types";
+import { AssistantMarkdown } from "./AssistantMarkdown";
 
 export type ChatboxProps = {
 	apiUrl: string;
@@ -209,7 +210,11 @@ export function Chatbox({
 								key={`${message.role}-${index}`}
 							>
 								<span class="chatbox__message-author">{messageLabel(message)}</span>
-								<p>{message.content}</p>
+								{message.role === "assistant" ? (
+									<AssistantMarkdown content={message.content} />
+								) : (
+									<p>{message.content}</p>
+								)}
 							</li>
 						))}
 					</ol>
