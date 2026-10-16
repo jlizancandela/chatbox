@@ -1,5 +1,6 @@
 import type { ComponentChildren, ComponentType } from "preact";
 import { useEffect, useState } from "preact/hooks";
+import { SafeLink } from "./SafeLink";
 
 const ALLOWED_ELEMENTS = ["p", "strong", "em", "code", "a", "ul", "ol", "li"];
 export const isSafeUrl = (url: string): boolean => {
@@ -62,6 +63,7 @@ export function AssistantMarkdown({ content }: AssistantMarkdownProps) {
 	return (
 		<Renderer
 			allowedElements={ALLOWED_ELEMENTS}
+			components={{ a: SafeLink }}
 			urlTransform={(url) => (isSafeUrl(url) ? url : "")}
 		>
 			{content}
