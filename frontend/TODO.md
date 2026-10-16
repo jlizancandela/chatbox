@@ -39,28 +39,28 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 ## Paso 3 — Componente `Chatbox`
 
-- [ ] Crear `src/components/Chatbox.tsx`:
+- [x] Crear `src/components/Chatbox.tsx`:
   - Props: `apiUrl` (obligatoria), `suggestions?`, `contactUrl?`, `title?`.
   - Estructura HTML semántica (sección 4 del spec).
-- [ ] `RF-F01` — Cabecera con nombre, etiqueta "IA", aviso de alcance.
-- [ ] `RF-F02` — Estado vacío con sugerencias clickables.
-- [ ] `RF-F03` — Textarea con autogrow (max 5 líneas), contador al 80% del límite de 1000 chars.
-- [ ] `RF-F04` — `Enter` envía, `Shift+Enter` salto de línea; IME `isComposing` no envía.
-- [ ] `RF-F05` — Botón "Enviar" ↔ "Detener"; `Esc` aborta.
-- [ ] `RF-F06` — Scroll automático solo si está a <80 px del final; botón "Ir al final" si no.
-- [ ] `RF-F07` — Mensajes del usuario: texto plano.
-- [ ] `RF-F10` — Burbuja del usuario + burbuja vacía del asistente con indicador "escribiendo".
-- [ ] `RF-F11` — Tokens agrupados por `requestAnimationFrame`.
-- [ ] `RF-F12` — Mensaje local de "no lo tengo" cuando `sources: []` + `done` sin tokens.
-- [ ] `RF-F14` — No mostrar nunca el `message` de un `error` ni JSON de error.
-- [ ] `RF-F15` — Guardar `sources` en estado sin mostrarlas (MVP).
+- [x] `RF-F01` — Cabecera con nombre, etiqueta "IA", aviso de alcance.
+- [x] `RF-F02` — Estado vacío con sugerencias clickables.
+- [x] `RF-F03` — Textarea con autogrow (max 5 líneas), contador al 80% del límite de 1000 chars.
+- [x] `RF-F04` — `Enter` envía, `Shift+Enter` salto de línea; IME `isComposing` no envía.
+- [x] `RF-F05` — Botón "Enviar" ↔ "Detener"; `Esc` aborta.
+- [x] `RF-F06` — Scroll automático solo si está a <80 px del final; botón "Ir al final" si no.
+- [x] `RF-F07` — Mensajes del usuario: texto plano.
+- [x] `RF-F10` — Burbuja del usuario + burbuja vacía del asistente con indicador "escribiendo".
+- [x] `RF-F11` — Tokens agrupados por `requestAnimationFrame`.
+- [x] `RF-F12` — Mensaje local de "no lo tengo" cuando `sources: []` + `done` sin tokens.
+- [x] `RF-F14` — No mostrar nunca el `message` de un `error` ni JSON de error.
+- [x] `RF-F15` — Guardar `sources` en estado sin mostrarlas (MVP).
 - [x] `RF-F20` — Estado con `messages` y `context` separados.
 - [x] `RF-F21` — Recorte de historial en cada petición.
 - [x] `RF-F22` — `context` se sustituye por el `history` del evento `sources`.
 - [x] `RF-F23` — El reducer añade al recibir `done` el par `{user, assistant}` a `context`.
 - [x] `RF-F24` — Persistencia en `sessionStorage` bajo clave versionada.
-- [ ] `RF-F25` — Botón "Nueva conversación" con confirmación en línea.
-- [ ] `RF-F26` — Nota discreta cuando el servidor recorta el historial.
+- [x] `RF-F25` — Botón "Nueva conversación" con confirmación en línea.
+- [x] `RF-F26` — Nota discreta cuando el servidor recorta el historial.
 
 ## Paso 4 — Renderizado y estilos
 
