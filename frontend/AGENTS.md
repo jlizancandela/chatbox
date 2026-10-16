@@ -90,6 +90,9 @@ src/
 ├── chat/
 │   ├── application/
 │   │   └── chat-reducer.ts # Estado y transiciones del turno
+│   ├── components/
+│   │   ├── AssistantMarkdown.tsx  # Renderer Markdown del asistente
+│   │   └── ExternalLink.tsx          # Enlace externo seguro
 │   ├── domain/
 │   │   └── conversation.ts # Reglas puras de conversación
 │   ├── hooks/
@@ -99,7 +102,7 @@ src/
 │   │   ├── sse.ts          # Adaptador de frames SSE y payloads del API
 │   │   └── storage.ts      # Adaptador de sessionStorage
 │   └── types.ts            # Tipos compartidos del contrato frontend/API
-├── components/             # Componentes de UI del chat (pendiente)
+├── components/             # Punto de entrada del widget (Chatbox.tsx)
 ├── hooks/                  # Orquestación de interacción/streaming
 ├── assets/
 ├── index.tsx               # Arranque de la aplicación
@@ -108,11 +111,12 @@ src/
 
 Ubicar cada archivo nuevo según su responsabilidad:
 
+- `chat/components/`: componentes específicos de renderizado de chat (Markdown, enlaces seguros, etc.).
 - `chat/domain/`: reglas puras, límites y tipos específicos del dominio.
 - `chat/application/`: casos de uso y orquestación.
 - `chat/infrastructure/`: fetch, SSE, storage y adaptadores externos.
-- `chat/components/`: presentación y eventos de UI.
 - `chat/hooks/`: ciclo de vida del stream y estado de interacción.
+- `components/`: reservado al punto de entrada del widget (`Chatbox`).
 
 Los tests deben vivir fuera de `src/`, bajo `test/`, y organizarse por tipo
 (`unit/`, `component/`, `integration/` y `accessibility/`). No crear archivos
