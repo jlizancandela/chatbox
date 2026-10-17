@@ -1,3 +1,0 @@
-{
-  "frontend/**/*.{ts,tsx,js,jsx,json,css}": "npm --prefix frontend exec -- biome check --write"
-}
