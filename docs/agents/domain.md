@@ -7,7 +7,7 @@ Este repositorio usa una configuración single-context.
 Antes de explorar un área:
 
 - Leer `GLOSSARY.md` en la raíz si existe.
-- Leer los ADRs relevantes bajo `docs/adr/` si existen.
+- Leer los ADRs relevantes bajo `docs/decisions/` si existen.
 
 Si los archivos no existen, continuar sin crearlos anticipadamente.
 

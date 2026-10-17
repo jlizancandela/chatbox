@@ -1,4 +1,8 @@
-/* Chatbox widget theme contract (RF-F61). */
+/* Chatbox widget styles — RF-F61.
+ * Self-contained theme: the 7 tokens live on `.chatbox` and the widget consumes
+ * them. Layer precedence, lowest to highest:
+ *   defaults < @media (prefers-color-scheme: dark) < [data-theme] (T3) < forced-colors (T4).
+ */
 .chatbox {
 	--chatbox-color-text: #222;
 	--chatbox-color-surface: #ffffff;
@@ -7,8 +11,15 @@
 	--chatbox-color-border: #6b7280;
 	--chatbox-color-focus: #005fcc;
 	--chatbox-color-error: #b91c1c;
+
+	color: var(--chatbox-color-text);
+	background-color: var(--chatbox-color-surface);
 }
 
+/* System dark theme. Must stay after the `.chatbox` defaults: same specificity,
+ * so source order is what makes it win. Declares tokens only; the base rules
+ * above resolve `color` and `background-color` from them.
+ */
 @media (prefers-color-scheme: dark) {
 	.chatbox {
 		--chatbox-color-text: #ccc;
@@ -21,51 +32,6 @@
 	}
 }
 
-/* Explicit host themes override system preference by source order. */
-[data-theme="dark"] .chatbox {
-	--chatbox-color-text: #ccc;
-	--chatbox-color-surface: #1a1a1a;
-	--chatbox-color-primary: #66b3ff;
-	--chatbox-color-link: #66b3ff;
-	--chatbox-color-border: #6b7280;
-	--chatbox-color-focus: #66b3ff;
-	--chatbox-color-error: #fca5a5;
-}
-
-[data-theme="light"] .chatbox {
-	--chatbox-color-text: #222;
-	--chatbox-color-surface: #ffffff;
-	--chatbox-color-primary: #005fcc;
-	--chatbox-color-link: #005fcc;
-	--chatbox-color-border: #6b7280;
-	--chatbox-color-focus: #005fcc;
-	--chatbox-color-error: #b91c1c;
-}
-
-@media (prefers-contrast: more) {
-	.chatbox {
-		--chatbox-color-text: #000000;
-		--chatbox-color-surface: #ffffff;
-		--chatbox-color-primary: #003b80;
-		--chatbox-color-link: #003b80;
-		--chatbox-color-border: #000000;
-		--chatbox-color-focus: #003b80;
-		--chatbox-color-error: #8b0000;
-	}
-}
-
-@media (forced-colors: active) {
-	.chatbox {
-		--chatbox-color-text: CanvasText;
-		--chatbox-color-surface: Canvas;
-		--chatbox-color-primary: Highlight;
-		--chatbox-color-link: LinkText;
-		--chatbox-color-border: GrayText;
-		--chatbox-color-focus: Highlight;
-		--chatbox-color-error: CanvasText;
-	}
-}
-
 .chatbox a {
 	color: var(--chatbox-color-link);
 	text-decoration: underline;
@@ -73,5 +39,7 @@
 
 .chatbox__footer button[type="submit"] {
 	background-color: var(--chatbox-color-primary);
-	color: #ffffff;
+	/* Label ink reuses the surface token: white in light, #1a1a1a in dark.
+	 * A fixed white label would be 2.22:1 on the dark primary (#66b3ff). */
+	color: var(--chatbox-color-surface);
 }

@@ -1,4 +1,5 @@
 set -e
 npm exec -- lint-staged
 npm --prefix frontend run lint
+npm --prefix frontend run typecheck
 npm --prefix frontend run test -- --run

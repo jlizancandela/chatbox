@@ -207,27 +207,39 @@ Las specs de implementación se guardan en `.specs/` usando el identificador
 del issue y un slug descriptivo. Las decisiones generales de proceso se
 guardan en `../docs/decisions/`, no en `.specs/`.
 
+Al revisar cambios, incluir explícitamente los archivos untracked: `git diff HEAD`
+los omite. No usar `git add -N` para colarlos en el diff: lint-staged rechaza el
+commit si hay archivos staged con `--intent-to-add`.
+
 ## Verificación mínima
 
 Para cualquier cambio de código:
 
 ```bash
-npx biome check src
+npx biome check src test
+npm run typecheck
 npm run build
 npm test -- --run
 ```
 
-Desde la raíz del monorepo, el hook pre-commit ejecuta `lint-staged`, Biome y
-la suite completa del frontend. Los cambios de streaming deben incluir pruebas
+Desde la raíz del monorepo, el hook pre-commit ejecuta `lint-staged`, Biome, el
+typecheck y la suite completa del frontend. Si el hook falla, se arregla la
+causa: no se salta con `--no-verify`. CI (`frontend.yml`) ejecuta los mismos
+pasos en cada PR que toca `frontend/**`. Los cambios de streaming deben incluir pruebas
 para frames partidos, varios frames en un chunk, payloads con `history`,
 abortos, errores mid-stream y cierre sin `done` cuando se implemente el hook
 correspondiente.
 
 ### Tests de theming en jsdom
 
-jsdom no resuelve `var(--token)` dentro de `getComputedStyle`. Los tests de CSS
-deben verificar el mecanismo (regla CSS + token heredado) o ejecutarse en un
-browser real si necesitan comprobar el color final resuelto.
+jsdom no resuelve `var(--token)` dentro de `getComputedStyle`, y tampoco evalúa
+`@media` ni consulta `matchMedia` en la cascada: con
+`matchMedia('(prefers-color-scheme: dark)')` devolviendo `true`, el estilo
+computado sigue mostrando el bloque base. Los tests de CSS deben verificar el
+mecanismo (regla presente en `document.styleSheets`, token declarado, orden de
+capas) o ejecutarse en un browser real con el esquema de color emulado si
+necesitan el valor final resuelto. El reparto entre verificación de mecanismo y
+de resolución está en `../docs/decisions/002-css-theming-test-strategy.md`.
 
 ### Code review
 
