@@ -66,7 +66,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 - [x] `RF-F30` — `react-markdown` con `allowedElements` (`p`, `strong`, `em`, `code`, `a`, `ul`, `ol`, `li`), sin `rehype-raw`, `urlTransform` solo `http(s):` y `mailto:`. Carga diferida con `import()`.
 - [x] `RF-F31` — Enlaces en pestaña nueva con `rel="noopener noreferrer"`, color contrastante y subrayado. SafeLink renombrado a ExternalLink; estilos aplicados a todos los enlaces.
-- [ ] `RF-F61` — Variables CSS `--chatbox-*` heredadas del sitio + `prefers-color-scheme`.
+- [x] `RF-F61` — Variables CSS `--chatbox-*` heredadas del sitio + `prefers-color-scheme`; resolución verificada en navegador real con Playwright para T2/T3/T4 y axe-core (issue #62).
 - [ ] `RF-F62` — Textos de UI centralizados en `src/strings.es.ts`.
 - [ ] Estilos propios con clase raíz `.chatbox`; sin dependencia de estilos globales.
 
@@ -85,27 +85,42 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [ ] `RF-F50` — Altura con `dvh`, `env(safe-area-inset-*)`, `font-size` ≥ 16 px en textarea (evitar zoom iOS).
 - [ ] `RF-F51` — Ajuste con `visualViewport` si el chat va a pantalla completa o flotante.
 
-## Paso 7 — Integración con Astro
+## Paso 7 — Distribución como widget universal
 
-- [ ] Estructura de archivos en `src/components/chatbox/` (o adaptar paths).
-- [ ] Configurar `@astrojs/preact` en Astro con `compat: true` (redirige `react` → `preact/compat`).
-- [ ] `PUBLIC_CHAT_API_URL` en `.env` del frontend; alineación con `CORS_ORIGIN` del API (4321 en dev).
-- [ ] Verificación de CORS en desarrollo.
-- [ ] Test de integración: montar componente, enviar pregunta, recibir streaming.
+La integración con Astro será un caso de consumo, no el objetivo principal. El
+widget debe poder instalarse desde NPM o cargarse desde un CDN en Astro, HTML
+plano, React/Preact, Vue, Svelte, WordPress y otros hosts.
+
+- [ ] Separar la app/demo Vite del paquete distribuible.
+- [ ] Crear un paquete publicable con API y configuración estables.
+- [ ] Exponer `Chatbox` como componente Preact para consumidores con framework.
+- [ ] Exponer un custom element `<chatbox-widget>` para uso universal desde HTML.
+- [ ] Generar bundles ESM y browser/CDN, además de declaraciones TypeScript y CSS.
+- [ ] Recibir `apiUrl` y opciones mediante props/atributos; no hardcodear URLs de producción.
+- [ ] Documentar instalación y uso vía NPM, CDN, HTML plano, Astro y Preact.
+- [ ] Verificar CORS para integraciones desde dominios externos.
+- [ ] Añadir pruebas de integración en HTML plano, Astro y Preact.
+- [ ] Configurar versionado, releases y publicación en NPM.
+
+### Decisiones pendientes
+
+- [ ] Confirmar si el paquete oficial incluirá tanto el componente Preact como el custom element.
+- [ ] Elegir nombre y scope del paquete NPM.
+- [ ] Elegir estrategia de distribución CDN (unpkg, jsDelivr u otra).
 
 ## Paso 8 — Pruebas y validación
 
 - [x] Tests unitarios de `sse.ts` (frames partidos, varios en un chunk, payloads con `history`).
 - [x] Tests de `trimHistory` y lectura tolerante de storage.
-- [ ] Tests del hook con fetch simulado.
+- [x] Tests del hook con fetch simulado.
 - [ ] Tests del componente (`@testing-library/preact`): Enter/Shift+Enter, Enviar↔Detener, estado vacío, reintento.
-- [ ] Test de accesibilidad con axe-core.
+- [x] Test de accesibilidad con axe-core sobre `.chatbox` en navegador real.
 - [ ] Prueba manual en móvil real (iOS Safari): teclado virtual, safe areas, zoom.
 - [x] Verificar build de producción (`npm run build`) con react-markdown y Preact Compat.
 - [ ] Flujo completo: instalación limpia, `npm install`, dev server, chat con streaming real.
 
 ## Pendiente de decisión (no bloqueante)
 
-- **Formato de integración en Astro**: embebido en sección (`client:visible`) o botón flotante (`client:idle`).
+- **Integración Astro**: embebido en sección (`client:visible`) o botón flotante (`client:idle`), cuando se implemente el adaptador.
 - **Persistencia**: decidido `sessionStorage`; queda pendiente integrarla en el componente `Chatbox`.
 - **Timeout de 30 s y límites del cliente**: valores iniciales; ajustar tras medir latencia real.
