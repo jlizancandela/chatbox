@@ -214,11 +214,28 @@ Para cualquier cambio de código:
 ```bash
 npx biome check src
 npm run build
+npm test -- --run
 ```
 
-Los cambios de streaming deben incluir pruebas para frames partidos, varios
-frames en un chunk, payloads con `history`, abortos, errores mid-stream y cierre
-sin `done` cuando se implemente el hook correspondiente.
+Desde la raíz del monorepo, el hook pre-commit ejecuta `lint-staged`, Biome y
+la suite completa del frontend. Los cambios de streaming deben incluir pruebas
+para frames partidos, varios frames en un chunk, payloads con `history`,
+abortos, errores mid-stream y cierre sin `done` cuando se implemente el hook
+correspondiente.
+
+### Tests de theming en jsdom
+
+jsdom no resuelve `var(--token)` dentro de `getComputedStyle`. Los tests de CSS
+deben verificar el mecanismo (regla CSS + token heredado) o ejecutarse en un
+browser real si necesitan comprobar el color final resuelto.
+
+### Code review
+
+Cada cambio debe revisarse contra dos ejes antes de mergear: estándares del
+repositorio y fidelidad al spec/issue. Para cambios pequeños, el autor puede
+hacer ambos checks y documentar los resultados; para cambios mayores o con
+riesgo arquitectónico, debe participar un reviewer independiente. En todos los
+casos, la revisión debe comprobar diff, tests, build y estado limpio del árbol.
 
 ## Referencias
 
