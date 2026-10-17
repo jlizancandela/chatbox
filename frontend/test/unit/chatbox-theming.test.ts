@@ -50,4 +50,25 @@ describe("Chatbox.css (RF-F61/T3)", () => {
 			css.indexOf("@media (prefers-color-scheme: dark)")
 		);
 	});
+
+	it("declares all high-contrast accessibility overrides", () => {
+		const css = readCss();
+		expect(css).toMatch(
+			/@media\s*\(prefers-contrast:\s*more\)[\s\S]*--chatbox-color-error:\s*#8b0000/
+		);
+		expect(css).toMatch(
+			/@media\s*\(forced-colors:\s*active\)[\s\S]*--chatbox-color-text:\s*CanvasText/
+		);
+		expect(css).toMatch(/--chatbox-color-surface:\s*Canvas/);
+		expect(css).toMatch(/--chatbox-color-primary:\s*Highlight/);
+		expect(css).toMatch(/--chatbox-color-link:\s*LinkText/);
+		expect(css).toMatch(/--chatbox-color-border:\s*GrayText/);
+	});
+
+	it("gives forced colors the highest precedence", () => {
+		const css = readCss();
+		expect(css.indexOf("@media (forced-colors: active)")).toBeGreaterThan(
+			css.indexOf("@media (prefers-contrast: more)")
+		);
+	});
 });

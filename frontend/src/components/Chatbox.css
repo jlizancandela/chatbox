@@ -21,7 +21,7 @@
 	}
 }
 
-/* Explicit host themes intentionally follow the system rule in source order. */
+/* Explicit host themes override system preference by source order. */
 [data-theme="dark"] .chatbox {
 	--chatbox-color-text: #ccc;
 	--chatbox-color-surface: #1a1a1a;
@@ -40,6 +40,30 @@
 	--chatbox-color-border: #6b7280;
 	--chatbox-color-focus: #005fcc;
 	--chatbox-color-error: #b91c1c;
+}
+
+@media (prefers-contrast: more) {
+	.chatbox {
+		--chatbox-color-text: #000000;
+		--chatbox-color-surface: #ffffff;
+		--chatbox-color-primary: #003b80;
+		--chatbox-color-link: #003b80;
+		--chatbox-color-border: #000000;
+		--chatbox-color-focus: #003b80;
+		--chatbox-color-error: #8b0000;
+	}
+}
+
+@media (forced-colors: active) {
+	.chatbox {
+		--chatbox-color-text: CanvasText;
+		--chatbox-color-surface: Canvas;
+		--chatbox-color-primary: Highlight;
+		--chatbox-color-link: LinkText;
+		--chatbox-color-border: GrayText;
+		--chatbox-color-focus: Highlight;
+		--chatbox-color-error: CanvasText;
+	}
 }
 
 .chatbox a {
