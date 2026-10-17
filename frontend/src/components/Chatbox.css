@@ -1,6 +1,7 @@
-/* Chatbox widget styles — RF-F61/T1.
- * Self-contained light theme defaults. T2 (dark via prefers-color-scheme),
- * T3 (data-theme sync) and T4 (forced-colors / prefers-contrast) extend this file.
+/* Chatbox widget styles — RF-F61.
+ * Self-contained theme: the 7 tokens live on `.chatbox` and the widget consumes
+ * them. Layer precedence, lowest to highest:
+ *   defaults < @media (prefers-color-scheme: dark) < [data-theme] (T3) < forced-colors (T4).
  */
 .chatbox {
 	--chatbox-color-text: #222;
@@ -10,6 +11,25 @@
 	--chatbox-color-border: #6b7280;
 	--chatbox-color-focus: #005fcc;
 	--chatbox-color-error: #b91c1c;
+
+	color: var(--chatbox-color-text);
+	background-color: var(--chatbox-color-surface);
+}
+
+/* System dark theme. Must stay after the `.chatbox` defaults: same specificity,
+ * so source order is what makes it win. Declares tokens only; the base rules
+ * above resolve `color` and `background-color` from them.
+ */
+@media (prefers-color-scheme: dark) {
+	.chatbox {
+		--chatbox-color-text: #ccc;
+		--chatbox-color-surface: #1a1a1a;
+		--chatbox-color-primary: #66b3ff;
+		--chatbox-color-link: #66b3ff;
+		--chatbox-color-border: #6b7280;
+		--chatbox-color-focus: #66b3ff;
+		--chatbox-color-error: #fca5a5;
+	}
 }
 
 .chatbox a {
@@ -19,6 +39,7 @@
 
 .chatbox__footer button[type="submit"] {
 	background-color: var(--chatbox-color-primary);
-	color: #ffffff;
+	/* Label ink reuses the surface token: white in light, #1a1a1a in dark.
+	 * A fixed white label would be 2.22:1 on the dark primary (#66b3ff). */
+	color: var(--chatbox-color-surface);
 }
-

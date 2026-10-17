@@ -1,28 +1,178 @@
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import postcss, { type AtRule, type Rule } from "postcss";
 import { describe, expect, it } from "vitest";
+import css from "../../src/components/Chatbox.css?raw";
 
-const here = dirname(fileURLToPath(import.meta.url));
-const cssPath = resolve(here, "../../src/components/Chatbox.css");
+const root = postcss.parse(css);
 
-describe("Chatbox.css (RF-F61/T1)", () => {
-	it("declares the 7 light tokens inside .chatbox", () => {
-		const css = readFileSync(cssPath, "utf8");
-		const block = css.match(/\.chatbox\s*\{([^}]*)\}/);
-		expect(block).not.toBeNull();
-		const body = block![1];
-		expect(body).toMatch(/--chatbox-color-text:\s*#222/);
-		expect(body).toMatch(/--chatbox-color-surface:\s*#ffffff/);
-		expect(body).toMatch(/--chatbox-color-primary:\s*#005fcc/);
-		expect(body).toMatch(/--chatbox-color-link:\s*#005fcc/);
-		expect(body).toMatch(/--chatbox-color-border:\s*#6b7280/);
-		expect(body).toMatch(/--chatbox-color-focus:\s*#005fcc/);
-		expect(body).toMatch(/--chatbox-color-error:\s*#b91c1c/);
+const LIGHT_TOKENS: Record<string, string> = {
+	"--chatbox-color-text": "#222",
+	"--chatbox-color-surface": "#ffffff",
+	"--chatbox-color-primary": "#005fcc",
+	"--chatbox-color-link": "#005fcc",
+	"--chatbox-color-border": "#6b7280",
+	"--chatbox-color-focus": "#005fcc",
+	"--chatbox-color-error": "#b91c1c",
+};
+
+const DARK_TOKENS: Record<string, string> = {
+	"--chatbox-color-text": "#ccc",
+	"--chatbox-color-surface": "#1a1a1a",
+	"--chatbox-color-primary": "#66b3ff",
+	"--chatbox-color-link": "#66b3ff",
+	"--chatbox-color-border": "#6b7280",
+	"--chatbox-color-focus": "#66b3ff",
+	"--chatbox-color-error": "#fca5a5",
+};
+
+const declarations = (rule: Rule): Record<string, string> =>
+	Object.fromEntries(
+		rule.nodes.filter((node) => node.type === "decl").map((node) => [node.prop, node.value])
+	);
+
+const tokensOf = (rule: Rule): Record<string, string> =>
+	Object.fromEntries(
+		Object.entries(declarations(rule)).filter(([prop]) => prop.startsWith("--chatbox-color-"))
+	);
+
+const declarationNodes = (rule: Rule) => rule.nodes.filter((node) => node.type === "decl");
+
+const topLevelRule = (selector: string): Rule => {
+	const rule = root.nodes.find(
+		(node): node is Rule => node.type === "rule" && node.selector === selector
+	);
+	if (!rule) throw new Error(`Missing top-level CSS rule: ${selector}`);
+	return rule;
+};
+
+const mediaRule = (condition: string): AtRule => {
+	const media = root.nodes.find(
+		(node): node is AtRule =>
+			node.type === "atrule" &&
+			node.name === "media" &&
+			(node.params ?? "").replace(/\s+/g, " ").trim() === condition
+	);
+	if (!media) throw new Error(`Missing media query: ${condition}`);
+	return media;
+};
+
+const ruleInside = (container: AtRule, selector: string): Rule => {
+	const rule = (container.nodes ?? []).find(
+		(node): node is Rule => node.type === "rule" && node.selector === selector
+	);
+	if (!rule) throw new Error(`Missing rule ${selector} inside @media ${container.params}`);
+	return rule;
+};
+
+const DARK_MEDIA = "(prefers-color-scheme: dark)";
+
+const baseRule = (): Rule => topLevelRule(".chatbox");
+
+const darkRule = (): Rule => ruleInside(mediaRule(DARK_MEDIA), ".chatbox");
+
+const offsetOf = (rule: Rule): number => {
+	const offset = rule.source?.start?.offset;
+	if (offset === undefined) throw new Error("Missing source offset");
+	return offset;
+};
+
+const relativeLuminance = (value: string): number => {
+	const hex = value.replace("#", "");
+	const expanded =
+		hex.length === 3
+			? hex
+					.split("")
+					.map((char) => char + char)
+					.join("")
+			: hex;
+	const [r, g, b] = (expanded.match(/../g) ?? []).map((pair) => Number.parseInt(pair, 16) / 255);
+	const linear = (component: number): number =>
+		component <= 0.03928 ? component / 12.92 : ((component + 0.055) / 1.055) ** 2.4;
+	return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+};
+
+const contrast = (a: string, b: string): number => {
+	const first = relativeLuminance(a);
+	const second = relativeLuminance(b);
+	return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+};
+
+// Minimum ratio per token role, per the RF-F61 palette target:
+// body text AAA (>=7:1), chromatic text AA (>=4.5:1), non-text AA 1.4.11 (>=3:1).
+const CONTRAST_MINIMUMS: Record<string, number> = {
+	text: 7,
+	link: 4.5,
+	primary: 4.5,
+	focus: 4.5,
+	error: 4.5,
+	border: 3,
+};
+
+const PARSED_TOKENS = {
+	light: tokensOf(baseRule()),
+	dark: tokensOf(darkRule()),
+};
+
+describe("Chatbox.css (RF-F61/T1 — light defaults)", () => {
+	it("declares exactly the 7 light tokens inside .chatbox", () => {
+		expect(PARSED_TOKENS.light).toEqual(LIGHT_TOKENS);
+	});
+
+	it("consumes text and surface on .chatbox", () => {
+		expect(declarations(baseRule())).toMatchObject({
+			color: "var(--chatbox-color-text)",
+			"background-color": "var(--chatbox-color-surface)",
+		});
 	});
 
 	it("uses var(--chatbox-color-link) for .chatbox a", () => {
-		const css = readFileSync(cssPath, "utf8");
-		expect(css).toMatch(/\.chatbox\s+a\s*\{[^}]*color:\s*var\(--chatbox-color-link\)/);
+		expect(declarations(topLevelRule(".chatbox a"))).toMatchObject({
+			color: "var(--chatbox-color-link)",
+		});
+	});
+
+	it("uses the primary and surface tokens for the submit button", () => {
+		expect(declarations(topLevelRule('.chatbox__footer button[type="submit"]'))).toMatchObject({
+			"background-color": "var(--chatbox-color-primary)",
+			color: "var(--chatbox-color-surface)",
+		});
 	});
 });
+
+describe("Chatbox.css (RF-F61/T2 — prefers-color-scheme: dark)", () => {
+	it("targets .chatbox inside the dark media query", () => {
+		expect(darkRule().selector).toBe(".chatbox");
+	});
+
+	it("declares exactly the 7 dark tokens, with no extra declarations", () => {
+		expect(PARSED_TOKENS.dark).toEqual(DARK_TOKENS);
+		expect(declarationNodes(darkRule())).toHaveLength(7);
+	});
+
+	it("does not paint inside the dark block (tokens only)", () => {
+		const props = Object.keys(declarations(darkRule()));
+		expect(props).not.toContain("color");
+		expect(props).not.toContain("background-color");
+	});
+
+	it("places the dark block after the .chatbox defaults", () => {
+		expect(offsetOf(darkRule())).toBeGreaterThan(offsetOf(baseRule()));
+	});
+});
+
+for (const [theme, tokens] of Object.entries(PARSED_TOKENS)) {
+	describe(`RF-F61 contrast — ${theme}`, () => {
+		for (const [role, minimum] of Object.entries(CONTRAST_MINIMUMS)) {
+			it(`--chatbox-color-${role} meets ${minimum}:1 against surface`, () => {
+				expect(
+					contrast(tokens[`--chatbox-color-${role}`], tokens["--chatbox-color-surface"])
+				).toBeGreaterThanOrEqual(minimum);
+			});
+		}
+
+		it("submit label meets 4.5:1 against primary", () => {
+			expect(
+				contrast(tokens["--chatbox-color-surface"], tokens["--chatbox-color-primary"])
+			).toBeGreaterThanOrEqual(4.5);
+		});
+	});
+}

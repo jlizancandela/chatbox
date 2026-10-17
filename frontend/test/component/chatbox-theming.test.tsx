@@ -2,6 +2,29 @@ import { render } from "@testing-library/preact";
 import { describe, expect, it } from "vitest";
 import { Chatbox } from "../../src/components/Chatbox";
 
+const DARK_MEDIA = "(prefers-color-scheme: dark)";
+
+// Names only: the hex values are the unit test's business (single source of truth).
+const DARK_TOKEN_NAMES = [
+	"--chatbox-color-text",
+	"--chatbox-color-surface",
+	"--chatbox-color-primary",
+	"--chatbox-color-link",
+	"--chatbox-color-border",
+	"--chatbox-color-focus",
+	"--chatbox-color-error",
+];
+
+const allStyleRules = (): CSSRule[] =>
+	Array.from(document.styleSheets).flatMap((sheet) => Array.from(sheet.cssRules));
+
+const darkMediaRule = (): CSSMediaRule | undefined =>
+	allStyleRules().find(
+		(rule): rule is CSSMediaRule =>
+			rule.type === CSSRule.MEDIA_RULE &&
+			(rule as CSSMediaRule).media.mediaText.replace(/\s+/g, " ").trim() === DARK_MEDIA
+	);
+
 describe("Chatbox theming (RF-F61/T1)", () => {
 	it("renders with .chatbox as the root class", () => {
 		const { container } = render(<Chatbox apiUrl="http://example.com" />);
@@ -31,5 +54,35 @@ describe("Chatbox theming (RF-F61/T1)", () => {
 		expect(buttonStyles.backgroundColor).toBe("var(--chatbox-color-primary)");
 
 		document.body.removeChild(wrapper);
+	});
+});
+
+describe("Chatbox theming (RF-F61/T2 — dark mechanism)", () => {
+	it("ships the prefers-color-scheme: dark rule inside the imported stylesheet", () => {
+		render(<Chatbox apiUrl="http://example.com" />);
+
+		const media = darkMediaRule();
+		expect(media).toBeDefined();
+
+		const chatboxRule = Array.from(media!.cssRules).find(
+			(rule): rule is CSSStyleRule =>
+				rule.type === CSSRule.STYLE_RULE && (rule as CSSStyleRule).selectorText === ".chatbox"
+		);
+		expect(chatboxRule).toBeDefined();
+		for (const name of DARK_TOKEN_NAMES) {
+			expect(chatboxRule!.style.getPropertyValue(name)).not.toBe("");
+		}
+	});
+
+	it("consumes text and surface on .chatbox (raw var values, jsdom does not resolve them)", () => {
+		const { container } = render(<Chatbox apiUrl="http://example.com" />);
+		const root = container.querySelector(".chatbox") as HTMLElement;
+		expect(root).not.toBeNull();
+
+		// jsdom neither evaluates @media nor resolves var(): the resolved dark
+		// colors are verified in a real browser by the RF-F61/T5 ticket (#62).
+		const styles = getComputedStyle(root);
+		expect(styles.color).toBe("var(--chatbox-color-text)");
+		expect(styles.backgroundColor).toBe("var(--chatbox-color-surface)");
 	});
 });
