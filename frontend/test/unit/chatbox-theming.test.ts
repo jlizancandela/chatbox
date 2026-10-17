@@ -82,6 +82,8 @@ const baseRule = (): Rule => topLevelRule(".chatbox");
 const darkRule = (): Rule => ruleInside(mediaRule(DARK_MEDIA), ".chatbox");
 const forcedColorsRule = (): Rule => ruleInside(mediaRule(FORCED_COLORS_MEDIA), ".chatbox");
 const prefersContrastRule = (): Rule => ruleInside(mediaRule(PREFERS_CONTRAST_MEDIA), ".chatbox");
+const hostRule = (theme: "dark" | "light"): Rule =>
+	topLevelRule(`[data-theme="${theme}"] .chatbox`);
 
 const offsetOf = (rule: Rule): number => {
 	const offset = rule.source?.start?.offset;
@@ -170,7 +172,20 @@ describe("Chatbox.css (RF-F61/T4 — system accessibility preferences)", () => {
 	});
 
 	it("places accessibility overrides after the theme layers", () => {
-		expect(offsetOf(forcedColorsRule())).toBeGreaterThan(offsetOf(baseRule()));
+		expect(offsetOf(prefersContrastRule())).toBeGreaterThan(offsetOf(hostRule("light")));
+		expect(offsetOf(forcedColorsRule())).toBeGreaterThan(offsetOf(prefersContrastRule()));
+	});
+});
+
+describe("Chatbox.css (RF-F61/T3 — explicit host themes)", () => {
+	it("keeps both host theme selectors after the system dark layer", () => {
+		expect(offsetOf(hostRule("dark"))).toBeGreaterThan(offsetOf(darkRule()));
+		expect(offsetOf(hostRule("light"))).toBeGreaterThan(offsetOf(darkRule()));
+	});
+
+	it("declares complete dark and light token sets", () => {
+		expect(tokensOf(hostRule("dark"))).toEqual(DARK_TOKENS);
+		expect(tokensOf(hostRule("light"))).toEqual(LIGHT_TOKENS);
 	});
 });
 
