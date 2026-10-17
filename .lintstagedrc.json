@@ -1,0 +1,3 @@
+{
+  "frontend/**/*.{ts,tsx,js,jsx,json,css}": "npm --prefix frontend run lint:fix"
+}
