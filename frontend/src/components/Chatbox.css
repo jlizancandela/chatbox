@@ -1,0 +1,24 @@
+/* Chatbox widget styles — RF-F61/T1.
+ * Self-contained light theme defaults. T2 (dark via prefers-color-scheme),
+ * T3 (data-theme sync) and T4 (forced-colors / prefers-contrast) extend this file.
+ */
+.chatbox {
+	--chatbox-color-text: #222;
+	--chatbox-color-surface: #ffffff;
+	--chatbox-color-primary: #005fcc;
+	--chatbox-color-link: #005fcc;
+	--chatbox-color-border: #6b7280;
+	--chatbox-color-focus: #005fcc;
+	--chatbox-color-error: #b91c1c;
+}
+
+.chatbox a {
+	color: var(--chatbox-color-link);
+	text-decoration: underline;
+}
+
+.chatbox__footer button[type="submit"] {
+	background-color: var(--chatbox-color-primary);
+	color: #ffffff;
+}
+

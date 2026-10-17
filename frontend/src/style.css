@@ -81,14 +81,3 @@ section {
 	}
 }
 
-/* ── Chatbox link styles ── */
-.chatbox a {
-	color: #005fcc;
-	text-decoration: underline;
-}
-
-@media (prefers-color-scheme: dark) {
-	.chatbox a {
-		color: #66b3ff;
-	}
-}

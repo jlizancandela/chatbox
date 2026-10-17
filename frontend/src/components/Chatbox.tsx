@@ -1,3 +1,4 @@
+import "./Chatbox.css";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { AssistantMarkdown } from "../chat/components/AssistantMarkdown";
 import { ExternalLink } from "../chat/components/ExternalLink";
