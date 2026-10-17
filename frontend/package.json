@@ -9,7 +9,8 @@
 		"lint:fix": "biome check --write ./src ./test",
 		"format": "biome format --write ./src ./test",
 		"test": "vitest",
-		"test:watch": "vitest --watch"
+		"test:watch": "vitest --watch",
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"eventsource-parser": "^4.1.1",

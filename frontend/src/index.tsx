@@ -31,7 +31,13 @@ export function App() {
 	);
 }
 
-function Resource(props) {
+type ResourceProps = {
+	title: string;
+	description: string;
+	href: string;
+};
+
+function Resource(props: ResourceProps) {
 	return (
 		<a href={props.href} target="_blank" class="resource" rel="noopener">
 			<h2>{props.title}</h2>
@@ -40,4 +46,5 @@ function Resource(props) {
 	);
 }
 
-render(<App />, document.getElementById("app"));
+const container = document.getElementById("app");
+if (container) render(<App />, container);

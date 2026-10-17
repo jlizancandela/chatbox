@@ -1,4 +1,4 @@
-import type { ComponentChildren, ComponentType } from "preact";
+import type { ComponentChildren, ComponentProps, ComponentType } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { ExternalLink } from "./ExternalLink";
 
@@ -22,7 +22,11 @@ type MarkdownProps = {
 };
 
 type MarkdownRenderer = ComponentType<
-	MarkdownProps & { allowedElements?: string[]; urlTransform?: (url: string) => string }
+	MarkdownProps & {
+		allowedElements?: string[];
+		urlTransform?: (url: string) => string;
+		components?: Record<string, ComponentType<ComponentProps<"a">>>;
+	}
 >;
 
 let rendererPromise: Promise<MarkdownRenderer> | null = null;

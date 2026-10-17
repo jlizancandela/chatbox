@@ -1,10 +1,15 @@
-import type { JSX } from "preact";
+import type { ComponentProps } from "preact";
 
-export type ExternalLinkProps = JSX.HTMLAttributes<HTMLAnchorElement>;
+export type ExternalLinkProps = ComponentProps<"a">;
 
 export function ExternalLink({ children, href, ...props }: ExternalLinkProps) {
+	// Preact 11 types IntrinsicElements['a'] as a two-branch union keyed on
+	// `href`; spreading props whose `href` is optional satisfies neither branch.
+	// The component always renders an anchor, so narrow at this boundary.
+	const anchorProps = { href, ...props } as ComponentProps<"a">;
+
 	return (
-		<a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+		<a {...anchorProps} target="_blank" rel="noopener noreferrer">
 			{children}
 		</a>
 	);
