@@ -27,14 +27,20 @@ jobs:
 
       - run: npm ci
 
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
       - name: Lint
         run: npm run lint
 
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Test
+      - name: Unit tests
         run: npm test -- --run
+
+      - name: Browser tests
+        run: npm run test:browser
 
       - name: Build
         run: npm run build
