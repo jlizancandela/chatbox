@@ -46,17 +46,27 @@ test.describe("RF-F61 browser theming resolution", () => {
 		await expect.poll(() => surface(page)).toBe("rgb(255, 255, 255)");
 
 		await page.emulateMedia({ colorScheme: "light", forcedColors: "none" });
-		await page.addStyleTag({
-			content:
-				"@media (prefers-contrast: more) { .chatbox { --chatbox-color-text: rgb(0, 0, 0); --chatbox-color-surface: rgb(255, 255, 255); } }",
+		await openChatbox(page);
+		const contrastResolution = await page.evaluate(() => {
+			const media = matchMedia("(prefers-contrast: more)");
+			const rule = Array.from(document.styleSheets)
+				.flatMap((sheet) => Array.from(sheet.cssRules))
+				.find(
+					(candidate) =>
+						candidate instanceof CSSMediaRule &&
+						candidate.conditionText === "(prefers-contrast: more)"
+				);
+			return {
+				mediaMatches: media.matches,
+				rulePresent: Boolean(rule),
+				text: getComputedStyle(document.querySelector(".chatbox")!).color,
+			};
 		});
-		await page.evaluate(() => {
-			const style = document.createElement("style");
-			style.textContent =
-				".chatbox { --chatbox-color-text: rgb(0, 0, 0); --chatbox-color-surface: rgb(255, 255, 255); }";
-			document.head.append(style);
-		});
-		await expect.poll(() => text(page)).toBe("rgb(0, 0, 0)");
+		if (contrastResolution.mediaMatches) {
+			expect(contrastResolution.text).toBe("rgb(0, 0, 0)");
+		} else {
+			expect(contrastResolution.rulePresent).toBe(true);
+		}
 	});
 
 	test("submit label is readable in light and dark themes", async ({ page }) => {
