@@ -32,6 +32,32 @@
 	}
 }
 
+/* Forced colors must be the final layer so user-selected system colors always win. */
+@media (forced-colors: active) {
+	.chatbox {
+		--chatbox-color-text: CanvasText;
+		--chatbox-color-surface: Canvas;
+		--chatbox-color-primary: Highlight;
+		--chatbox-color-link: LinkText;
+		--chatbox-color-border: GrayText;
+		--chatbox-color-focus: Highlight;
+		--chatbox-color-error: ButtonText;
+	}
+}
+
+/* Respect requests for increased contrast without replacing the user's palette. */
+@media (prefers-contrast: more) {
+	.chatbox {
+		--chatbox-color-text: #000000;
+		--chatbox-color-surface: #ffffff;
+		--chatbox-color-primary: #003d8f;
+		--chatbox-color-link: #003d8f;
+		--chatbox-color-border: #111827;
+		--chatbox-color-focus: #003d8f;
+		--chatbox-color-error: #7f1d1d;
+	}
+}
+
 .chatbox a {
 	color: var(--chatbox-color-link);
 	text-decoration: underline;

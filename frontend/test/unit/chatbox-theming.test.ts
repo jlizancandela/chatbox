@@ -64,10 +64,24 @@ const ruleInside = (container: AtRule, selector: string): Rule => {
 };
 
 const DARK_MEDIA = "(prefers-color-scheme: dark)";
+const FORCED_COLORS_MEDIA = "(forced-colors: active)";
+const PREFERS_CONTRAST_MEDIA = "(prefers-contrast: more)";
+
+const FORCED_COLOR_KEYWORDS = [
+	"Canvas",
+	"CanvasText",
+	"LinkText",
+	"Highlight",
+	"ButtonText",
+	"ButtonFace",
+	"GrayText",
+];
 
 const baseRule = (): Rule => topLevelRule(".chatbox");
 
 const darkRule = (): Rule => ruleInside(mediaRule(DARK_MEDIA), ".chatbox");
+const forcedColorsRule = (): Rule => ruleInside(mediaRule(FORCED_COLORS_MEDIA), ".chatbox");
+const prefersContrastRule = (): Rule => ruleInside(mediaRule(PREFERS_CONTRAST_MEDIA), ".chatbox");
 
 const offsetOf = (rule: Rule): number => {
 	const offset = rule.source?.start?.offset;
@@ -135,6 +149,28 @@ describe("Chatbox.css (RF-F61/T1 — light defaults)", () => {
 			"background-color": "var(--chatbox-color-primary)",
 			color: "var(--chatbox-color-surface)",
 		});
+	});
+});
+
+describe("Chatbox.css (RF-F61/T4 — system accessibility preferences)", () => {
+	it("uses system-color keywords for forced-colors", () => {
+		const tokens = tokensOf(forcedColorsRule());
+		expect(Object.keys(tokens)).toHaveLength(7);
+		expect(Object.values(tokens).every((value) => FORCED_COLOR_KEYWORDS.includes(value))).toBe(
+			true
+		);
+		expect(Object.values(tokens)).toEqual(
+			expect.arrayContaining(["Canvas", "CanvasText", "LinkText", "Highlight", "GrayText"])
+		);
+	});
+
+	it("overrides all 7 tokens for prefers-contrast: more", () => {
+		expect(Object.keys(tokensOf(prefersContrastRule()))).toHaveLength(7);
+		expect(offsetOf(prefersContrastRule())).toBeGreaterThan(offsetOf(baseRule()));
+	});
+
+	it("places accessibility overrides after the theme layers", () => {
+		expect(offsetOf(forcedColorsRule())).toBeGreaterThan(offsetOf(baseRule()));
 	});
 });
 
