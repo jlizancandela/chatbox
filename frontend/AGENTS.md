@@ -199,9 +199,9 @@ Límites que deben mantenerse alineados con el API:
 
 ## Flujo de trabajo
 
-El flujo global de planificación, aprobación, commits, PRs y merge está definido
-en los skills `plan` y `comitear`. Este proyecto debe seguirlo y no se deben
-modificar archivos de implementación sin un plan aprobado.
+Este proyecto no sigue un flujo formal de planning/approval. Los cambios se
+gestionan con sentido común: specs en `.specs/`, decisiones en `../docs/decisions/`,
+y commits limpios antes de PR.
 
 Las specs de implementación se guardan en `.specs/` usando el identificador
 del issue y un slug descriptivo. Las decisiones generales de proceso se
