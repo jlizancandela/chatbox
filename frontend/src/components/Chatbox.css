@@ -1,8 +1,38 @@
-/* Chatbox widget styles — RF-F61/T1.
- * Self-contained light theme defaults. T2 (dark via prefers-color-scheme),
- * T3 (data-theme sync) and T4 (forced-colors / prefers-contrast) extend this file.
- */
+/* Chatbox widget theme contract (RF-F61). */
 .chatbox {
+	--chatbox-color-text: #222;
+	--chatbox-color-surface: #ffffff;
+	--chatbox-color-primary: #005fcc;
+	--chatbox-color-link: #005fcc;
+	--chatbox-color-border: #6b7280;
+	--chatbox-color-focus: #005fcc;
+	--chatbox-color-error: #b91c1c;
+}
+
+@media (prefers-color-scheme: dark) {
+	.chatbox {
+		--chatbox-color-text: #ccc;
+		--chatbox-color-surface: #1a1a1a;
+		--chatbox-color-primary: #66b3ff;
+		--chatbox-color-link: #66b3ff;
+		--chatbox-color-border: #6b7280;
+		--chatbox-color-focus: #66b3ff;
+		--chatbox-color-error: #fca5a5;
+	}
+}
+
+/* Explicit host themes intentionally follow the system rule in source order. */
+[data-theme="dark"] .chatbox {
+	--chatbox-color-text: #ccc;
+	--chatbox-color-surface: #1a1a1a;
+	--chatbox-color-primary: #66b3ff;
+	--chatbox-color-link: #66b3ff;
+	--chatbox-color-border: #6b7280;
+	--chatbox-color-focus: #66b3ff;
+	--chatbox-color-error: #fca5a5;
+}
+
+[data-theme="light"] .chatbox {
 	--chatbox-color-text: #222;
 	--chatbox-color-surface: #ffffff;
 	--chatbox-color-primary: #005fcc;
@@ -21,4 +51,3 @@
 	background-color: var(--chatbox-color-primary);
 	color: #ffffff;
 }
-
