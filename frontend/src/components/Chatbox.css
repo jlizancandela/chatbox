@@ -32,6 +32,53 @@
 	}
 }
 
+/* Explicit host themes override the system preference. */
+[data-theme="dark"] .chatbox {
+	--chatbox-color-text: #ccc;
+	--chatbox-color-surface: #1a1a1a;
+	--chatbox-color-primary: #66b3ff;
+	--chatbox-color-link: #66b3ff;
+	--chatbox-color-border: #6b7280;
+	--chatbox-color-focus: #66b3ff;
+	--chatbox-color-error: #fca5a5;
+}
+
+[data-theme="light"] .chatbox {
+	--chatbox-color-text: #222;
+	--chatbox-color-surface: #ffffff;
+	--chatbox-color-primary: #005fcc;
+	--chatbox-color-link: #005fcc;
+	--chatbox-color-border: #6b7280;
+	--chatbox-color-focus: #005fcc;
+	--chatbox-color-error: #b91c1c;
+}
+
+/* Increased contrast is below forced colors so system colors always win. */
+@media (prefers-contrast: more) {
+	.chatbox {
+		--chatbox-color-text: #000000;
+		--chatbox-color-surface: #ffffff;
+		--chatbox-color-primary: #003d8f;
+		--chatbox-color-link: #003d8f;
+		--chatbox-color-border: #111827;
+		--chatbox-color-focus: #003d8f;
+		--chatbox-color-error: #7f1d1d;
+	}
+}
+
+/* Forced colors must be the final layer so user-selected system colors always win. */
+@media (forced-colors: active) {
+	.chatbox {
+		--chatbox-color-text: CanvasText;
+		--chatbox-color-surface: Canvas;
+		--chatbox-color-primary: Highlight;
+		--chatbox-color-link: LinkText;
+		--chatbox-color-border: GrayText;
+		--chatbox-color-focus: Highlight;
+		--chatbox-color-error: ButtonText;
+	}
+}
+
 .chatbox a {
 	color: var(--chatbox-color-link);
 	text-decoration: underline;
