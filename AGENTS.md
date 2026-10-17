@@ -59,4 +59,4 @@ Issues y specs viven en GitHub Issues; se usa `gh` para las operaciones. Consult
 
 ### Domain docs
 
-Repositorio single-context: `GLOSSARY.md` en la raíz y ADRs bajo `docs/adr/`. Consulta `docs/agents/domain.md`.
+Repositorio single-context: `GLOSSARY.md` en la raíz y ADRs bajo `docs/decisions/`. Consulta `docs/agents/domain.md`.
