@@ -1,12 +1,7 @@
 import { useReducer } from "preact/hooks";
-import {
-	type ChatError,
-	type ChatState,
-	chatReducer,
-	createInitialChatState,
-} from "../application/chat-reducer";
+import { type ChatState, chatReducer, createInitialChatState } from "../application/chat-reducer";
 import type { ConversationState } from "../domain/conversation";
-import type { ChatMessage, ChatSource } from "../types";
+import type { ChatError, ChatMessage, ChatSource } from "../types";
 
 export type ChatController = {
 	state: ChatState;

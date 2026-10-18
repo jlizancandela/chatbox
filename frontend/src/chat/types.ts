@@ -1,3 +1,8 @@
+export type ChatError = {
+	code: string;
+	message: string;
+};
+
 export type ChatMessage = {
 	role: "user" | "assistant";
 	content: string;
