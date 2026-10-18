@@ -1,25 +1,29 @@
+import { strings } from "../../strings.es";
 import type { ChatError } from "../types";
 
-const error = (code: string, message: string): ChatError => ({ code, message });
+type ErrorCode = keyof typeof strings.errors;
+
+// Cada error nace de su clave en el módulo de textos: aquí no vive ninguna redacción (RF-F62).
+const error = (code: ErrorCode): ChatError => ({ code, message: strings.errors[code] });
 
 export const chatErrors = {
 	http(status: number): ChatError {
 		switch (status) {
 			case 400:
-				return error("HTTP_400", "No se pudo enviar esa pregunta.");
+				return error("HTTP_400");
 			case 413:
-				return error("HTTP_413", "La conversación es demasiado larga. Empieza una nueva.");
+				return error("HTTP_413");
 			case 429:
-				return error("HTTP_429", "Has alcanzado el límite de preguntas. Inténtalo más tarde.");
+				return error("HTTP_429");
 			default:
-				return error("HTTP_SERVER", "Algo ha fallado. Inténtalo de nuevo.");
+				return error("HTTP_SERVER");
 		}
 	},
-	network: (): ChatError => error("NETWORK_ERROR", "No se pudo conectar. Comprueba tu conexión."),
-	stream: (): ChatError => error("STREAM_ERROR", "No he podido completar la respuesta."),
-	incomplete: (): ChatError => error("INCOMPLETE_STREAM", "La respuesta se interrumpió."),
-	timeout: (): ChatError => error("TIMEOUT", "No se pudo conectar. Comprueba tu conexión."),
-	invalidQuestion: (): ChatError => error("QUESTION_INVALID", "No se pudo enviar esa pregunta."),
+	network: (): ChatError => error("NETWORK_ERROR"),
+	stream: (): ChatError => error("STREAM_ERROR"),
+	incomplete: (): ChatError => error("INCOMPLETE_STREAM"),
+	timeout: (): ChatError => error("TIMEOUT"),
+	invalidQuestion: (): ChatError => error("QUESTION_INVALID"),
 };
 
 export const isAbortError = (value: unknown): boolean =>
