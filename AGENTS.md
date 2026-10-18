@@ -19,6 +19,7 @@ fundamentadas con Groq.
 - `docs/` — plan de implementación KISS (`plan-implementacion-api-chatbox.md`)
 - `api/TODO.md` — estado real del MVP (espejo del plan, con checkboxes)
 - `.agents/`, `.claude/`, `.atl/` — skills y tooling de agentes (no tocar app)
+- `frontend/` — el widget (Preact + Vite). Un spec por RF en `frontend/.specs/`; el texto de interfaz se centraliza en `frontend/src/strings.es.ts` (RF-F62, migración en curso).
 
 ## Layout del código (api/src)
 Cargado automáticamente por @fastify/autoload desde `app.ts`:
