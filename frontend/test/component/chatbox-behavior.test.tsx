@@ -104,6 +104,10 @@ describe("Chatbox — static render", () => {
 // ─── Tests: keyboard and textarea ──────────────────────────────────────────────
 
 describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
+	it("focuses the rendered textarea on mount", () => {
+		render(<Chatbox apiUrl="http://localhost:7000" />);
+		expect(document.activeElement).toBe(screen.getByLabelText(/escribe tu pregunta/i));
+	});
 	afterEach(cleanup);
 	beforeEach(() => vi.restoreAllMocks());
 
@@ -183,6 +187,7 @@ describe("Chatbox — new conversation (RF-F24 / RF-F25)", () => {
 		await user.click(screen.getByRole("button", { name: /nueva conversación/i }));
 		await user.click(screen.getByRole("button", { name: /sí, borrar/i }));
 		expect(screen.getByText(/¿en qué te gustaría saber más/i)).toBeInTheDocument();
+		expect(document.activeElement).toBe(screen.getByLabelText(/escribe tu pregunta/i));
 	});
 
 	it("cancel button preserves the conversation", async () => {

@@ -52,23 +52,18 @@ export function Chatbox({
 	const previousTurnState = useRef<TurnState>("idle");
 	const announcedMessages = useRef(0);
 
-	const { sendQuestion, abort, isStreaming } = useChatStream({
+	const { sendQuestion, abort } = useChatStream({
 		apiUrl,
 		chat,
 		onSources: (historyLength) => setContextWasTrimmed(historyLength < sentContextLength.current),
 	});
 
-	const isBusy =
-		isStreaming ||
-		chat.state.turnState === "connecting" ||
-		chat.state.turnState === "generating" ||
-		chat.state.turnState === "streaming";
+	const isBusy = ["connecting", "generating", "streaming"].includes(chat.state.turnState);
 
 	useFocusOnMount(textareaRef);
 
-	// Announcements, notices, persistence + auto-scroll
+	// Keep each effect responsible for one external concern.
 	useEffect(() => {
-		// Side effects
 		if (!isBusy && previousTurnState.current !== "idle") {
 			if (
 				chat.state.turnState === "idle" &&
@@ -84,11 +79,13 @@ export function Chatbox({
 			announcedMessages.current = chat.state.messages.length;
 		}
 		previousTurnState.current = chat.state.turnState as TurnState;
-		if (!isBusy) {
-			saveToSessionStorage(chat.state.messages, chat.state.context);
-		}
+	}, [chat.state.messages, chat.state.turnState, chat.state.error, isBusy]);
 
-		// Auto-scroll
+	useEffect(() => {
+		if (!isBusy) saveToSessionStorage(chat.state.messages, chat.state.context);
+	}, [chat.state.messages, chat.state.context, isBusy]);
+
+	useEffect(() => {
 		const element = conversationRef.current;
 		if (!element || !wasNearEnd.current) return;
 		const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -96,8 +93,7 @@ export function Chatbox({
 			top: element.scrollHeight,
 			behavior: reduceMotion ? "auto" : "smooth",
 		});
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [chat.state.messages, chat.state.context, isBusy, localNotice]);
+	}, [chat.state.messages, chat.state.currentResponse, localNotice]);
 
 	const handleConversationScroll = (): void => {
 		const element = conversationRef.current;
@@ -135,6 +131,7 @@ export function Chatbox({
 		setLocalNotice("");
 		setContextWasTrimmed(false);
 		setAnnouncement("");
+		textareaRef.current?.focus();
 	};
 
 	const showMessages = chat.state.messages.length > 0;
@@ -191,6 +188,7 @@ export function Chatbox({
 					isBusy={isBusy}
 					contactUrl={contactUrl}
 					maxLength={MAX_QUESTION_LENGTH}
+					textareaRef={textareaRef}
 				/>
 
 				<NewConversation onReset={handleReset} />

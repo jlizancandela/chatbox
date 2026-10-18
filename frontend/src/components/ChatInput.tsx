@@ -10,6 +10,7 @@ type ChatInputProps = {
 	isBusy: boolean;
 	contactUrl?: string;
 	maxLength?: number;
+	textareaRef?: { current: HTMLTextAreaElement | null };
 };
 
 const DEFAULT_MAX_LENGTH = 1000;
@@ -22,8 +23,10 @@ export function ChatInput({
 	isBusy,
 	contactUrl,
 	maxLength = DEFAULT_MAX_LENGTH,
+	textareaRef: externalTextareaRef,
 }: ChatInputProps): ComponentChildren {
-	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const internalTextareaRef = useRef<HTMLTextAreaElement>(null);
+	const textareaRef = externalTextareaRef ?? internalTextareaRef;
 	const [isComposing, setIsComposing] = useState(false);
 
 	// Autogrow

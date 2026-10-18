@@ -1,10 +1,5 @@
 import { type ConversationState, mergeContext } from "../domain/conversation";
-import type { ChatMessage, ChatSource, TurnState } from "../types";
-
-export type ChatError = {
-	code: string;
-	message: string;
-};
+import type { ChatError, ChatMessage, ChatSource, TurnState } from "../types";
 
 export type ChatState = ConversationState & {
 	currentQuestion: string | null;

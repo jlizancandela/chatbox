@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useRef } from "preact/hooks";
-import type { ChatError } from "../application/chat-reducer";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { buildChatRequest } from "../domain/conversation";
-import { type ChatEvent, createSSEParser } from "../infrastructure/sse";
+import { chatErrors, isAbortError } from "../infrastructure/chat-errors";
+import type { ChatEvent } from "../infrastructure/sse";
+import { readChatEvents, requestChatStream } from "../infrastructure/stream-transport";
+import { createTokenBuffer, type TokenBuffer } from "../infrastructure/token-buffer";
 import type { ChatController } from "./useChat";
 
 export const DEFAULT_TIMEOUT_MS = 30_000;
@@ -11,6 +13,7 @@ export type UseChatStreamOptions = {
 	chat: ChatController;
 	timeoutMs?: number;
 	onSources?: (historyLength: number) => void;
+	onActivityChange?: (active: boolean) => void;
 };
 
 export type UseChatStreamResult = {
@@ -30,40 +33,13 @@ type RunnerOptions = UseChatStreamOptions & {
 
 type ActiveTurn = {
 	controller: AbortController;
-	reader: ReadableStreamDefaultReader<Uint8Array> | null;
 	timeoutId: TimerId | null;
-	frameId: FrameId | null;
-	pendingTokens: string;
 	completed: boolean;
 	failed: boolean;
 	termination: "active" | "aborted" | "timeout";
 };
 
-const error = (code: string, message: string): ChatError => ({ code, message });
-
-const mapHttpError = (status: number): ChatError => {
-	switch (status) {
-		case 400:
-			return error("HTTP_400", "No se pudo enviar esa pregunta.");
-		case 413:
-			return error("HTTP_413", "La conversación es demasiado larga. Empieza una nueva.");
-		case 429:
-			return error("HTTP_429", "Has alcanzado el límite de preguntas. Inténtalo más tarde.");
-		default:
-			return error("HTTP_SERVER", "Algo ha fallado. Inténtalo de nuevo.");
-	}
-};
-
-const networkError = (): ChatError =>
-	error("NETWORK_ERROR", "No se pudo conectar. Comprueba tu conexión.");
-
-const streamError = (): ChatError => error("STREAM_ERROR", "No he podido completar la respuesta.");
-
-const incompleteStreamError = (): ChatError =>
-	error("INCOMPLETE_STREAM", "La respuesta se interrumpió.");
-
-const timeoutError = (): ChatError =>
-	error("TIMEOUT", "No se pudo conectar. Comprueba tu conexión.");
+const mapHttpError = chatErrors.http;
 
 const defaultRequestFrame = (callback: FrameRequestCallback): FrameId => {
 	if (typeof requestAnimationFrame === "function") {
@@ -82,11 +58,6 @@ const defaultCancelFrame = (frame: FrameId): void => {
 	clearTimeout(frame);
 };
 
-const isAbortError = (value: unknown): boolean =>
-	typeof DOMException !== "undefined" &&
-	value instanceof DOMException &&
-	value.name === "AbortError";
-
 export type ChatStreamRunner = {
 	update: (options: UseChatStreamOptions) => void;
 	run: (text: string) => Promise<void>;
@@ -97,6 +68,7 @@ export type ChatStreamRunner = {
 export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStreamRunner => {
 	let options = initialOptions;
 	let active: ActiveTurn | null = null;
+	let tokenBuffer: TokenBuffer | null = null;
 
 	const clearTimer = (): void => {
 		if (active?.timeoutId !== null && active?.timeoutId !== undefined) {
@@ -106,40 +78,15 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 	};
 
 	const clearFrame = (): void => {
-		if (active?.frameId !== null && active?.frameId !== undefined) {
-			(options.cancelFrame ?? defaultCancelFrame)(active.frameId);
-			active.frameId = null;
-		}
+		tokenBuffer?.cancel();
 	};
 
 	const flushTokens = (): void => {
-		if (!active || active.pendingTokens.length === 0) {
-			return;
-		}
-
-		const tokens = active.pendingTokens;
-		active.pendingTokens = "";
-		options.chat.receiveToken(tokens);
+		tokenBuffer?.flush();
 	};
 
 	const enqueueToken = (token: string): void => {
-		if (!active) {
-			return;
-		}
-
-		active.pendingTokens += token;
-		if (active.frameId !== null) {
-			return;
-		}
-
-		active.frameId = (options.requestFrame ?? defaultRequestFrame)(() => {
-			if (!active) {
-				return;
-			}
-
-			flushTokens();
-			active.frameId = null;
-		});
+		tokenBuffer?.enqueue(token);
 	};
 
 	const armTimeout = (): void => {
@@ -161,8 +108,9 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 	const cleanup = (): void => {
 		clearTimer();
 		clearFrame();
-		active?.reader?.releaseLock();
+		tokenBuffer = null;
 		active = null;
+		options.onActivityChange?.(false);
 	};
 
 	const handleEvent = (event: ChatEvent): void => {
@@ -186,7 +134,7 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 				if (active) {
 					active.failed = true;
 				}
-				options.chat.failTurn(streamError());
+				options.chat.failTurn(chatErrors.stream());
 				break;
 		}
 	};
@@ -198,7 +146,6 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 
 		active.termination = "aborted";
 		active.controller.abort();
-		active.reader?.cancel().catch(() => undefined);
 		clearTimer();
 		clearFrame();
 		options.chat.abortTurn();
@@ -213,30 +160,33 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 		try {
 			request = buildChatRequest(text, options.chat.state.context);
 		} catch {
-			options.chat.failTurn(error("QUESTION_INVALID", "No se pudo enviar esa pregunta."));
+			options.chat.failTurn(chatErrors.invalidQuestion());
 			return;
 		}
 
 		const turn: ActiveTurn = {
 			controller: new AbortController(),
-			reader: null,
 			timeoutId: null,
-			frameId: null,
-			pendingTokens: "",
 			completed: false,
 			failed: false,
 			termination: "active",
 		};
 		active = turn;
+		tokenBuffer = createTokenBuffer({
+			onFlush: (tokens) => options.chat.receiveToken(tokens),
+			requestFrame: (callback) => (options.requestFrame ?? defaultRequestFrame)(() => callback(0)),
+			cancelFrame: options.cancelFrame ?? defaultCancelFrame,
+		});
+		options.onActivityChange?.(true);
 		options.chat.startTurn(request.question);
 		armTimeout();
 
 		try {
-			const response = await (options.fetchImpl ?? fetch)(`${options.apiUrl}/api/chat`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(request),
+			const response = await requestChatStream({
+				apiUrl: options.apiUrl,
+				body: request,
 				signal: turn.controller.signal,
+				fetchImpl: options.fetchImpl,
 			});
 
 			if (!response.ok) {
@@ -245,49 +195,31 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 			}
 
 			if (!response.body) {
-				options.chat.failTurn(networkError());
+				options.chat.failTurn(chatErrors.network());
 				return;
 			}
 
-			const reader = response.body.getReader();
-			turn.reader = reader;
-			const decoder = new TextDecoder();
-			const parser = createSSEParser();
-
-			while (true) {
-				const { done, value } = await reader.read();
-				if (done) {
-					break;
-				}
-
+			for await (const event of readChatEvents(response)) {
 				armTimeout();
-				const chunk = decoder.decode(value, { stream: true });
-				for (const event of parser.feed(chunk)) {
-					handleEvent(event);
-					if (turn.failed) {
-						break;
-					}
-				}
-				if (turn.failed) {
-					break;
-				}
+				handleEvent(event);
+				if (turn.failed) break;
 			}
 
 			if (turn.termination === "active" && !turn.completed && !turn.failed) {
 				flushTokens();
-				options.chat.failTurn(incompleteStreamError());
+				options.chat.failTurn(chatErrors.incomplete());
 			}
 		} catch (caught) {
 			if (turn.termination === "timeout") {
-				options.chat.failTurn(timeoutError());
+				options.chat.failTurn(chatErrors.timeout());
 			} else if (turn.termination === "aborted" || isAbortError(caught)) {
 				if (turn.termination !== "aborted") {
 					options.chat.abortTurn();
 				}
 			} else if (caught instanceof TypeError) {
-				options.chat.failTurn(networkError());
+				options.chat.failTurn(chatErrors.network());
 			} else {
-				options.chat.failTurn(streamError());
+				options.chat.failTurn(chatErrors.stream());
 			}
 		} finally {
 			cleanup();
@@ -305,13 +237,15 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 };
 
 export const useChatStream = (options: UseChatStreamOptions): UseChatStreamResult => {
+	const [isStreaming, setIsStreaming] = useState(false);
 	const runnerRef = useRef<ChatStreamRunner | null>(null);
+	const runnerOptions = { ...options, onActivityChange: setIsStreaming };
 
 	if (runnerRef.current === null) {
-		runnerRef.current = createChatStreamRunner(options);
+		runnerRef.current = createChatStreamRunner(runnerOptions);
 	}
 
-	runnerRef.current.update(options);
+	runnerRef.current.update(runnerOptions);
 
 	const sendQuestion = useCallback(
 		(text: string) => runnerRef.current?.run(text) ?? Promise.resolve(),
@@ -324,6 +258,6 @@ export const useChatStream = (options: UseChatStreamOptions): UseChatStreamResul
 	return {
 		sendQuestion,
 		abort,
-		isStreaming: runnerRef.current.isActive(),
+		isStreaming,
 	};
 };
