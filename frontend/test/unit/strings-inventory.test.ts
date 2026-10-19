@@ -104,7 +104,7 @@ const ALLOWED = new Set([
 // parece una etiqueta JSX y el texto JSX solo se ve si el parser distingue nodos. Un escáner
 // aproximado passaría en falso justo cuando debe morder.
 
-type Literal = { file: string; line: number; value: string; kind: "cadena" | "texto JSX" };
+type DetectedString = { file: string; line: number; value: string; kind: "cadena" | "texto JSX" };
 
 /**
  * Nodo del AST en forma estructural: se leen `type`, `loc` y `value`, y se recorren todas las
@@ -149,7 +149,10 @@ function displayPath(path: string): string {
  * interpolación sigue siendo un `TemplateLiteral` con un único segmento. Una plantilla con
  * `${…}` compone valores, así que no es un literal y no se reporta.
  */
-function textOf(node: AstNode, type: string): { value: string; kind: Literal["kind"] } | null {
+function textOf(
+	node: AstNode,
+	type: string
+): { value: string; kind: DetectedString["kind"] } | null {
 	if (type === "StringLiteral" || type === "JSXText") {
 		if (typeof node.value !== "string") return null;
 		return { value: node.value, kind: type === "JSXText" ? "texto JSX" : "cadena" };
@@ -164,13 +167,13 @@ function textOf(node: AstNode, type: string): { value: string; kind: Literal["ki
 	return null;
 }
 
-function collectLiterals(path: string, source: string): Literal[] {
+function collectLiterals(path: string, source: string): DetectedString[] {
 	const file = displayPath(path);
 	const plugins: ("typescript" | "jsx")[] = path.endsWith(".tsx")
 		? ["typescript", "jsx"]
 		: ["typescript"];
 	const ast = parse(source, { sourceType: "module", plugins }) as unknown as AstNode;
-	const found: Literal[] = [];
+	const found: DetectedString[] = [];
 
 	const visit = (node: unknown): void => {
 		if (Array.isArray(node)) {
@@ -213,12 +216,12 @@ const LITERALS = Object.entries(COPY_SOURCES).flatMap(([path, source]) =>
 );
 
 /** Un literal vacío es solo espaciado de JSX o estado inicial; no es redacción. */
-function isAllowed(literal: Literal): boolean {
-	if (literal.value === "") return true;
-	return ALLOWED.has(literal.value);
+function isAllowed(detectedString: DetectedString): boolean {
+	if (detectedString.value === "") return true;
+	return ALLOWED.has(detectedString.value);
 }
 
-function describeViolations(violations: Literal[]): string {
+function describeViolations(violations: DetectedString[]): string {
 	return [
 		"Texto de interfaz fuera de `src/strings.es.ts`:",
 		...violations.map(
@@ -240,14 +243,32 @@ describe("literal inventory outside the strings module (RF-F62)", () => {
 	});
 
 	it("extracts every way copy can slip in", () => {
-		// La guarda solo sirve si muerde en cada vía. El corpus actual no tiene texto JSX con
-		// contenido ni plantillas, así que se prueba el escáner contra un fragmento que sí.
 		const snippet = [
-			"const aviso = `Aviso de prueba`;",
-			'export function Boton() { return <button type="button">Nueva conversación</button>; }',
+			"const notice = `Unapproved interface copy`;",
+			'export function Button() { return <button type="button">Texto JSX no aprobado</button>; }',
 		].join("\n");
-		const values = collectLiterals("probe.tsx", snippet).map((literal) => literal.value);
-		expect(values).toEqual(["Aviso de prueba", "button", "Nueva conversación"]);
+		const values = collectLiterals("probe.tsx", snippet).map(
+			(detectedString) => detectedString.value
+		);
+		expect(values).toEqual(["Unapproved interface copy", "button", "Texto JSX no aprobado"]);
+	});
+
+	it("rejects interface copy while accepting technical literals in a probe", () => {
+		const snippet = [
+			"const notice = `Unapproved interface copy`;",
+			'export function Button() { return <button type="button">Texto JSX no aprobado</button>; }',
+		].join("\n");
+		const probeLiterals = collectLiterals("probe.tsx", snippet);
+		const violations = probeLiterals.filter((detectedString) => !isAllowed(detectedString));
+
+		expect(violations.map((detectedString) => detectedString.value)).toEqual([
+			"Unapproved interface copy",
+			"Texto JSX no aprobado",
+		]);
+		expect(violations, describeViolations(violations)).not.toEqual([]);
+		expect(probeLiterals.filter(isAllowed).map((detectedString) => detectedString.value)).toContain(
+			"button"
+		);
 	});
 
 	it("keeps no interface copy outside the module", () => {
