@@ -28,31 +28,7 @@ dentro de `frontend/`.
 
 ## Estado del MVP
 
-La fuente de verdad del progreso es `TODO.md`. La especificación funcional está
-en `../docs/stitch-frontend-design/SPEC-FRONTEND.md`.
-
-### Completado
-
-- Proyecto base Vite + Preact + TypeScript.
-- Biome configurado como formatter y linter.
-- `react-markdown` instalado y compatible con Preact Compat.
-- Tipos del contrato SSE en `src/chat/types.ts`.
-- Adaptador SSE en `src/chat/infrastructure/sse.ts`, basado en
-  `eventsource-parser`.
-- Estado local con `src/chat/application/chat-reducer.ts` y
-  `src/chat/hooks/useChat.ts`.
-- Persistencia tolerante en `src/chat/infrastructure/storage.ts`.
-- Hook `useChatStream` en `src/chat/hooks/useChatStream.ts`.
-- Build de producción verificado con `npm run build`.
-
-### Pendiente principal
-
-- Integración del estado y persistencia con el componente `Chatbox`.
-- Componente `Chatbox` y renderizado de mensajes.
-- Accesibilidad, responsive, integración Astro y pruebas.
-
-No marcar tareas como completadas hasta implementar y verificar el comportamiento
-correspondiente.
+La fuente de verdad del progreso es `TODO.md`.
 
 ## Stack y comandos
 
@@ -63,6 +39,11 @@ correspondiente.
 - Markdown: `react-markdown` mediante Preact Compat.
 - Calidad: Biome.
 - Gestor de paquetes del frontend: npm (`package-lock.json`).
+
+Cuidado: el TypeScript instalado (7.0.2) es el port nativo. `require('typescript')`
+solo expone `version` y `versionMajorMinor`; no hay `createSourceFile` ni
+`createScanner`. Para parsear código en un test, usar `@babel/parser` (con
+`@babel/types` para tipar los nombres de nodo).
 
 Ejecutar desde `frontend/`:
 
@@ -119,7 +100,9 @@ Ubicar cada archivo nuevo según su responsabilidad:
 - `components/`: reservado al punto de entrada del widget (`Chatbox`).
 
 Los tests deben vivir fuera de `src/`, bajo `test/`, y organizarse por tipo
-(`unit/`, `component/`, `integration/` y `accessibility/`). No crear archivos
+(`unit/`, `component/` y `browser/`). La fuente autoritativa del reparto es
+`.specs/47-test-layout.md`. Los tests de navegador usan Playwright y terminan en
+`.spec.ts`; Vitest solo descubre `.test.ts` y `.test.tsx`. No crear archivos
 genéricos como `src/utils.ts`, `src/helpers.ts` o `src/types.ts` para
 funcionalidad del chat. Si una responsabilidad todavía no
 justifica una carpeta, mantenerla dentro del módulo de chat más cercano sin
@@ -210,6 +193,15 @@ guardan en `../docs/decisions/`, no en `.specs/`.
 Al revisar cambios, incluir explícitamente los archivos untracked: `git diff HEAD`
 los omite. No usar `git add -N` para colarlos en el diff: lint-staged rechaza el
 commit si hay archivos staged con `--intent-to-add`.
+
+## Ámbito de la revisión
+
+Todo test cuyo trabajo sea **detectar** algo (inventario, guarda, escáner, validador, o
+un test que asegura una ausencia) debe incluir en el mismo commit al menos una entrada
+que rechaza, y esa entrada debe fallar de verdad si el mecanismo se rompe. Un detector
+cuyo test nunca falla no protege nada, por muy limpio que se lea el código. Las reglas
+mecánicas (nombres de nodo, APIs prohibidas, ubicación de archivos) se sostienen con el
+typecheck o el linter, no con revisión a ojo.
 
 ## Verificación mínima
 
