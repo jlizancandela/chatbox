@@ -1,4 +1,5 @@
 import type { ComponentChildren } from "preact";
+import { strings } from "../strings.es";
 
 type EmptyStateProps = {
 	suggestions: string[];
@@ -13,8 +14,8 @@ export function EmptyState({
 }: EmptyStateProps): ComponentChildren {
 	return (
 		<div class="chatbox__empty">
-			<p>¿En qué te gustaría saber más sobre Jorge?</p>
-			<nav aria-label="Preguntas sugeridas">
+			<p>{strings.emptyState.prompt}</p>
+			<nav aria-label={strings.a11y.emptyStateNavLabel}>
 				<ul>
 					{suggestions.map((suggestion) => (
 						<li key={suggestion}>

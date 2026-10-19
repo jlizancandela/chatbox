@@ -8,6 +8,7 @@ import { cleanup, render, screen, within } from "@testing-library/preact";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Chatbox } from "../../src/components/Chatbox";
+import { strings } from "../../src/strings.es";
 
 // ─── Tests: static render ──────────────────────────────────────────────────────
 
@@ -16,34 +17,34 @@ describe("Chatbox — static render", () => {
 
 	describe("RF-F01 — header", () => {
 		it("renders the header with the title", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" title="Asistente de Jorge" />);
-			expect(screen.getByRole("heading", { name: "Asistente de Jorge" })).toBeInTheDocument();
+			render(<Chatbox apiUrl="http://localhost:7000" title={strings.header.defaultTitle} />);
+			expect(
+				screen.getByRole("heading", { name: strings.header.defaultTitle })
+			).toBeInTheDocument();
 		});
 
 		it("renders the IA badge", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" />);
-			expect(screen.getByText("IA")).toBeInTheDocument();
+			expect(screen.getByText(strings.header.badge)).toBeInTheDocument();
 		});
 
 		it("renders the scope notice only inside the header", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" />);
 			const header = screen.getByRole("banner");
-			expect(
-				within(header).getByText(/responde solo con información del cv y github/i)
-			).toBeInTheDocument();
+			expect(within(header).getByText(strings.header.scopeNotice)).toBeInTheDocument();
 		});
 	});
 
 	describe("RF-F02 — empty state with suggestions", () => {
 		it("shows the empty state when there are no messages", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" />);
-			expect(screen.getByText(/¿en qué te gustaría saber más/i)).toBeInTheDocument();
+			expect(screen.getByText(strings.emptyState.prompt)).toBeInTheDocument();
 		});
 
 		it("renders the suggestion buttons", () => {
 			const suggestions = ["¿Qué experiencia?", "¿Qué stack?"];
 			render(<Chatbox apiUrl="http://localhost:7000" suggestions={suggestions} />);
-			const nav = screen.getByRole("navigation", { name: /preguntas sugeridas/i });
+			const nav = screen.getByRole("navigation", { name: strings.a11y.emptyStateNavLabel });
 			const buttons = within(nav).getAllByRole("button");
 			expect(buttons.map((b) => b.textContent?.trim())).toEqual(suggestions);
 		});
@@ -58,7 +59,7 @@ describe("Chatbox — static render", () => {
 
 		it("textarea has an associated label", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" />);
-			expect(screen.getByLabelText(/escribe tu pregunta/i)).toBeInTheDocument();
+			expect(screen.getByLabelText(strings.input.label)).toBeInTheDocument();
 		});
 
 		it("buttons without visible text have aria-label", () => {
@@ -75,14 +76,13 @@ describe("Chatbox — static render", () => {
 	describe("RF-F31 — external links", () => {
 		it("contact link is present when contactUrl is provided", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" contactUrl="mailto:jorge@example.com" />);
-			const links = screen.getAllByRole("link");
-			const contactLinks = links.filter((l) => l.textContent?.includes("Jorge"));
+			const contactLinks = screen.getAllByRole("link", { name: strings.input.contactLink });
 			expect(contactLinks.length).toBeGreaterThan(0);
 		});
 
 		it("contact link opens in a new tab with safe attributes", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" contactUrl="mailto:jorge@example.com" />);
-			const contactLink = screen.getByRole("link", { name: /contactar/i });
+			const contactLink = screen.getByRole("link", { name: strings.input.contactLink });
 			expect(contactLink).toHaveAttribute("target", "_blank");
 			expect(contactLink).toHaveAttribute("rel", "noopener noreferrer");
 		});
@@ -91,12 +91,14 @@ describe("Chatbox — static render", () => {
 	describe("RF-F03 — textarea", () => {
 		it("send button is disabled when the textarea is empty", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" />);
-			expect(screen.getByRole("button", { name: /enviar/i })).toBeDisabled();
+			expect(screen.getByRole("button", { name: strings.input.send.ariaLabel })).toBeDisabled();
 		});
 
 		it("send button has the correct aria-label", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" />);
-			expect(screen.getByRole("button", { name: /enviar pregunta/i })).toBeInTheDocument();
+			expect(
+				screen.getByRole("button", { name: strings.input.send.ariaLabel })
+			).toBeInTheDocument();
 		});
 	});
 });
@@ -106,7 +108,7 @@ describe("Chatbox — static render", () => {
 describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
 	it("focuses the rendered textarea on mount", () => {
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		expect(document.activeElement).toBe(screen.getByLabelText(/escribe tu pregunta/i));
+		expect(document.activeElement).toBe(screen.getByLabelText(strings.input.label));
 	});
 	afterEach(cleanup);
 	beforeEach(() => vi.restoreAllMocks());
@@ -114,14 +116,14 @@ describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
 	it("enables the send button once the user types", async () => {
 		const user = userEvent.setup();
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		await user.type(screen.getByLabelText(/escribe tu pregunta/i), "¿Qué sabes de Jorge?");
-		expect(screen.getByRole("button", { name: /enviar/i })).toBeEnabled();
+		await user.type(screen.getByLabelText(strings.input.label), "¿Qué sabes de Jorge?");
+		expect(screen.getByRole("button", { name: strings.input.send.ariaLabel })).toBeEnabled();
 	});
 
 	it("inserts a newline when Shift+Enter is pressed", async () => {
 		const user = userEvent.setup();
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		const textarea = screen.getByLabelText(/escribe tu pregunta/i);
+		const textarea = screen.getByLabelText(strings.input.label);
 		await user.type(textarea, "Línea uno{Shift>}{Enter}{/Shift}Línea dos");
 		expect(textarea).toHaveValue("Línea uno\nLínea dos");
 	});
@@ -132,7 +134,7 @@ describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
 			.spyOn(HTMLFormElement.prototype, "requestSubmit")
 			.mockImplementation(vi.fn());
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		const textarea = screen.getByLabelText(/escribe tu pregunta/i);
+		const textarea = screen.getByLabelText(strings.input.label);
 		textarea.dispatchEvent(new InputEvent("compositionstart", { bubbles: true }));
 		await user.type(textarea, "¿Qué{Enter}");
 		expect(submitSpy).not.toHaveBeenCalled();
@@ -142,15 +144,15 @@ describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
 	it("shows character counter near the 80% threshold", async () => {
 		const user = userEvent.setup();
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		const textarea = screen.getByLabelText(/escribe tu pregunta/i);
+		const textarea = screen.getByLabelText(strings.input.label);
 		await user.type(textarea, "x".repeat(801));
-		expect(screen.getByText(/801\/1000/)).toBeInTheDocument();
+		expect(screen.getByText(strings.input.chars(801, 1000))).toBeInTheDocument();
 	});
 
 	it("typing in the textarea updates its value", async () => {
 		const user = userEvent.setup();
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		const textarea = screen.getByLabelText(/escribe tu pregunta/i) as HTMLTextAreaElement;
+		const textarea = screen.getByLabelText(strings.input.label) as HTMLTextAreaElement;
 		await user.type(textarea, "¿Qué sabes?");
 		expect(textarea.value).toBe("¿Qué sabes?");
 	});
@@ -168,34 +170,38 @@ describe("Chatbox — new conversation (RF-F24 / RF-F25)", () => {
 			.spyOn(HTMLFormElement.prototype, "requestSubmit")
 			.mockImplementation(vi.fn());
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		await user.type(screen.getByLabelText(/escribe tu pregunta/i), "¿Qué sabes?");
-		await user.click(screen.getByRole("button", { name: /enviar/i }));
+		await user.type(screen.getByLabelText(strings.input.label), "¿Qué sabes?");
+		await user.click(screen.getByRole("button", { name: strings.input.send.ariaLabel }));
 		await user.keyboard("{Enter}");
 		submitSpy.mockRestore();
-		expect(screen.getByRole("button", { name: /nueva conversación/i })).toBeInTheDocument();
+		expect(
+			screen.getByRole("button", { name: strings.actions.newConversation })
+		).toBeInTheDocument();
 	});
 
 	it("asks for inline confirmation before resetting", async () => {
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		await userEvent.setup().click(screen.getByRole("button", { name: /nueva conversación/i }));
-		expect(screen.getByText(/¿borrar la conversación/i)).toBeInTheDocument();
+		await userEvent
+			.setup()
+			.click(screen.getByRole("button", { name: strings.actions.newConversation }));
+		expect(screen.getByText(strings.actions.confirm.question)).toBeInTheDocument();
 	});
 
 	it("confirm button resets the conversation", async () => {
 		const user = userEvent.setup();
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		await user.click(screen.getByRole("button", { name: /nueva conversación/i }));
-		await user.click(screen.getByRole("button", { name: /sí, borrar/i }));
-		expect(screen.getByText(/¿en qué te gustaría saber más/i)).toBeInTheDocument();
-		expect(document.activeElement).toBe(screen.getByLabelText(/escribe tu pregunta/i));
+		await user.click(screen.getByRole("button", { name: strings.actions.newConversation }));
+		await user.click(screen.getByRole("button", { name: strings.actions.confirm.accept }));
+		expect(screen.getByText(strings.emptyState.prompt)).toBeInTheDocument();
+		expect(document.activeElement).toBe(screen.getByLabelText(strings.input.label));
 	});
 
 	it("cancel button preserves the conversation", async () => {
 		const user = userEvent.setup();
 		render(<Chatbox apiUrl="http://localhost:7000" />);
-		await user.click(screen.getByRole("button", { name: /nueva conversación/i }));
-		await user.click(screen.getByRole("button", { name: /cancelar/i }));
-		expect(screen.getByText(/nueva conversación/i)).toBeInTheDocument();
+		await user.click(screen.getByRole("button", { name: strings.actions.newConversation }));
+		await user.click(screen.getByRole("button", { name: strings.actions.confirm.cancel }));
+		expect(screen.getByText(strings.actions.newConversation)).toBeInTheDocument();
 	});
 });
 

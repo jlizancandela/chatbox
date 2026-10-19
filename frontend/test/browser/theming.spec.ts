@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import axe from "axe-core";
+import { strings } from "../../src/strings.es";
 
 const surface = (page: import("@playwright/test").Page) =>
 	page.locator(".chatbox").evaluate((element) => getComputedStyle(element).backgroundColor);
@@ -74,7 +75,7 @@ test.describe("RF-F61 browser theming resolution", () => {
 			await page.emulateMedia({ colorScheme });
 			await openChatbox(page);
 			const button = page.locator('.chatbox__footer button[type="submit"]');
-			await expect(button).toHaveText("Enviar");
+			await expect(button).toHaveText(strings.input.send.label);
 			await expect(button).toBeVisible();
 		}
 	});
