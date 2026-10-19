@@ -1,4 +1,5 @@
 import type { ComponentChildren } from "preact";
+import { strings } from "../strings.es";
 
 type ChatHeaderProps = {
 	title: string;
@@ -6,7 +7,11 @@ type ChatHeaderProps = {
 	notice: string;
 };
 
-export function ChatHeader({ title, badge = "IA", notice }: ChatHeaderProps): ComponentChildren {
+export function ChatHeader({
+	title,
+	badge = strings.header.badge,
+	notice,
+}: ChatHeaderProps): ComponentChildren {
 	return (
 		<header class="chatbox__header">
 			<div>

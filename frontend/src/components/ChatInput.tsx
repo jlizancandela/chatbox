@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { ExternalLink } from "../chat/components/ExternalLink";
+import { strings } from "../strings.es";
 
 type ChatInputProps = {
 	value: string;
@@ -39,6 +40,8 @@ export function ChatInput({
 		textarea.style.overflowY = textarea.scrollHeight > lineHeight * 5 ? "auto" : "hidden";
 	}, [value]);
 
+	// Enviar y detener son un conjunto cerrado: se elige el registro de textos, no el texto (RF-F62).
+	const submitCopy = isBusy ? strings.input.stop : strings.input.send;
 	const canSubmit = value.trim().length > 0 && value.length <= maxLength;
 
 	const handleKeyDown = (event: KeyboardEvent): void => {
@@ -68,7 +71,7 @@ export function ChatInput({
 
 	return (
 		<form onSubmit={handleSubmit}>
-			<label for="chatbox-question">Escribe tu pregunta</label>
+			<label for="chatbox-question">{strings.input.label}</label>
 			<textarea
 				id="chatbox-question"
 				ref={textareaRef}
@@ -78,22 +81,16 @@ export function ChatInput({
 				onKeyDown={handleKeyDown}
 				onCompositionStart={() => setIsComposing(true)}
 				onCompositionEnd={() => setIsComposing(false)}
-				placeholder="Pregunta sobre la experiencia de Jorge"
+				placeholder={strings.input.placeholder}
 				rows={1}
 			/>
-			<button
-				type="submit"
-				disabled={!isBusy && !canSubmit}
-				aria-label={isBusy ? "Detener respuesta" : "Enviar pregunta"}
-			>
-				{isBusy ? "Detener" : "Enviar"}
+			<button type="submit" disabled={!isBusy && !canSubmit} aria-label={submitCopy.ariaLabel}>
+				{submitCopy.label}
 			</button>
 			{value.length > maxLength * 0.8 && (
-				<small aria-live="polite">
-					{value.length}/{maxLength}
-				</small>
+				<small aria-live="polite">{strings.input.chars(value.length, maxLength)}</small>
 			)}
-			{contactUrl && <ExternalLink href={contactUrl}>Contactar con Jorge</ExternalLink>}
+			{contactUrl && <ExternalLink href={contactUrl}>{strings.input.contactLink}</ExternalLink>}
 		</form>
 	);
 }

@@ -6,6 +6,7 @@ import { useChat } from "../chat/hooks/useChat";
 import { useChatStream } from "../chat/hooks/useChatStream";
 import { useFocusOnMount } from "../chat/hooks/useFocusOnMount";
 import { loadFromSessionStorage, saveToSessionStorage } from "../chat/infrastructure/storage";
+import { strings } from "../strings.es";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInput } from "./ChatInput";
 import { ChatMessages } from "./ChatMessages";
@@ -19,16 +20,10 @@ export type ChatboxProps = {
 	title?: string;
 };
 
-const DEFAULT_TITLE = "Asistente de Jorge";
-const DEFAULT_SUGGESTIONS = [
-	"¿Qué experiencia tiene Jorge?",
-	"¿Qué stack tecnológico usa Jorge?",
-	"¿Cómo puedo contactar con Jorge?",
-];
+// El módulo de textos es `as const`: la copia de las sugerencias por defecto se copia a
+// un array mutable una vez, al cargar el módulo, para no recrearla en cada render.
+const DEFAULT_SUGGESTIONS: string[] = [...strings.emptyState.suggestions];
 const MAX_QUESTION_LENGTH = 1000;
-const SCOPE_NOTICE = "Responde solo con información del CV y GitHub de Jorge. Puede equivocarse.";
-const NO_CONTEXT_NOTICE =
-	"Eso no lo tengo en la información que manejo. Puedes escribirle a Jorge directamente.";
 
 type TurnState = "idle" | "connecting" | "generating" | "streaming" | "error" | "aborted";
 
@@ -36,7 +31,7 @@ export function Chatbox({
 	apiUrl,
 	suggestions = DEFAULT_SUGGESTIONS,
 	contactUrl,
-	title = DEFAULT_TITLE,
+	title = strings.header.defaultTitle,
 }: ChatboxProps) {
 	const chat = useChat(loadFromSessionStorage() ?? undefined);
 	const [question, setQuestion] = useState("");
@@ -69,7 +64,7 @@ export function Chatbox({
 				chat.state.turnState === "idle" &&
 				chat.state.messages.length === announcedMessages.current
 			) {
-				setLocalNotice(NO_CONTEXT_NOTICE);
+				setLocalNotice(strings.notices.noContext);
 			}
 			if (chat.state.error) setAnnouncement(chat.state.error.message);
 		}
@@ -138,31 +133,30 @@ export function Chatbox({
 
 	return (
 		<section class="chatbox" lang="es" aria-labelledby="chatbox-title">
-			<ChatHeader title={title} notice={SCOPE_NOTICE} />
+			<ChatHeader title={title} notice={strings.header.scopeNotice} />
 
 			<div class="chatbox__status" role="status" aria-live="polite" aria-atomic="true">
-				{announcement ||
-					(isBusy ? "El asistente está escribiendo" : (chat.state.error?.message ?? ""))}
+				{announcement || (isBusy ? strings.messages.writing : (chat.state.error?.message ?? ""))}
 			</div>
 
 			<main
 				class="chatbox__conversation"
-				aria-label="Conversación"
+				aria-label={strings.a11y.conversationLabel}
 				ref={conversationRef}
 				onScroll={handleConversationScroll}
 			>
-				{contextWasTrimmed && (
-					<p class="chatbox__notice">Los mensajes más antiguos ya no forman parte del contexto.</p>
-				)}
+				{contextWasTrimmed && <p class="chatbox__notice">{strings.notices.contextTrimmed}</p>}
 				{localNotice && (
 					<p class="chatbox__notice">
 						{localNotice}{" "}
-						{contactUrl && <ExternalLink href={contactUrl}>Contactar con Jorge</ExternalLink>}
+						{contactUrl && (
+							<ExternalLink href={contactUrl}>{strings.input.contactLink}</ExternalLink>
+						)}
 					</p>
 				)}
 				{showScrollToEnd && (
 					<button type="button" onClick={() => scrollToEnd()}>
-						Ir al final
+						{strings.actions.scrollToEnd}
 					</button>
 				)}
 
