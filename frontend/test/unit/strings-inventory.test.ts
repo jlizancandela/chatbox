@@ -1,4 +1,5 @@
 import { parse } from "@babel/parser";
+import type { Node } from "@babel/types";
 import { describe, expect, it } from "vitest";
 import { strings } from "../../src/strings.es";
 
@@ -116,8 +117,14 @@ type AstNode = Record<string, unknown> & {
 	value?: unknown;
 };
 
+/**
+ * Nombres de nodo tipados contra el propio parser: un nombre que no existe es un error de
+ * compilación, no una rama muerta silenciosa.
+ */
+type NodeType = Node["type"];
+
 /** Nodos cuyo `source` es una ruta de módulo, no texto de interfaz. */
-const MODULE_REFERENCE_TYPES = new Set([
+const MODULE_REFERENCE_TYPES = new Set<NodeType>([
 	"ImportDeclaration",
 	"ExportNamedDeclaration",
 	"ExportAllDeclaration",
@@ -174,7 +181,10 @@ function collectLiterals(path: string, source: string): Literal[] {
 		const { type, loc } = node as AstNode;
 		if (typeof type !== "string") return;
 
-		const moduleReference = MODULE_REFERENCE_TYPES.has(type);
+		// El nombre del nodo se compara contra los sets tipados; un nombre que no es de Babel
+		// no pasa el typecheck, pero el AST sigue siendo dinámico en tiempo de ejecución.
+		const nodeType = type as NodeType;
+		const moduleReference = MODULE_REFERENCE_TYPES.has(nodeType);
 		const text = moduleReference ? null : textOf(node as AstNode, type);
 		if (text) {
 			found.push({

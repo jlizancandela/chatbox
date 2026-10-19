@@ -58,6 +58,12 @@ Ver `api/TODO.md` para el estado actual del MVP.
 
 Issues y specs viven en GitHub Issues; se usa `gh` para las operaciones. Consulta `docs/agents/issue-tracker.md`.
 
+`gh issue view <n>` desnudo falla en este repo: el proyecto clásico está deprecado. Leer siempre con campos explícitos:
+
+```bash
+gh issue view <n> --repo jlizancandela/chatbox --json number,title,body,labels,comments
+```
+
 ### Domain docs
 
 Repositorio single-context: `GLOSSARY.md` en la raíz y ADRs bajo `docs/decisions/`. Consulta `docs/agents/domain.md`.
