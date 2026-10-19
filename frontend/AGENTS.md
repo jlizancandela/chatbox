@@ -45,6 +45,11 @@ solo expone `version` y `versionMajorMinor`; no hay `createSourceFile` ni
 `createScanner`. Para parsear código en un test, usar `@babel/parser` (con
 `@babel/types` para tipar los nombres de nodo).
 
+Antes de escribir a mano un parser, escáner o utilidad de este tipo, revisar
+`node_modules` y el lockfile por una dependencia que ya lo resuelva. Vite y sus
+dependencias traen parser y muchos helpers; escribirlos a mano sale más caro y
+más frágil.
+
 Ejecutar desde `frontend/`:
 
 ```bash
