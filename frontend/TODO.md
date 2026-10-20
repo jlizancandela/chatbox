@@ -72,7 +72,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 ## Paso 5 — Accesibilidad
 
-- [ ] `RF-F40` — Navegación completa por teclado, foco visible, foco vuelve al textarea tras enviar.
+- [x] `RF-F40` — Navegación completa por teclado, foco visible, foco vuelve al textarea tras enviar. Enter no cancela una respuesta en curso; foco gestionado en la confirmación de "Nueva conversación" (#86, #87, #88, #89).
 - [ ] `RF-F41` — Región `role="status"` / `aria-live="polite"` para anuncios; lista de mensajes no es región viva.
 - [ ] `RF-F42` — Contraste mínimo 4.5:1 / 3:1 en tema claro y oscuro.
 - [ ] `RF-F43` — Controles táctiles ≥ 44×44 px.

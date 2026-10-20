@@ -52,11 +52,7 @@ export function ChatInput({
 		}
 		if (event.key === "Enter" && !event.shiftKey && !isComposing) {
 			event.preventDefault();
-			if (isBusy) {
-				onAbort();
-			} else {
-				onSubmit();
-			}
+			if (!isBusy) onSubmit();
 		}
 	};
 
