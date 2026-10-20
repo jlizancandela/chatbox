@@ -25,3 +25,8 @@ dist-ssr
 
 # OpenClaw local memory
 memory/
+
+# Playwright
+test-results/
+playwright-report/
+.last-run.json

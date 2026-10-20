@@ -10,6 +10,7 @@
 		"format": "biome format --write ./src ./test",
 		"test": "vitest",
 		"test:browser": "playwright test",
+		"verify": "npm run lint && npm run typecheck && npm run build && npm run test -- --run",
 		"test:watch": "vitest --watch",
 		"typecheck": "tsc --noEmit"
 	},

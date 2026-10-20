@@ -10,7 +10,7 @@ on:
 
 jobs:
   frontend:
-    name: Lint · Test · Build
+    name: Lint · Typecheck · Build · Test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,17 +30,10 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Typecheck
-        run: npm run typecheck
-
-      - name: Unit tests
-        run: npm test -- --run
+      # `verify` es la lista única (lint + typecheck + build + tests). Si se escribe aquí
+      # paso a paso, el hook y el documento se desincronizan sin que nadie lo note.
+      - name: Verify
+        run: npm run verify
 
       - name: Browser tests
         run: npm run test:browser
-
-      - name: Build
-        run: npm run build

@@ -247,4 +247,19 @@ describe("RF-F41 — el contador de caracteres no es una región viva", () => {
 		expect(counter).toHaveAttribute("aria-live", "off");
 		expect(container.querySelectorAll('[aria-live="polite"]')).toHaveLength(1);
 	});
+
+	it("rejects a probe where the counter is a live region again", () => {
+		// La guarda de arriba es un test de ausencia: también pasaría si estuviera rota, a menos
+		// que alguien demuestre que sabe fallar. Se demostró mutando el componente a mano y
+		// revirtiendo; eso no deja rastro y depende de que el revisor se acuerde. Esta sonda
+		// fija el criterio —una sola región `polite`— contra el estado roto, sin tocar `src/`.
+		const regionesPolite = (counterLive: string): number => {
+			const probe = document.createElement("div");
+			probe.innerHTML = `<div role="status" aria-live="polite"></div><small aria-live="${counterLive}"></small>`;
+			return probe.querySelectorAll('[aria-live="polite"]').length;
+		};
+
+		expect(regionesPolite("off")).toBe(1); // contador mudo + región de estado
+		expect(regionesPolite("polite")).toBe(2); // el bug: dos regiones compitiendo
+	});
 });
