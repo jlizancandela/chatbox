@@ -206,6 +206,31 @@ Dos niveles, con el nivel declarado en cada assert (ver
   inicio, respuesta completa, respuesta idéntica a la anterior, fallo, aborto y montaje con
   conversación restaurada. Se adjunta a la issue.
 
+### Cómo se hace la pasada manual
+
+El widget habla con una API que exige PostgreSQL y claves de entorno, así que para el nivel 3
+hay un **fixture** (`src/dev/manual-announcements.tsx`) que monta el `Chatbox` real con un
+`fetch` sustituido por un guion. Solo se carga en desarrollo y solo con `?manual=<escenario>`;
+la página de desarrollo por defecto y la suite de navegador no cambian.
+
+```bash
+cd frontend && npm run dev
+```
+
+| URL | Qué comprueba |
+|---|---|
+| `/?manual=normal` | Respuesta con negrita, código, enlace y negrita: se oye el texto limpio y la lista no lee token a token |
+| `/?manual=identical` | Dos turnos con la misma respuesta: la segunda también se anuncia |
+| `/?manual=error` | Fallo HTTP: se oye el mensaje de error |
+| `/?manual=abort` | Botón Detener: se oye la parada |
+| `/?manual=empty` | Turno sin respuesta: se oye el aviso de "no lo tengo" |
+| `/?manual=restore` | Monta con conversación restaurada: no se oye nada (recargar para repetir) |
+
+El texto de la región se ve en `.chatbox__status`, que solo se oculta cuando está vacía: sirve
+de referencia para contrastar lo que se oye. Un test de navegador verifica que el guion sigue
+arrancando y anunciando, para que el fixture no se pudra en silencio; no verifica que suene
+nada, que es exactamente lo que no se puede automatizar.
+
 ## Fuera de alcance
 
 - Quitar la lista de mensajes como región viva: ya no lo es, no hay cambio.

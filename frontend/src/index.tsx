@@ -1,10 +1,24 @@
 import { render } from "preact";
-import { Chatbox } from "./components/Chatbox";
+import { App } from "./App";
 import "./style.css";
 
-export function App() {
-	return <Chatbox apiUrl="http://127.0.0.1:7000" />;
+const container = document.getElementById("app");
+
+if (!container) {
+	throw new Error("Falta el contenedor #app en index.html");
 }
 
-const container = document.getElementById("app");
-if (container) render(<App />, container);
+// Fixture de verificación manual de RF-F41 (ver `dev/manual-announcements.tsx`). Solo en
+// desarrollo y solo con `?manual=<escenario>`: la página por defecto y la suite de navegador
+// no cambian de comportamiento.
+const manualScenario = new URLSearchParams(window.location.search).get("manual");
+
+if (import.meta.env.DEV && manualScenario !== null) {
+	void import("./dev/manual-announcements").then(({ mountManualScenario }) => {
+		if (!mountManualScenario(manualScenario, container)) {
+			render(<App />, container);
+		}
+	});
+} else {
+	render(<App />, container);
+}

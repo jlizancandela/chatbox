@@ -142,13 +142,19 @@ const MODULE_REFERENCE_TYPES = new Set<NodeType>([
 ]);
 
 /**
- * Valores de la lista blanca que aún no aparecen en los archivos con copy. `user`: el spec
- * declara el conjunto de roles completo aunque hoy el código solo compare con `assistant`.
- * `idle`: sigue siendo un estado real de `chat-reducer`, pero desde RF-F41 ningún componente
- * lo nombra —la región de estado se deduce de eventos, no del estado— y el conjunto de
- * estados no se recorta porque el reducer lo sigue usando.
+ * Valores de la lista blanca que no aparecen en los archivos con copy pero que existen de
+ * verdad en el código. Se conservan para que un conjunto cerrado no se recorte cuando un
+ * consumidor todavía no nombra uno de sus valores.
+ *
+ * La lista se audita contra todo `src/` salvo el módulo de textos (ver el test de escapes):
+ * cada entrada tiene que aparecer en algún archivo, con su motivo escrito. Sin esa
+ * comprobación la lista era una trampilla sin límite —cualquiera podía callar al escáner con
+ * una entrada inventada— y eso la hace tan auditable como el resto de la lista blanca.
  */
-const NOT_YET_IN_USE = ["user", "idle"];
+const JUSTIFIED_WITHOUT_COPY: Record<string, string> = {
+	user: "rol declarado en `chat/types.ts` y en `strings.messages.author`; el código solo compara con `assistant`",
+	idle: "estado declarado en `chat-reducer`; desde RF-F41 ningún componente lo nombra porque la región se deduce de eventos",
+};
 
 /** `src/components/Chatbox.tsx`, sin el prefijo que devuelve el glob. */
 function displayPath(path: string): string {
@@ -229,6 +235,18 @@ const LITERALS = Object.entries(COPY_SOURCES).flatMap(([path, source]) =>
 	collectLiterals(path, source)
 );
 
+/**
+ * Todo `src/` salvo el módulo de textos, para poder exigir que un escape de la lista blanca
+ * sea un valor que existe de verdad en el código y no una invención para silenciar el escáner.
+ */
+const OUTSIDE_STRINGS_SOURCES = Object.entries(
+	import.meta.glob("../../src/**/*.{ts,tsx}", {
+		query: "?raw",
+		import: "default",
+		eager: true,
+	}) as Record<string, string>
+).filter(([path]) => !path.endsWith("src/strings.es.ts"));
+
 /** Un literal vacío es solo espaciado de JSX o estado inicial; no es redacción. */
 function isAllowed(detectedString: DetectedString): boolean {
 	if (detectedString.value === "") return true;
@@ -290,12 +308,32 @@ describe("literal inventory outside the strings module (RF-F62)", () => {
 		expect(violations, describeViolations(violations)).toEqual([]);
 	});
 
+	it("justifies every escape from the whitelist with a value that exists in the code", () => {
+		// `NOT_YET_IN_USE` era una lista sin dueño: añadir una entrada inventada callaba al
+		// escáner sin que nada lo notara. Cada escape tiene que existir en `src/` y llevar su
+		// motivo escrito, o el inventario deja de ser una garantía.
+		const inCode = new Set(
+			OUTSIDE_STRINGS_SOURCES.flatMap(([path, source]) =>
+				collectLiterals(path, source).map((literal) => literal.value)
+			)
+		);
+		const unjustified = Object.entries(JUSTIFIED_WITHOUT_COPY).filter(
+			([value, reason]) =>
+				reason.trim().length === 0 || (!inCode.has(value) && ![...ALLOWED].includes(value))
+		);
+
+		expect(
+			unjustified.map(([value]) => value),
+			"Cada escape de la lista blanca necesita un valor real en src/ y un motivo escrito"
+		).toEqual([]);
+	});
+
 	it("keeps the whitelist free of dead entries", () => {
 		// Una entrada que no aparece en ningún archivo no justifica su sitio: o es una errata,
 		// o es copy que alguien metió para callar al escáner.
 		const seen = new Set(LITERALS.map((literal) => literal.value));
 		const dead = [...ALLOWED].filter(
-			(value) => !seen.has(value) && !NOT_YET_IN_USE.includes(value)
+			(value) => !seen.has(value) && !(value in JUSTIFIED_WITHOUT_COPY)
 		);
 		expect(
 			dead,

@@ -129,3 +129,30 @@ test.describe("RF-F41 región de estado", () => {
 		expect(results.violations).toEqual([]);
 	});
 });
+
+/**
+ * El fixture de `?manual=<escenario>` es la vía por la que se puede hacer el checklist de
+ * NVDA y VoiceOver sin levantar la API. Este test no verifica que suene nada —eso es el
+ * nivel 3 de la ADR 005—, verifica que el guion sigue arrancando y announcing, que es como
+ * se detecta que el fixture se ha roto.
+ */
+test.describe("RF-F41 fixture de verificación manual", () => {
+	test("monta el widget con el guion y anuncia la respuesta proyectada", async ({ page }) => {
+		await page.goto("/?manual=normal");
+		await expect(page.locator(".chatbox")).toBeVisible();
+
+		await sendQuestion(page, "¿Qué usa Jorge?");
+
+		await expect(page.locator(".chatbox__status")).toHaveText(
+			"Jorge trabaja con Preact y Fastify. Tienes su GitHub."
+		);
+	});
+
+	test("un escenario desconocido cae en la página por defecto", async ({ page }) => {
+		await mockChatApi(page, tokenFrame("Respuesta del API real."));
+		await page.goto("/?manual=inexistente");
+		await sendQuestion(page, "¿Qué usa Jorge?");
+
+		await expect(page.locator(".chatbox__status")).toHaveText("Respuesta del API real.");
+	});
+});
