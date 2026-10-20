@@ -4,9 +4,20 @@ import { chatErrors, isAbortError } from "../infrastructure/chat-errors";
 import type { ChatEvent } from "../infrastructure/sse";
 import { readChatEvents, requestChatStream } from "../infrastructure/stream-transport";
 import { createTokenBuffer, type TokenBuffer } from "../infrastructure/token-buffer";
+import type { ChatError } from "../types";
 import type { ChatController } from "./useChat";
 
 export const DEFAULT_TIMEOUT_MS = 30_000;
+
+/**
+ * Fin de turno tal como lo ve quien usa el widget: el texto que se anuncia vive aquí y no
+ * en el estado, porque `turn-completed` ya lo ha limpiado cuando el evento se emite (RF-F41).
+ * `completed` con `text` vacío significa que el asistente no tenía nada que decir.
+ */
+export type TurnEnd =
+	| { kind: "completed"; text: string }
+	| { kind: "failed"; error: ChatError }
+	| { kind: "aborted" };
 
 export type UseChatStreamOptions = {
 	apiUrl: string;
@@ -14,6 +25,7 @@ export type UseChatStreamOptions = {
 	timeoutMs?: number;
 	onSources?: (historyLength: number) => void;
 	onActivityChange?: (active: boolean) => void;
+	onTurnEnd?: (event: TurnEnd) => void;
 };
 
 export type UseChatStreamResult = {
@@ -36,6 +48,8 @@ type ActiveTurn = {
 	timeoutId: TimerId | null;
 	completed: boolean;
 	failed: boolean;
+	ended: boolean;
+	assistantText: string;
 	termination: "active" | "aborted" | "timeout";
 };
 
@@ -86,7 +100,28 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 	};
 
 	const enqueueToken = (token: string): void => {
+		// El texto anunciado se acumula aquí, antes de cualquier `requestFrame`: leerlo del
+		// estado en `done` ya no es posible porque el dispatch aún no ha re-renderizado.
+		if (active) active.assistantText += token;
 		tokenBuffer?.enqueue(token);
+	};
+
+	const endTurn = (event: TurnEnd): void => {
+		if (active?.ended === true) return;
+		if (active) active.ended = true;
+		options.onTurnEnd?.(event);
+	};
+
+	// Fallar o abortar son siempre la misma pareja: cambiar el estado del turno y emitir su
+	// desenlace. Que vivan juntos es lo que hace cumplible el invariante de una salida, un evento.
+	const failWith = (error: ChatError): void => {
+		options.chat.failTurn(error);
+		endTurn({ kind: "failed", error });
+	};
+
+	const abortWith = (): void => {
+		options.chat.abortTurn();
+		endTurn({ kind: "aborted" });
 	};
 
 	const armTimeout = (): void => {
@@ -128,14 +163,17 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 					active.completed = true;
 				}
 				options.chat.completeTurn();
+				endTurn({ kind: "completed", text: active?.assistantText ?? "" });
 				break;
-			case "error":
+			case "error": {
 				flushTokens();
 				if (active) {
 					active.failed = true;
 				}
-				options.chat.failTurn(chatErrors.stream());
+				const error = chatErrors.stream();
+				failWith(error);
 				break;
+			}
 		}
 	};
 
@@ -148,7 +186,7 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 		active.controller.abort();
 		clearTimer();
 		clearFrame();
-		options.chat.abortTurn();
+		abortWith();
 	};
 
 	const run = async (text: string): Promise<void> => {
@@ -160,7 +198,7 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 		try {
 			request = buildChatRequest(text, options.chat.state.context);
 		} catch {
-			options.chat.failTurn(chatErrors.invalidQuestion());
+			failWith(chatErrors.invalidQuestion());
 			return;
 		}
 
@@ -169,6 +207,8 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 			timeoutId: null,
 			completed: false,
 			failed: false,
+			ended: false,
+			assistantText: "",
 			termination: "active",
 		};
 		active = turn;
@@ -190,12 +230,12 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 			});
 
 			if (!response.ok) {
-				options.chat.failTurn(mapHttpError(response.status));
+				failWith(mapHttpError(response.status));
 				return;
 			}
 
 			if (!response.body) {
-				options.chat.failTurn(chatErrors.network());
+				failWith(chatErrors.network());
 				return;
 			}
 
@@ -207,19 +247,19 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 
 			if (turn.termination === "active" && !turn.completed && !turn.failed) {
 				flushTokens();
-				options.chat.failTurn(chatErrors.incomplete());
+				failWith(chatErrors.incomplete());
 			}
 		} catch (caught) {
 			if (turn.termination === "timeout") {
-				options.chat.failTurn(chatErrors.timeout());
+				failWith(chatErrors.timeout());
 			} else if (turn.termination === "aborted" || isAbortError(caught)) {
 				if (turn.termination !== "aborted") {
-					options.chat.abortTurn();
+					abortWith();
 				}
 			} else if (caught instanceof TypeError) {
-				options.chat.failTurn(chatErrors.network());
+				failWith(chatErrors.network());
 			} else {
-				options.chat.failTurn(chatErrors.stream());
+				failWith(chatErrors.stream());
 			}
 		} finally {
 			cleanup();

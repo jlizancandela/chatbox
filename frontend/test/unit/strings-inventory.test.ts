@@ -59,8 +59,12 @@ const CSS_CLASSES_AND_IDS = [
 	"chatbox__status",
 ];
 
-/** Valores técnicos de atributo y ARIA: `lang`, `role`, `aria-live`, `aria-atomic` y `type`. */
-const ATTRIBUTE_VALUES = ["es", "true", "polite", "status", "submit", "button"];
+/**
+ * Valores técnicos de atributo y ARIA: `lang`, `role`, `aria-live`, `aria-atomic` y `type`.
+ * `off` es el valor con el que el contador de caracteres se declara presente pero mudo
+ * (RF-F41): sigue siendo texto visible y no interrumpe el anuncio de la región de estado.
+ */
+const ATTRIBUTE_VALUES = ["es", "true", "polite", "off", "status", "submit", "button"];
 
 /** Teclado: nombres de tecla de `KeyboardEvent.key`. */
 const KEYBOARD_KEYS = ["Enter", "Escape"];
@@ -73,6 +77,12 @@ const MEDIA_QUERIES = ["(prefers-reduced-motion: reduce)"];
 
 /** Estados de turno: conjunto cerrado de `chat-reducer`, no redacción. */
 const TURN_STATES = ["idle", "connecting", "generating", "streaming", "error", "aborted"];
+
+/**
+ * Discriminantes de `TurnEnd` (RF-F41) que no son estados de turno: conjunto cerrado de
+ * `useChatStream`, no redacción. `aborted` ya está en `TURN_STATES`.
+ */
+const TURN_END_KINDS = ["completed", "failed"];
 
 /** Roles de mensaje: conjunto cerrado de `chat/types`, indexado en `strings.messages.author`. */
 const MESSAGE_ROLES = ["user", "assistant"];
@@ -93,6 +103,7 @@ const ALLOWED = new Set([
 	...SCROLL_AND_CSSOM_VALUES,
 	...MEDIA_QUERIES,
 	...TURN_STATES,
+	...TURN_END_KINDS,
 	...MESSAGE_ROLES,
 	...TYPE_GUARDS,
 	...ERROR_CODES,
@@ -131,10 +142,13 @@ const MODULE_REFERENCE_TYPES = new Set<NodeType>([
 ]);
 
 /**
- * Valores de la lista blanca que aún no aparecen en los archivos con copy. Solo `user`: el spec
+ * Valores de la lista blanca que aún no aparecen en los archivos con copy. `user`: el spec
  * declara el conjunto de roles completo aunque hoy el código solo compare con `assistant`.
+ * `idle`: sigue siendo un estado real de `chat-reducer`, pero desde RF-F41 ningún componente
+ * lo nombra —la región de estado se deduce de eventos, no del estado— y el conjunto de
+ * estados no se recorta porque el reducer lo sigue usando.
  */
-const NOT_YET_IN_USE = ["user"];
+const NOT_YET_IN_USE = ["user", "idle"];
 
 /** `src/components/Chatbox.tsx`, sin el prefijo que devuelve el glob. */
 function displayPath(path: string): string {

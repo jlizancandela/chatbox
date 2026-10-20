@@ -84,7 +84,7 @@ export function ChatInput({
 				{submitCopy.label}
 			</button>
 			{value.length > maxLength * 0.8 && (
-				<small aria-live="polite">{strings.input.chars(value.length, maxLength)}</small>
+				<small aria-live="off">{strings.input.chars(value.length, maxLength)}</small>
 			)}
 			{contactUrl && <ExternalLink href={contactUrl}>{strings.input.contactLink}</ExternalLink>}
 		</form>

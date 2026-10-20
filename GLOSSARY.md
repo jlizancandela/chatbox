@@ -29,3 +29,19 @@ inventarlo en issues, specs o tests.
   única razón para modelar una entrada de `strings.es.ts` como función.
 - **Lista blanca**: literales permitidos fuera de `strings.es.ts`, declarados de forma
   explícita en el test de inventario para que la lista sea auditable en un vistazo.
+
+## Región de estado y anuncios (RF-F41)
+
+- **Región de estado**: el único elemento del widget que un lector de pantalla trata como
+  zona de anuncio (`role="status"`). Recibe un texto y lo dice una vez. La lista de mensajes
+  no es una región de estado: anunciar cada token hace la respuesta inusable.
+- **Anuncio**: el texto que una región de estado comunica en un momento dado. El widget
+  anuncia una vez por turno —inicio, desenlace y, si procede, la respuesta completa— y
+  nunca anuncia algo que no acabe de producir: restaurar una conversación no es anunciar.
+- **Proyección de anuncio**: versión en texto plano del markdown que se entrega al anuncio.
+  Solo afecta a lo que se oye; el mensaje visible conserva su markdown. No es un parser de
+  markdown: lo que no reconoce, lo deja intacto, y ante la duda no reescribe — oír un
+  asterisco es un detalle; borrar el año de una respuesta es un error.
+- **Turno**: ciclo completo de una pregunta y su respuesta, desde que se envía hasta que
+  termina bien, mal o detenido. Un turno produce exactamente un anuncio de desenlace, y el
+  aviso de "escribiendo" es lo que precede a ese anuncio en la región.
