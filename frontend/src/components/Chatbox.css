@@ -12,6 +12,15 @@
 	--chatbox-color-focus: #005fcc;
 	--chatbox-color-error: #b91c1c;
 
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	height: 100%;
+	min-height: 0;
+	margin: 0;
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	font-size: 1rem;
+	line-height: 1.5;
 	color: var(--chatbox-color-text);
 	background-color: var(--chatbox-color-surface);
 }
@@ -84,9 +93,169 @@
 	text-decoration: underline;
 }
 
+.chatbox *,
+.chatbox *::before,
+.chatbox *::after {
+	box-sizing: border-box;
+}
+
+.chatbox h1,
+.chatbox p,
+.chatbox ol {
+	margin: 0;
+}
+
+.chatbox textarea,
+.chatbox button {
+	font: inherit;
+	color: inherit;
+}
+
+.chatbox button {
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--chatbox-color-border);
+	border-radius: 0.375rem;
+	background-color: var(--chatbox-color-surface);
+	cursor: pointer;
+}
+
+.chatbox button:disabled {
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+.chatbox :focus-visible {
+	outline: 2px solid var(--chatbox-color-focus);
+	outline-offset: 2px;
+}
+
+.chatbox__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	padding: 0.75rem 1rem;
+	border-bottom: 1px solid var(--chatbox-color-border);
+}
+
+.chatbox h1 {
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+
+.chatbox__badge {
+	padding: 0.125rem 0.5rem;
+	border: 1px solid var(--chatbox-color-border);
+	border-radius: 999px;
+	font-size: 0.75rem;
+}
+
+.chatbox__status:empty {
+	display: none;
+}
+
+.chatbox__conversation {
+	position: relative;
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: 0.75rem;
+	min-height: 0;
+	padding: 1rem;
+	overflow-y: auto;
+}
+
+.chatbox__notice {
+	font-size: 0.875rem;
+}
+
+.chatbox__conversation > button {
+	align-self: center;
+}
+
+.chatbox__messages {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	padding: 0;
+	list-style: none;
+}
+
+.chatbox__message {
+	max-width: 85%;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--chatbox-color-border);
+	border-radius: 0.5rem;
+	overflow-wrap: anywhere;
+}
+
+.chatbox__message--user {
+	align-self: flex-end;
+}
+
+.chatbox__message--assistant {
+	align-self: flex-start;
+}
+
+.chatbox__message-author {
+	display: block;
+	margin-bottom: 0.25rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+.chatbox__empty {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin: auto;
+	text-align: center;
+}
+
+.chatbox__empty ol {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 0.5rem;
+	padding: 0;
+	list-style: none;
+}
+
+.chatbox__footer {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	padding: 0.75rem 1rem;
+	border-top: 1px solid var(--chatbox-color-border);
+}
+
+.chatbox textarea {
+	width: 100%;
+	min-height: 2.75rem;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid var(--chatbox-color-border);
+	border-radius: 0.375rem;
+	/* 16px avoids the automatic zoom on iOS Safari when the field is focused. */
+	font-size: 1rem;
+	background-color: var(--chatbox-color-surface);
+	resize: vertical;
+}
+
 .chatbox__footer button[type="submit"] {
+	min-height: 2.75rem;
+	border-color: var(--chatbox-color-primary);
 	background-color: var(--chatbox-color-primary);
 	/* Label ink reuses the surface token: white in light, #1a1a1a in dark.
 	 * A fixed white label would be 2.22:1 on the dark primary (#66b3ff). */
 	color: var(--chatbox-color-surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.chatbox *,
+	.chatbox *::before,
+	.chatbox *::after {
+		transition: none;
+		animation: none;
+		scroll-behavior: auto;
+	}
 }
