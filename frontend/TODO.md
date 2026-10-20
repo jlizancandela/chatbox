@@ -68,7 +68,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F31` — Enlaces en pestaña nueva con `rel="noopener noreferrer"`, color contrastante y subrayado. SafeLink renombrado a ExternalLink; estilos aplicados a todos los enlaces.
 - [x] `RF-F61` — Variables CSS `--chatbox-*` heredadas del sitio + `prefers-color-scheme`; resolución verificada en navegador real con Playwright para T2/T3/T4 y axe-core (issue #62).
 - [x] `RF-F62` — Textos de UI centralizados en `src/strings.es.ts`.
-- [ ] Estilos propios con clase raíz `.chatbox`; sin dependencia de estilos globales.
+- [x] Estilos propios con clase raíz `.chatbox`; sin dependencia de estilos globales (RF-F61/L6; guardia en `test/unit/chatbox-scoped-styles.test.ts` y `test/browser/scoped-styles.spec.ts`).
 
 ## Paso 5 — Accesibilidad
 
