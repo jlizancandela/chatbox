@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import { useState } from "preact/hooks";
+import { useCallback, useRef, useState } from "preact/hooks";
 import { strings } from "../strings.es";
 
 type NewConversationProps = {
@@ -13,6 +13,19 @@ type NewConversationProps = {
  */
 export function NewConversation({ onReset }: NewConversationProps): ComponentChildren {
 	const [confirming, setConfirming] = useState(false);
+	const returnFocusToTrigger = useRef(false);
+
+	// Los botones se desmontan al cambiar de modo. El foco se mueve al montar el botón
+	// destino, no en un efecto: un efecto pendiente podría robar el foco tras un clic rápido.
+	const focusOnMount = useCallback((element: HTMLButtonElement | null) => {
+		element?.focus();
+	}, []);
+	const focusTriggerAfterCancel = useCallback((element: HTMLButtonElement | null) => {
+		if (element && returnFocusToTrigger.current) {
+			returnFocusToTrigger.current = false;
+			element.focus();
+		}
+	}, []);
 
 	const handleClick = (): void => {
 		setConfirming(true);
@@ -24,6 +37,7 @@ export function NewConversation({ onReset }: NewConversationProps): ComponentChi
 	};
 
 	const handleCancel = (): void => {
+		returnFocusToTrigger.current = true;
 		setConfirming(false);
 	};
 
@@ -34,7 +48,7 @@ export function NewConversation({ onReset }: NewConversationProps): ComponentChi
 				<button type="button" onClick={handleConfirm}>
 					{strings.actions.confirm.accept}
 				</button>
-				<button type="button" onClick={handleCancel}>
+				<button type="button" ref={focusOnMount} onClick={handleCancel}>
 					{strings.actions.confirm.cancel}
 				</button>
 			</div>
@@ -42,7 +56,7 @@ export function NewConversation({ onReset }: NewConversationProps): ComponentChi
 	}
 
 	return (
-		<button type="button" onClick={handleClick}>
+		<button type="button" ref={focusTriggerAfterCancel} onClick={handleClick}>
 			{strings.actions.newConversation}
 		</button>
 	);

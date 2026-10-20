@@ -154,12 +154,6 @@ export function Chatbox({
 						)}
 					</p>
 				)}
-				{showScrollToEnd && (
-					<button type="button" onClick={() => scrollToEnd()}>
-						{strings.actions.scrollToEnd}
-					</button>
-				)}
-
 				{showMessages ? (
 					<ChatMessages
 						messages={chat.state.messages}
@@ -170,6 +164,12 @@ export function Chatbox({
 					/>
 				) : (
 					<EmptyState suggestions={suggestions} isBusy={isBusy} onSuggestion={submit} />
+				)}
+
+				{showScrollToEnd && (
+					<button type="button" onClick={() => scrollToEnd()}>
+						{strings.actions.scrollToEnd}
+					</button>
 				)}
 			</main>
 
