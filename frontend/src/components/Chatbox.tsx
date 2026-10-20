@@ -1,9 +1,10 @@
 import "./Chatbox.css";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { ExternalLink } from "../chat/components/ExternalLink";
+import { toAnnouncementText } from "../chat/domain/announcement";
 import { trimHistory } from "../chat/domain/conversation";
 import { useChat } from "../chat/hooks/useChat";
-import { useChatStream } from "../chat/hooks/useChatStream";
+import { type TurnEnd, useChatStream } from "../chat/hooks/useChatStream";
 import { useFocusOnMount } from "../chat/hooks/useFocusOnMount";
 import { loadFromSessionStorage, saveToSessionStorage } from "../chat/infrastructure/storage";
 import { strings } from "../strings.es";
@@ -25,7 +26,30 @@ export type ChatboxProps = {
 const DEFAULT_SUGGESTIONS: string[] = [...strings.emptyState.suggestions];
 const MAX_QUESTION_LENGTH = 1000;
 
-type TurnState = "idle" | "connecting" | "generating" | "streaming" | "error" | "aborted";
+/**
+ * Un turno cerrado sin respuesta es un desenlace, no un silencio: se anuncia **y** se pinta en
+ * la conversación. La regla vive aquí para que región y aviso no se separen en el futuro.
+ */
+const closedWithoutAnswer = (event: TurnEnd): boolean =>
+	event.kind === "completed" && event.text.length === 0;
+
+/**
+ * Traduce el fin de turno al texto de la región de estado (RF-F41). La región no se deduce
+ * del estado: recibir un evento es lo único que puede anunciarse, así que restaurar una
+ * conversación —o cualquier otro camino que no pase por el runner— no dice nada.
+ */
+const announcementFor = (event: TurnEnd): string => {
+	switch (event.kind) {
+		case "completed":
+			return closedWithoutAnswer(event)
+				? strings.notices.noContext
+				: toAnnouncementText(event.text);
+		case "failed":
+			return event.error.message;
+		case "aborted":
+			return strings.messages.stopped;
+	}
+};
 
 export function Chatbox({
 	apiUrl,
@@ -44,13 +68,17 @@ export function Chatbox({
 	const conversationRef = useRef<HTMLElement>(null);
 	const wasNearEnd = useRef(true);
 	const sentContextLength = useRef(0);
-	const previousTurnState = useRef<TurnState>("idle");
-	const announcedMessages = useRef(0);
 
 	const { sendQuestion, abort } = useChatStream({
 		apiUrl,
 		chat,
 		onSources: (historyLength) => setContextWasTrimmed(historyLength < sentContextLength.current),
+		onTurnEnd: (event) => {
+			if (closedWithoutAnswer(event)) {
+				setLocalNotice(strings.notices.noContext);
+			}
+			setAnnouncement(announcementFor(event));
+		},
 	});
 
 	const isBusy = ["connecting", "generating", "streaming"].includes(chat.state.turnState);
@@ -58,24 +86,6 @@ export function Chatbox({
 	useFocusOnMount(textareaRef);
 
 	// Keep each effect responsible for one external concern.
-	useEffect(() => {
-		if (!isBusy && previousTurnState.current !== "idle") {
-			if (
-				chat.state.turnState === "idle" &&
-				chat.state.messages.length === announcedMessages.current
-			) {
-				setLocalNotice(strings.notices.noContext);
-			}
-			if (chat.state.error) setAnnouncement(chat.state.error.message);
-		}
-		if (chat.state.messages.length > announcedMessages.current) {
-			const last = chat.state.messages[chat.state.messages.length - 1];
-			if (last?.role === "assistant") setAnnouncement(last.content);
-			announcedMessages.current = chat.state.messages.length;
-		}
-		previousTurnState.current = chat.state.turnState as TurnState;
-	}, [chat.state.messages, chat.state.turnState, chat.state.error, isBusy]);
-
 	useEffect(() => {
 		if (!isBusy) saveToSessionStorage(chat.state.messages, chat.state.context);
 	}, [chat.state.messages, chat.state.context, isBusy]);
@@ -136,7 +146,7 @@ export function Chatbox({
 			<ChatHeader title={title} notice={strings.header.scopeNotice} />
 
 			<div class="chatbox__status" role="status" aria-live="polite" aria-atomic="true">
-				{announcement || (isBusy ? strings.messages.writing : (chat.state.error?.message ?? ""))}
+				{announcement || (isBusy ? strings.messages.writing : "")}
 			</div>
 
 			<main

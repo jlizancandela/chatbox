@@ -80,17 +80,24 @@ src/
 │   │   ├── AssistantMarkdown.tsx  # Renderer Markdown del asistente
 │   │   └── ExternalLink.tsx          # Enlace externo seguro
 │   ├── domain/
+│   │   ├── announcement.ts # Proyección a texto plano para la región viva
 │   │   └── conversation.ts # Reglas puras de conversación
 │   ├── hooks/
 │   │   ├── useChat.ts      # Estado reactivo local
-│   │   └── useChatStream.ts # Fetch, SSE, abort y timeout
+│   │   ├── useChatStream.ts # Fetch, SSE, abort, timeout y fin de turno
+│   │   └── useFocusOnMount.ts # Foco inicial del textarea
 │   ├── infrastructure/
+│   │   ├── chat-errors.ts  # Códigos de error y su texto
 │   │   ├── sse.ts          # Adaptador de frames SSE y payloads del API
-│   │   └── storage.ts      # Adaptador de sessionStorage
+│   │   ├── storage.ts      # Adaptador de sessionStorage
+│   │   ├── stream-transport.ts # Petición y lectura del stream
+│   │   └── token-buffer.ts # Agrupa tokens por frame de animación
 │   └── types.ts            # Tipos compartidos del contrato frontend/API
 ├── components/             # Punto de entrada del widget (Chatbox.tsx)
-├── hooks/                  # Orquestación de interacción/streaming
+├── dev/                    # Fixtures de verificación manual (solo desarrollo)
+│   └── manual-announcements.tsx # Escenarios `?manual=<escenario>` de RF-F41
 ├── assets/
+├── App.tsx                 # Página por defecto: el widget contra el API real
 ├── index.tsx               # Arranque de la aplicación
 └── style.css               # Estilos globales
 ```
@@ -103,6 +110,11 @@ Ubicar cada archivo nuevo según su responsabilidad:
 - `chat/infrastructure/`: fetch, SSE, storage y adaptadores externos.
 - `chat/hooks/`: ciclo de vida del stream y estado de interacción.
 - `components/`: reservado al punto de entrada del widget (`Chatbox`).
+- `dev/`: fixtures de verificación manual (servidores falsos, escenarios por URL).
+  Solo se cargan en desarrollo y detrás de una condición explícita; la página por
+  defecto y los tests de navegador no deben notar su existencia. No es sitio para
+  copy de interfaz: un fixture que necesita rótulos los toma de `strings.es.ts` o
+  los evita (escenario por URL, como en RF-F41).
 
 Los tests deben vivir fuera de `src/`, bajo `test/`, y organizarse por tipo
 (`unit/`, `component/` y `browser/`). La fuente autoritativa del reparto es
@@ -187,9 +199,10 @@ Límites que deben mantenerse alineados con el API:
 
 ## Flujo de trabajo
 
-Este proyecto no sigue un flujo formal de planning/approval. Los cambios se
-gestionan con sentido común: specs en `.specs/`, decisiones en `../docs/decisions/`,
-y commits limpios antes de PR.
+El flujo issue → plan → aprobación → implementación → verificación → commit → PR
+→ merge está definido en `../AGENTS.md` y en la ADR 001. Aquí solo se añaden las
+restricciones propias del frontend; la aprobación se pide una vez, al presentar el
+plan, no otra vez antes de escribir cada archivo.
 
 Las specs de implementación se guardan en `.specs/` usando el identificador
 del issue y un slug descriptivo. Las decisiones generales de proceso se
@@ -210,19 +223,26 @@ typecheck o el linter, no con revisión a ojo.
 
 ## Verificación mínima
 
-Para cualquier cambio de código:
+Un único comando, el mismo que ejecutan el hook y CI:
 
 ```bash
-npx biome check src test
-npm run typecheck
-npm run build
-npm test -- --run
+npm run verify
 ```
 
+Equivale a `lint` + `typecheck` + `build` + `test -- --run`. Los tests de navegador
+se ejecutan aparte con `npm run test:browser` (necesitan Chromium instalado).
+
 Desde la raíz del monorepo, el hook pre-commit ejecuta `lint-staged`, Biome, el
-typecheck y la suite completa del frontend. Si el hook falla, se arregla la
-causa: no se salta con `--no-verify`. CI (`frontend.yml`) ejecuta los mismos
-pasos en cada PR que toca `frontend/**`. Los cambios de streaming deben incluir pruebas
+typecheck, la suite completa y los tests de navegador del frontend. Si el hook falla, se arregla la
+causa: no se salta con `--no-verify`. CI (`frontend.yml`) ejecuta los mismos pasos en
+cada PR que toca `frontend/**`, más el `build` y los tests de navegador.
+
+No dupliques la lista de comprobaciones en otro sitio: si cambia, cambia `verify` y
+el hook y CI la heredan. Una lista escrita a mano en un documento se queda atrás sin
+avisar — y el `build` es justo el paso que falta cuando un cambio solo rompe en
+producción (`import.meta.env`, imports dinámicos, tree-shaking).
+
+Los cambios de streaming deben incluir pruebas
 para frames partidos, varios frames en un chunk, payloads con `history`,
 abortos, errores mid-stream y cierre sin `done` cuando se implemente el hook
 correspondiente.

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { chatReducer, createInitialChatState } from "../../../../src/chat/application/chat-reducer";
 import type { ChatController as HookChatController } from "../../../../src/chat/hooks/useChat";
-import { createChatStreamRunner } from "../../../../src/chat/hooks/useChatStream";
+import { createChatStreamRunner, type TurnEnd } from "../../../../src/chat/hooks/useChatStream";
 
 const createChat = (): HookChatController => {
 	let state = createInitialChatState();
@@ -49,14 +49,27 @@ const tokenFrame = (token: string): string =>
 
 const doneFrame = "event: done\ndata: {}\n\n";
 
-const createRunner = (chat = createChat(), fetchImpl: typeof fetch = vi.fn()) => ({
-	chat,
-	runner: createChatStreamRunner({
+const createRunner = (chat = createChat(), fetchImpl: typeof fetch = vi.fn()) => {
+	const events: TurnEnd[] = [];
+	const runner = createChatStreamRunner({
 		apiUrl: "http://localhost:7000",
 		chat,
 		fetchImpl,
-	}),
-});
+		onTurnEnd: (event) => events.push(event),
+	});
+
+	return { chat, runner, events };
+};
+
+const hangingFetch = (): typeof fetch =>
+	vi.fn().mockImplementation(
+		(_input: RequestInfo | URL, init?: RequestInit) =>
+			new Promise<Response>((_resolve, reject) => {
+				init?.signal?.addEventListener("abort", () => {
+					reject(new DOMException("Aborted", "AbortError"));
+				});
+			})
+	) as unknown as typeof fetch;
 
 describe("useChatStream runner", () => {
 	it("sends the request and completes a normal streamed turn", async () => {
@@ -205,5 +218,160 @@ describe("useChatStream runner", () => {
 
 		expect(chat.state.error?.code).toBe("INCOMPLETE_STREAM");
 		expect(chat.state.context).toEqual([]);
+	});
+});
+
+// ─── RF-F41: eventos de fin de turno ───────────────────────────────────────────
+
+describe("useChatStream runner — turn end events (RF-F41)", () => {
+	it("emits one completed event carrying the text that was rendered", async () => {
+		const chat = createChat();
+		const { runner, events } = createRunner(
+			chat,
+			vi
+				.fn()
+				.mockResolvedValue(
+					responseFor(sourceFrame(), tokenFrame("Usa"), tokenFrame(" Preact."), doneFrame)
+				)
+		);
+
+		await runner.run("¿Qué usa Jorge?");
+
+		expect(events).toEqual([{ kind: "completed", text: "Usa Preact." }]);
+		// El texto viaja en el evento porque el estado ya no lo conserva tras `done`.
+		expect(chat.state.currentResponse).toBe("");
+	});
+
+	it("emits a completed event with empty text when the assistant answers nothing", async () => {
+		const { runner, events } = createRunner(
+			createChat(),
+			vi.fn().mockResolvedValue(responseFor(sourceFrame(), doneFrame))
+		);
+
+		await runner.run("Pregunta fuera del perfil");
+
+		expect(events).toEqual([{ kind: "completed", text: "" }]);
+	});
+
+	it.each([
+		{
+			scenario: "pregunta vacía",
+			code: "QUESTION_INVALID",
+			fetchImpl: vi.fn(),
+			question: "   ",
+		},
+		{
+			scenario: "pregunta demasiado larga",
+			code: "QUESTION_INVALID",
+			fetchImpl: vi.fn(),
+			question: "x".repeat(1001),
+		},
+		{
+			scenario: "error HTTP",
+			code: "HTTP_SERVER",
+			fetchImpl: vi.fn().mockResolvedValue(new Response(null, { status: 500 })),
+			question: "Pregunta",
+		},
+		{
+			scenario: "respuesta sin cuerpo",
+			code: "NETWORK_ERROR",
+			fetchImpl: vi.fn().mockResolvedValue(new Response(null, { status: 200 })),
+			question: "Pregunta",
+		},
+		{
+			scenario: "evento de error del stream",
+			code: "STREAM_ERROR",
+			fetchImpl: vi
+				.fn()
+				.mockResolvedValue(
+					responseFor(
+						sourceFrame(),
+						tokenFrame("Parcial"),
+						'event: error\ndata: {"message":"internal detail"}\n\n'
+					)
+				),
+			question: "Pregunta",
+		},
+		{
+			scenario: "stream cerrado antes de done",
+			code: "INCOMPLETE_STREAM",
+			fetchImpl: vi.fn().mockResolvedValue(responseFor(sourceFrame(), tokenFrame("Parcial"))),
+			question: "Pregunta",
+		},
+	])(
+		"emits exactly one failed event when the turn fails: $scenario",
+		async ({ code, fetchImpl, question }) => {
+			const { runner, events } = createRunner(createChat(), fetchImpl as unknown as typeof fetch);
+
+			await runner.run(question);
+
+			expect(events).toHaveLength(1);
+			expect(events[0].kind).toBe("failed");
+			expect(events[0].kind === "failed" && events[0].error.code).toBe(code);
+		}
+	);
+
+	it("emits exactly one aborted event when the user stops the turn", async () => {
+		const { runner, events } = createRunner(createChat(), hangingFetch());
+		const request = runner.run("Pregunta");
+
+		runner.abort();
+		await request;
+
+		expect(events).toEqual([{ kind: "aborted" }]);
+	});
+
+	it("emits exactly one aborted event when the request aborts without the button", async () => {
+		// El mismo desenlace por otro camino: si solo se cubriera el botón, esta salida —que no
+		// pasa por `abort()`— quedaría en silencio.
+		const chat = createChat();
+		const { runner, events } = createRunner(
+			chat,
+			vi
+				.fn()
+				.mockRejectedValue(new DOMException("Aborted", "AbortError")) as unknown as typeof fetch
+		);
+
+		await runner.run("Pregunta");
+
+		expect(chat.state.turnState).toBe("aborted");
+		expect(events).toEqual([{ kind: "aborted" }]);
+	});
+
+	it("emits exactly one failed event on timeout", async () => {
+		vi.useFakeTimers();
+		try {
+			const { runner, events } = createRunner(createChat(), hangingFetch());
+			const request = runner.run("Pregunta");
+
+			await vi.advanceTimersByTimeAsync(30_000);
+			await request;
+
+			expect(events).toHaveLength(1);
+			expect(events[0]).toEqual({
+				kind: "failed",
+				error: { code: "TIMEOUT", message: expect.any(String) },
+			});
+		} finally {
+			vi.useRealTimers();
+		}
+	});
+
+	it("does not announce a restored conversation", async () => {
+		const chat = createChat();
+		chat.restore({
+			messages: [{ role: "assistant", content: "Respuesta anterior" }],
+			context: [],
+		});
+		const { runner, events } = createRunner(
+			chat,
+			vi.fn().mockResolvedValue(responseFor(sourceFrame(), doneFrame))
+		);
+
+		expect(events).toEqual([]);
+
+		await runner.run("Pregunta");
+
+		expect(events).toEqual([{ kind: "completed", text: "" }]);
 	});
 });

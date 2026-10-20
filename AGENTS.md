@@ -20,6 +20,9 @@ fundamentadas con Groq.
 - `api/TODO.md` — estado real del MVP (espejo del plan, con checkboxes)
 - `.agents/`, `.claude/`, `.atl/` — skills y tooling de agentes (no tocar app)
 - `frontend/` — el widget (Preact + Vite). Un spec por RF en `frontend/.specs/`; el texto de interfaz se centraliza en `frontend/src/strings.es.ts` (RF-F62, migración en curso).
+  **Antes de tocar `frontend/`, lee `frontend/AGENTS.md`**: tiene la arquitectura de `src/`, el
+  reparto de tests, la verificación mínima y las trampas del toolchain (TypeScript es el port
+  nativo, sin API de parser). No se carga solo, así que este puntero es la única vía.
 
 ## Layout del código (api/src)
 Cargado automáticamente por @fastify/autoload desde `app.ts`:
@@ -48,9 +51,16 @@ GROQ_API_KEY, GROQ_MODEL_DEFAULT, CORS_ORIGIN. Compose: POSTGRES_USER/PASSWORD/D
 Ver `api/TODO.md` para el estado actual del MVP.
 
 ## Regla de trabajo
-- Antes de implementar cambios, presentar un plan concreto con alcance, archivos afectados, riesgos y verificaciones.
-- No modificar archivos ni ejecutar acciones de implementación hasta recibir aprobación explícita del usuario.
-- Tras la aprobación, ejecutar el plan y verificar los cambios con las pruebas o comprobaciones adecuadas.
+
+El flujo (issue → plan → aprobación → implementación → verificación → commit → PR → merge)
+se define una vez en `docs/decisions/001-development-workflow.md`. Aquí solo lo específico
+de este monorepo:
+
+- Presentar un plan con alcance, archivos afectados, riesgos y verificaciones antes de
+  implementar, y no modificar archivos hasta recibir aprobación explícita.
+- Tras la aprobación, ejecutar el plan entero sin volver a pedir permiso archivo a archivo.
+- Verificar con las comprobaciones del proyecto afectado: `api/` usa `pnpm test`; `frontend/`
+  usa `npm run verify` (ver `frontend/AGENTS.md`).
 
 ## Agent skills
 

@@ -35,6 +35,7 @@ export const strings = {
 	messages: {
 		author: { user: "Tú", assistant: "Asistente" },
 		writing: "El asistente está escribiendo",
+		stopped: "Respuesta detenida",
 		listLabel: "Mensajes",
 	},
 	actions: {
