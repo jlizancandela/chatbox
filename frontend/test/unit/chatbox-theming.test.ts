@@ -4,24 +4,34 @@ import css from "../../src/components/Chatbox.css?raw";
 
 const root = postcss.parse(css);
 
+// Stitch Material 3 roles: `on-surface`, `surface-container-lowest`, `primary`,
+// `secondary`, `outline`, `error`, `surface-container`, `surface-container-high`
+// and `primary-container`. The dark set comes from the same export's inverse and
+// fixed roles, because the export ships no dark scheme.
 const LIGHT_TOKENS: Record<string, string> = {
-	"--chatbox-color-text": "#222",
+	"--chatbox-color-text": "#1a1b22",
 	"--chatbox-color-surface": "#ffffff",
-	"--chatbox-color-primary": "#005fcc",
-	"--chatbox-color-link": "#005fcc",
-	"--chatbox-color-border": "#6b7280",
-	"--chatbox-color-focus": "#005fcc",
-	"--chatbox-color-error": "#b91c1c",
+	"--chatbox-color-primary": "#00685f",
+	"--chatbox-color-link": "#006398",
+	"--chatbox-color-border": "#6d7a77",
+	"--chatbox-color-focus": "#006398",
+	"--chatbox-color-error": "#ba1a1a",
+	"--chatbox-color-surface-subtle": "#eeedf7",
+	"--chatbox-color-surface-raised": "#e8e7f1",
+	"--chatbox-color-accent-container": "#008378",
 };
 
 const DARK_TOKENS: Record<string, string> = {
-	"--chatbox-color-text": "#ccc",
-	"--chatbox-color-surface": "#1a1a1a",
-	"--chatbox-color-primary": "#66b3ff",
-	"--chatbox-color-link": "#66b3ff",
-	"--chatbox-color-border": "#6b7280",
-	"--chatbox-color-focus": "#66b3ff",
+	"--chatbox-color-text": "#f1effa",
+	"--chatbox-color-surface": "#2f3038",
+	"--chatbox-color-primary": "#6bd8cb",
+	"--chatbox-color-link": "#93ccff",
+	"--chatbox-color-border": "#bcc9c6",
+	"--chatbox-color-focus": "#93ccff",
 	"--chatbox-color-error": "#fca5a5",
+	"--chatbox-color-surface-subtle": "#3a3b44",
+	"--chatbox-color-surface-raised": "#45464f",
+	"--chatbox-color-accent-container": "#89f5e7",
 };
 
 const declarations = (rule: Rule): Record<string, string> =>
@@ -129,7 +139,7 @@ const PARSED_TOKENS = {
 };
 
 describe("Chatbox.css (RF-F61/T1 — light defaults)", () => {
-	it("declares exactly the 7 light tokens inside .chatbox", () => {
+	it("declares exactly the 10 light tokens inside .chatbox", () => {
 		expect(PARSED_TOKENS.light).toEqual(LIGHT_TOKENS);
 	});
 
@@ -157,7 +167,7 @@ describe("Chatbox.css (RF-F61/T1 — light defaults)", () => {
 describe("Chatbox.css (RF-F61/T4 — system accessibility preferences)", () => {
 	it("uses system-color keywords for forced-colors", () => {
 		const tokens = tokensOf(forcedColorsRule());
-		expect(Object.keys(tokens)).toHaveLength(7);
+		expect(Object.keys(tokens)).toHaveLength(10);
 		expect(Object.values(tokens).every((value) => FORCED_COLOR_KEYWORDS.includes(value))).toBe(
 			true
 		);
@@ -167,7 +177,7 @@ describe("Chatbox.css (RF-F61/T4 — system accessibility preferences)", () => {
 	});
 
 	it("overrides all 7 tokens for prefers-contrast: more", () => {
-		expect(Object.keys(tokensOf(prefersContrastRule()))).toHaveLength(7);
+		expect(Object.keys(tokensOf(prefersContrastRule()))).toHaveLength(10);
 		expect(offsetOf(prefersContrastRule())).toBeGreaterThan(offsetOf(baseRule()));
 	});
 
@@ -194,9 +204,9 @@ describe("Chatbox.css (RF-F61/T2 — prefers-color-scheme: dark)", () => {
 		expect(darkRule().selector).toBe(".chatbox");
 	});
 
-	it("declares exactly the 7 dark tokens, with no extra declarations", () => {
+	it("declares exactly the 10 dark tokens, with no extra declarations", () => {
 		expect(PARSED_TOKENS.dark).toEqual(DARK_TOKENS);
-		expect(declarationNodes(darkRule())).toHaveLength(7);
+		expect(declarationNodes(darkRule())).toHaveLength(10);
 	});
 
 	it("does not paint inside the dark block (tokens only)", () => {
@@ -223,6 +233,20 @@ for (const [theme, tokens] of Object.entries(PARSED_TOKENS)) {
 		it("submit label meets 4.5:1 against primary", () => {
 			expect(
 				contrast(tokens["--chatbox-color-surface"], tokens["--chatbox-color-primary"])
+			).toBeGreaterThanOrEqual(4.5);
+		});
+
+		// The tonal surfaces are backgrounds, not text: each is checked against the
+		// ink that sits on it instead of against the shell surface.
+		it("body text meets 7:1 against the tonal surface", () => {
+			expect(
+				contrast(tokens["--chatbox-color-text"], tokens["--chatbox-color-surface-subtle"])
+			).toBeGreaterThanOrEqual(7);
+		});
+
+		it("badge ink meets 4.5:1 against the accent container", () => {
+			expect(
+				contrast(tokens["--chatbox-color-surface"], tokens["--chatbox-color-accent-container"])
 			).toBeGreaterThanOrEqual(4.5);
 		});
 	});

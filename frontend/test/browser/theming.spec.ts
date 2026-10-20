@@ -20,24 +20,24 @@ test.describe("RF-F61 browser theming resolution", () => {
 		await page.emulateMedia({ colorScheme: "light" });
 		await openChatbox(page);
 		await expect.poll(() => surface(page)).toBe("rgb(255, 255, 255)");
-		await expect.poll(() => text(page)).toBe("rgb(34, 34, 34)");
+		await expect.poll(() => text(page)).toBe("rgb(26, 27, 34)");
 
 		await page.emulateMedia({ colorScheme: "dark" });
-		await expect.poll(() => surface(page)).toBe("rgb(26, 26, 26)");
-		await expect.poll(() => text(page)).toBe("rgb(204, 204, 204)");
+		await expect.poll(() => surface(page)).toBe("rgb(47, 48, 56)");
+		await expect.poll(() => text(page)).toBe("rgb(241, 239, 250)");
 	});
 
 	test("T3 explicit host theme overrides the system theme", async ({ page }) => {
 		await page.emulateMedia({ colorScheme: "dark" });
 		await openChatbox(page, "light");
 		await expect.poll(() => surface(page)).toBe("rgb(255, 255, 255)");
-		await expect.poll(() => text(page)).toBe("rgb(34, 34, 34)");
+		await expect.poll(() => text(page)).toBe("rgb(26, 27, 34)");
 
 		await page.evaluate(() => {
 			document.documentElement.dataset.theme = "dark";
 		});
-		await expect.poll(() => surface(page)).toBe("rgb(26, 26, 26)");
-		await expect.poll(() => text(page)).toBe("rgb(204, 204, 204)");
+		await expect.poll(() => surface(page)).toBe("rgb(47, 48, 56)");
+		await expect.poll(() => text(page)).toBe("rgb(241, 239, 250)");
 	});
 
 	test("T4 resolves forced colors and increased contrast", async ({ page }) => {

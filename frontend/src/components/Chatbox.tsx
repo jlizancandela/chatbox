@@ -104,9 +104,20 @@ export function Chatbox({
 		const element = conversationRef.current;
 		if (!element) return;
 		const distanceFromEnd = element.scrollHeight - element.scrollTop - element.clientHeight;
-		wasNearEnd.current = distanceFromEnd < 80;
+		// El umbral tiene que caber en el contenedor: si la conversación es más baja
+		// que él, ninguna posición estaba lejos del final y el botón no podía
+		// aparecer nunca (widget corto, viewport pequeño o teclado abierto en móvil).
+		const threshold = Math.min(80, Math.max(16, element.clientHeight / 2));
+		wasNearEnd.current = distanceFromEnd < threshold;
 		setShowScrollToEnd(!wasNearEnd.current);
 	};
+
+	// El contenido crece con cada token y crecer no dispara ningún evento `scroll`:
+	// sin esta comprobación, quien se aleja durante la respuesta se queda sin el
+	// botón «Ir al final» aunque la conversación ya sea larguísima.
+	useEffect(() => {
+		handleConversationScroll();
+	}, [chat.state.messages, chat.state.currentResponse, localNotice]);
 
 	const scrollToEnd = (behavior: ScrollBehavior = "smooth"): void => {
 		wasNearEnd.current = true;

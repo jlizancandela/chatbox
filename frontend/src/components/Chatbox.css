@@ -1,16 +1,26 @@
-/* Chatbox widget styles — RF-F61.
- * Self-contained theme: the 7 tokens live on `.chatbox` and the widget consumes
+/* Chatbox widget styles — RF-F61 + Stitch (`docs/stitch-frontend-design`).
+ * Self-contained theme: the tokens live on `.chatbox` and the widget consumes
  * them. Layer precedence, lowest to highest:
  *   defaults < @media (prefers-color-scheme: dark) < [data-theme] (T3) < forced-colors (T4).
+ *
+ * Palette authority: the Material 3 roles shipped in the Stitch export
+ * (`surface-container-lowest`, `on-surface`, `primary`, `secondary`, `outline`,
+ * `error`). The export has no dark scheme, so the dark layer is derived from the
+ * same palette's inverse and fixed roles (`inverse-surface`, `inverse-on-surface`,
+ * `inverse-primary`, `secondary-fixed-dim`, `primary-fixed`).
  */
 .chatbox {
-	--chatbox-color-text: #222;
+	--chatbox-color-text: #1a1b22;
 	--chatbox-color-surface: #ffffff;
-	--chatbox-color-primary: #005fcc;
-	--chatbox-color-link: #005fcc;
-	--chatbox-color-border: #6b7280;
-	--chatbox-color-focus: #005fcc;
-	--chatbox-color-error: #b91c1c;
+	--chatbox-color-primary: #00685f;
+	--chatbox-color-link: #006398;
+	--chatbox-color-border: #6d7a77;
+	--chatbox-color-focus: #006398;
+	--chatbox-color-error: #ba1a1a;
+	/* Tonal surfaces: the assistant turn and the chips separate by tone, not by border. */
+	--chatbox-color-surface-subtle: #eeedf7;
+	--chatbox-color-surface-raised: #e8e7f1;
+	--chatbox-color-accent-container: #008378;
 
 	display: flex;
 	flex-direction: column;
@@ -19,8 +29,11 @@
 	min-height: 0;
 	margin: 0;
 	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-	font-size: 1rem;
-	line-height: 1.5;
+	/* Stitch body-md. Inter itself is not embedded: the widget must not pull a
+	 * webfont from a host page it does not control. */
+	font-size: 0.875rem;
+	line-height: 20px;
+	letter-spacing: -0.006em;
 	color: var(--chatbox-color-text);
 	background-color: var(--chatbox-color-surface);
 }
@@ -31,47 +44,66 @@
  */
 @media (prefers-color-scheme: dark) {
 	.chatbox {
-		--chatbox-color-text: #ccc;
-		--chatbox-color-surface: #1a1a1a;
-		--chatbox-color-primary: #66b3ff;
-		--chatbox-color-link: #66b3ff;
-		--chatbox-color-border: #6b7280;
-		--chatbox-color-focus: #66b3ff;
+		--chatbox-color-text: #f1effa;
+		--chatbox-color-surface: #2f3038;
+		--chatbox-color-primary: #6bd8cb;
+		--chatbox-color-link: #93ccff;
+		--chatbox-color-border: #bcc9c6;
+		--chatbox-color-focus: #93ccff;
 		--chatbox-color-error: #fca5a5;
+		--chatbox-color-surface-subtle: #3a3b44;
+		--chatbox-color-surface-raised: #45464f;
+		--chatbox-color-accent-container: #89f5e7;
 	}
 }
 
 /* Explicit host themes override the system preference. */
 [data-theme="dark"] .chatbox {
-	--chatbox-color-text: #ccc;
-	--chatbox-color-surface: #1a1a1a;
-	--chatbox-color-primary: #66b3ff;
-	--chatbox-color-link: #66b3ff;
-	--chatbox-color-border: #6b7280;
-	--chatbox-color-focus: #66b3ff;
+	--chatbox-color-text: #f1effa;
+	--chatbox-color-surface: #2f3038;
+	--chatbox-color-primary: #6bd8cb;
+	--chatbox-color-link: #93ccff;
+	--chatbox-color-border: #bcc9c6;
+	--chatbox-color-focus: #93ccff;
 	--chatbox-color-error: #fca5a5;
+	--chatbox-color-surface-subtle: #3a3b44;
+	--chatbox-color-surface-raised: #45464f;
+	--chatbox-color-accent-container: #89f5e7;
 }
 
 [data-theme="light"] .chatbox {
-	--chatbox-color-text: #222;
+	--chatbox-color-text: #1a1b22;
 	--chatbox-color-surface: #ffffff;
-	--chatbox-color-primary: #005fcc;
-	--chatbox-color-link: #005fcc;
-	--chatbox-color-border: #6b7280;
-	--chatbox-color-focus: #005fcc;
-	--chatbox-color-error: #b91c1c;
+	--chatbox-color-primary: #00685f;
+	--chatbox-color-link: #006398;
+	--chatbox-color-border: #6d7a77;
+	--chatbox-color-focus: #006398;
+	--chatbox-color-error: #ba1a1a;
+	--chatbox-color-surface-subtle: #eeedf7;
+	--chatbox-color-surface-raised: #e8e7f1;
+	--chatbox-color-accent-container: #008378;
 }
 
-/* Increased contrast is below forced colors so system colors always win. */
+/* Increased contrast is below forced colors so system colors always win.
+ * The turns separate by tone in the default layers; here the tone is gone, so
+ * the separation moves to an explicit border.
+ */
 @media (prefers-contrast: more) {
 	.chatbox {
 		--chatbox-color-text: #000000;
 		--chatbox-color-surface: #ffffff;
-		--chatbox-color-primary: #003d8f;
-		--chatbox-color-link: #003d8f;
+		--chatbox-color-primary: #004b45;
+		--chatbox-color-link: #00476e;
 		--chatbox-color-border: #111827;
-		--chatbox-color-focus: #003d8f;
+		--chatbox-color-focus: #00476e;
 		--chatbox-color-error: #7f1d1d;
+		--chatbox-color-surface-subtle: #ffffff;
+		--chatbox-color-surface-raised: #ffffff;
+		--chatbox-color-accent-container: #004b45;
+	}
+
+	.chatbox__message {
+		border: 1px solid var(--chatbox-color-text);
 	}
 }
 
@@ -85,6 +117,13 @@
 		--chatbox-color-border: GrayText;
 		--chatbox-color-focus: Highlight;
 		--chatbox-color-error: ButtonText;
+		--chatbox-color-surface-subtle: Canvas;
+		--chatbox-color-surface-raised: ButtonFace;
+		--chatbox-color-accent-container: ButtonFace;
+	}
+
+	.chatbox__message {
+		border: 1px solid CanvasText;
 	}
 }
 
@@ -112,11 +151,15 @@
 }
 
 .chatbox button {
+	/* Stitch touch target: 44px min on every actionable control. */
+	min-height: 2.75rem;
 	padding: 0.5rem 0.75rem;
 	border: 1px solid var(--chatbox-color-border);
-	border-radius: 0.375rem;
+	border-radius: 0.75rem;
 	background-color: var(--chatbox-color-surface);
 	cursor: pointer;
+	/* Stitch label-md */
+	font-size: 0.8125rem;
 }
 
 .chatbox button:disabled {
@@ -131,6 +174,7 @@
 
 .chatbox__header {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	justify-content: space-between;
 	gap: 0.5rem;
@@ -138,16 +182,30 @@
 	border-bottom: 1px solid var(--chatbox-color-border);
 }
 
+/* Disclaimer bar: a tinted strip, the Stitch treatment for the scope notice. */
+.chatbox__header p {
+	flex: 1 1 100%;
+	padding: 0.25rem 0.5rem;
+	border-radius: 0.5rem;
+	background-color: var(--chatbox-color-surface-subtle);
+	font-size: 0.75rem;
+}
+
 .chatbox h1 {
+	/* Stitch headline-sm */
 	font-size: 1.125rem;
 	font-weight: 600;
+	line-height: 24px;
+	letter-spacing: -0.015em;
 }
 
 .chatbox__badge {
 	padding: 0.125rem 0.5rem;
-	border: 1px solid var(--chatbox-color-border);
-	border-radius: 999px;
+	border-radius: 9999px;
+	background-color: var(--chatbox-color-accent-container);
+	color: var(--chatbox-color-surface);
 	font-size: 0.75rem;
+	font-weight: 600;
 }
 
 .chatbox__status:empty {
@@ -166,11 +224,12 @@
 }
 
 .chatbox__notice {
-	font-size: 0.875rem;
+	font-size: 0.75rem;
 }
 
 .chatbox__conversation > button {
 	align-self: center;
+	border-radius: 9999px;
 }
 
 .chatbox__messages {
@@ -184,17 +243,24 @@
 .chatbox__message {
 	max-width: 85%;
 	padding: 0.5rem 0.75rem;
-	border: 1px solid var(--chatbox-color-border);
-	border-radius: 0.5rem;
+	border-radius: 1rem;
+	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 	overflow-wrap: anywhere;
+}
+
+/* The turn origin is marked by squaring one corner: assistant top-left,
+ * user top-right, as in the Stitch export. */
+.chatbox__message--assistant {
+	align-self: flex-start;
+	background-color: var(--chatbox-color-surface-subtle);
+	border-top-left-radius: 0.25rem;
 }
 
 .chatbox__message--user {
 	align-self: flex-end;
-}
-
-.chatbox__message--assistant {
-	align-self: flex-start;
+	background-color: var(--chatbox-color-primary);
+	border-top-right-radius: 0.25rem;
+	color: var(--chatbox-color-surface);
 }
 
 .chatbox__message-author {
@@ -202,6 +268,16 @@
 	margin-bottom: 0.25rem;
 	font-size: 0.75rem;
 	font-weight: 600;
+}
+
+/* Full-strength ink instead of `opacity`: blending the label down to 0.75 dropped
+ * it to 4.48:1 on the user turn, under the 4.5:1 that axe enforces. */
+.chatbox__message--assistant .chatbox__message-author {
+	color: var(--chatbox-color-text);
+}
+
+.chatbox__message--user .chatbox__message-author {
+	color: var(--chatbox-color-surface);
 }
 
 .chatbox__empty {
@@ -212,13 +288,32 @@
 	text-align: center;
 }
 
-.chatbox__empty ol {
+/* The empty state mounts `nav > ul > li` (see `EmptyState.tsx`), not an ordered list. */
+.chatbox__empty ul {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
 	gap: 0.5rem;
+	margin: 0;
 	padding: 0;
 	list-style: none;
+}
+
+.chatbox__empty li {
+	margin: 0;
+	padding: 0;
+}
+
+/* Prompt chips: full pill, hairline border, teal tint on hover without any
+ * layout shift. */
+.chatbox__empty ul button {
+	border-radius: 9999px;
+	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.chatbox__empty ul button:hover:not(:disabled) {
+	border-color: var(--chatbox-color-primary);
+	background-color: var(--chatbox-color-surface-raised);
 }
 
 .chatbox__footer {
@@ -229,25 +324,60 @@
 	border-top: 1px solid var(--chatbox-color-border);
 }
 
+.chatbox__footer form {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 0.5rem;
+}
+
+/* Stitch label-md for the visible field label. */
+.chatbox__footer label {
+	flex: 1 1 100%;
+	font-size: 0.8125rem;
+	font-weight: 500;
+}
+
 .chatbox textarea {
-	width: 100%;
+	flex: 1 1 12rem;
 	min-height: 2.75rem;
 	padding: 0.5rem 0.75rem;
 	border: 1px solid var(--chatbox-color-border);
-	border-radius: 0.375rem;
+	border-radius: 0.75rem;
 	/* 16px avoids the automatic zoom on iOS Safari when the field is focused. */
 	font-size: 1rem;
 	background-color: var(--chatbox-color-surface);
 	resize: vertical;
 }
 
+.chatbox__footer small {
+	flex: 1 1 100%;
+	font-size: 0.75rem;
+}
+
 .chatbox__footer button[type="submit"] {
-	min-height: 2.75rem;
+	flex: 0 0 auto;
+	align-self: flex-end;
 	border-color: var(--chatbox-color-primary);
+	border-radius: 9999px;
 	background-color: var(--chatbox-color-primary);
-	/* Label ink reuses the surface token: white in light, #1a1a1a in dark.
-	 * A fixed white label would be 2.22:1 on the dark primary (#66b3ff). */
+	/* Label ink reuses the surface token: white in light, #2f3038 in dark.
+	 * A fixed white label would be 2.22:1 on the dark primary (#6bd8cb). */
 	color: var(--chatbox-color-surface);
+}
+
+/* Secondary action, kept as a compact pill instead of a full-width bar. */
+.chatbox__footer > button {
+	align-self: flex-start;
+	border-radius: 9999px;
+}
+
+/* Fila de confirmación de «Nueva conversación»: la pregunta y los dos botones van en línea. */
+.chatbox__conversation-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
