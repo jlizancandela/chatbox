@@ -67,6 +67,8 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F30` — `react-markdown` con `allowedElements` (`p`, `strong`, `em`, `code`, `a`, `ul`, `ol`, `li`), sin `rehype-raw`, `urlTransform` solo `http(s):` y `mailto:`. Carga diferida con `import()`.
 - [x] `RF-F31` — Enlaces en pestaña nueva con `rel="noopener noreferrer"`, color contrastante y subrayado. SafeLink renombrado a ExternalLink; estilos aplicados a todos los enlaces.
 - [x] `RF-F61` — Variables CSS `--chatbox-*` heredadas del sitio + `prefers-color-scheme`; resolución verificada en navegador real con Playwright para T2/T3/T4 y axe-core (issue #62).
+- [x] Paleta y formas del widget adaptadas al export de Stitch (`docs/stitch-frontend-design`): roles Material 3 (`primary #00685f`, `on-surface #1a1b22`, `surface-container #eeedf7`, `outline #6d7a77`); la capa oscura se deriva de los roles inversos/fixed del mismo export, que no trae esquema dark. Tres tokens tonales añadidos (`surface-subtle`, `surface-raised`, `accent-container`) más superficies sin borde con separación tonal, radios 16/12/píldora y objetivos táctiles de 44 px. El borde de `outline-variant` no se usa: no llegaba a 3:1 contra la superficie.
+- [x] Selectores de `Chatbox.css` sincronizados con el markup: el estado vacío monta `nav > ul > li` (no `ol`) y `.chatbox__conversation-actions` ya tiene fila propia. Guardia de regresión en `test/browser/widget-appearance.spec.ts`.
 - [x] `RF-F62` — Textos de UI centralizados en `src/strings.es.ts`.
 - [x] Estilos propios con clase raíz `.chatbox`; sin dependencia de estilos globales (RF-F61/L6; guardia en `test/unit/chatbox-scoped-styles.test.ts` y `test/browser/scoped-styles.spec.ts`).
 
@@ -75,7 +77,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F40` — Navegación completa por teclado, foco visible, foco vuelve al textarea tras enviar. Enter no cancela una respuesta en curso; foco gestionado en la confirmación de "Nueva conversación" (#86, #87, #88, #89).
 - [x] `RF-F41` — Región `role="status"` / `aria-live="polite"` para anuncios; lista de mensajes no es región viva.
 - [ ] `RF-F42` — Contraste mínimo 4.5:1 / 3:1 en tema claro y oscuro.
-- [ ] `RF-F43` — Controles táctiles ≥ 44×44 px.
+- [ ] `RF-F43` — Controles táctiles ≥ 44×44 px (altura cubierta en el widget con la adaptación de Stitch; falta medir el área completa de los botones de icono cuando existan).
 - [ ] `RF-F44` — `prefers-reduced-motion`: sin animación del indicador ni scroll suave.
 - [ ] `RF-F45` — Label en textarea, `aria-label` en botones solo-icono, `lang="es"` en componente.
 - [ ] Pasada automática con axe + prueba manual con NVDA y VoiceOver (`RF-F41`).
