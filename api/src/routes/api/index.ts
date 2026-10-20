@@ -67,7 +67,13 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 
 		const controller = new AbortController();
 
-		request.raw.on("close", () => {
+		// El cierre se observa en la RESPUESTA, no en la petición. El `close` de un
+		// IncomingMessage se dispara en cuanto Node da por leído el body del POST —con el
+		// cliente todavía conectado leyendo el stream—, así que vigilarlo aquí abortaba
+		// toda generación nada más empezar y el stream moría tras `sources` (#93).
+		// `reply.raw` solo se cierra antes de tiempo cuando el cliente se va de verdad, que
+		// es el único caso en el que conviene dejar de generar.
+		reply.raw.on("close", () => {
 			if (!reply.raw.writableEnded) {
 				controller.abort();
 			}
