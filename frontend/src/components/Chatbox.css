@@ -185,8 +185,11 @@
 }
 
 .chatbox button {
-	/* Stitch touch target: 44px min on every actionable control. */
-	min-height: 2.75rem;
+	/* Stitch touch target: 44px min on every actionable control (RF-F43). En px absolutos y
+	 * no en rem a propósito: `rem` se resuelve contra la raíz del sitio host, y con una raíz
+	 * de 14 px `2.75rem` dejaría el control en 38,5 px. El suelo es una garantía del widget. */
+	min-height: 44px;
+	min-width: 44px;
 	padding: 0.5rem 0.75rem;
 	border: 1px solid var(--chatbox-color-border);
 	border-radius: 0.75rem;

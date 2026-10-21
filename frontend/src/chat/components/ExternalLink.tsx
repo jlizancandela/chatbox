@@ -9,7 +9,12 @@ export function ExternalLink({ children, href, ...props }: ExternalLinkProps) {
 	const anchorProps = { href, ...props } as ComponentProps<"a">;
 
 	return (
-		<a {...anchorProps} target="_blank" rel="noopener noreferrer">
+		<a
+			{...anchorProps}
+			target="_blank"
+			rel="noopener noreferrer"
+			data-chatbox-control="inline-link"
+		>
 			{children}
 		</a>
 	);

@@ -70,6 +70,7 @@ export function ChatInput({
 			<label for="chatbox-question">{strings.input.label}</label>
 			<textarea
 				id="chatbox-question"
+				data-chatbox-control="question-field"
 				ref={textareaRef}
 				value={value}
 				maxLength={maxLength}
@@ -80,7 +81,12 @@ export function ChatInput({
 				placeholder={strings.input.placeholder}
 				rows={1}
 			/>
-			<button type="submit" disabled={!isBusy && !canSubmit} aria-label={submitCopy.ariaLabel}>
+			<button
+				type="submit"
+				data-chatbox-control="send"
+				disabled={!isBusy && !canSubmit}
+				aria-label={submitCopy.ariaLabel}
+			>
 				{submitCopy.label}
 			</button>
 			{value.length > maxLength * 0.8 && (

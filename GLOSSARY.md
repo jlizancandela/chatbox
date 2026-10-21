@@ -1,7 +1,7 @@
 # Glosario
 
 Vocabulario compartido del repositorio. Definido en RF-F61 (tema), RF-F62 (textos de
-UI), RF-F41 (región de estado) y RF-F42 (contraste); cuando un término falte, se declara
+UI), RF-F41 (región de estado), RF-F42 (contraste) y RF-F43 (objetivos táctiles); cuando un término falte, se declara
 aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests.
 
 ## Tema del widget (RF-F61)
@@ -63,3 +63,22 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
 - **Contrato de contraste**: tabla de combinaciones de tinta y fondo con su piso, más la guarda
   que impide que un color entre al widget sin fila. Se verifica en dos niveles: mecanismo
   (unidad) y resolución (navegador).
+
+## Objetivos táctiles del widget (RF-F43)
+
+- **Objetivo táctil**: área mínima que un control de activación del widget ofrece a un dedo:
+  44×44 px CSS. Es un suelo, no un objetivo de diseño: un control puede medir más.
+- **Control táctil**: elemento del widget que se activa con un puntero y cuyo tamaño el widget
+  controla. En el widget son los botones: enviar y detener, nueva conversación, la confirmación
+  en línea, las sugerencias y «Ir al final». No lo son los enlaces en línea —que tienen la
+  excepción *inline* de WCAG 2.5.8— ni el campo de texto, que es un campo y no un control de
+  activación.
+- **Caja del control**: rectángulo que el control ocupa en el layout (su *border-box*). En el
+  widget la caja del control **es** el área que recibe el puntero: no hay áreas de golpeo
+  invisibles que amplíen un botón por debajo de lo que se ve.
+- **Exención de control inactivo**: un control deshabilitado no tiene objetivo táctil. WCAG
+  exime a los componentes inactivos, y el widget baja la opacidad de los deshabilitados: medirlos
+  como si estuvieran activos certificaría algo que nadie puede tocar.
+- **Contrato de objetivos táctiles**: inventario de controles, suelo de 44 px y guarda que hace
+  que un control nuevo sin inventariar rompa la compilación. Se verifica en dos niveles
+  —mecanismo en jsdom y resolución en Chromium— y no tiene nivel manual.

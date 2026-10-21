@@ -45,10 +45,15 @@ export function NewConversation({ onReset }: NewConversationProps): ComponentChi
 		return (
 			<div class="chatbox__conversation-actions">
 				<span>{strings.actions.confirm.question}</span>
-				<button type="button" onClick={handleConfirm}>
+				<button type="button" data-chatbox-control="confirm-accept" onClick={handleConfirm}>
 					{strings.actions.confirm.accept}
 				</button>
-				<button type="button" ref={focusOnMount} onClick={handleCancel}>
+				<button
+					type="button"
+					data-chatbox-control="confirm-cancel"
+					ref={focusOnMount}
+					onClick={handleCancel}
+				>
 					{strings.actions.confirm.cancel}
 				</button>
 			</div>
@@ -56,7 +61,12 @@ export function NewConversation({ onReset }: NewConversationProps): ComponentChi
 	}
 
 	return (
-		<button type="button" ref={focusTriggerAfterCancel} onClick={handleClick}>
+		<button
+			type="button"
+			data-chatbox-control="new-conversation"
+			ref={focusTriggerAfterCancel}
+			onClick={handleClick}
+		>
 			{strings.actions.newConversation}
 		</button>
 	);
