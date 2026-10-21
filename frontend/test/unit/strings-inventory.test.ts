@@ -2,6 +2,7 @@ import { parse } from "@babel/parser";
 import type { Node } from "@babel/types";
 import { describe, expect, it } from "vitest";
 import { strings } from "../../src/strings.es";
+import { KNOWN_IDS } from "../touch-targets";
 
 /**
  * Test de inventario de RF-F62 (§Enforcement): ninguna redacción de interfaz vive fuera de
@@ -85,6 +86,12 @@ const TURN_STATES = ["idle", "connecting", "generating", "streaming", "error", "
  */
 const TURN_END_KINDS = ["completed", "failed"];
 
+/**
+ * Identidades de control del contrato de objetivos táctiles (RF-F43): los valores de
+ * `data-chatbox-control`. No se repiten aquí: vienen del inventario, que es su fuente única.
+ */
+const CONTROL_IDENTITIES = KNOWN_IDS;
+
 /** Roles de mensaje: conjunto cerrado de `chat/types`, indexado en `strings.messages.author`. */
 const MESSAGE_ROLES = ["user", "assistant"];
 
@@ -103,6 +110,7 @@ const ALLOWED = new Set([
 	...KEYBOARD_KEYS,
 	...SCROLL_AND_CSSOM_VALUES,
 	...MEDIA_QUERIES,
+	...CONTROL_IDENTITIES,
 	...TURN_STATES,
 	...TURN_END_KINDS,
 	...MESSAGE_ROLES,
@@ -155,6 +163,8 @@ const MODULE_REFERENCE_TYPES = new Set<NodeType>([
 const JUSTIFIED_WITHOUT_COPY: Record<string, string> = {
 	user: "rol declarado en `chat/types.ts` y en `strings.messages.author`; el código solo compara con `assistant`",
 	idle: "estado declarado en `chat-reducer`; desde RF-F41 ningún componente lo nombra porque la región se deduce de eventos",
+	"inline-link":
+		"identidad de control declarada en `chat/components/ExternalLink.tsx` (RF-F43); ese componente vive fuera de `src/components/`, que es el alcance de este escáner",
 };
 
 /** `src/components/Chatbox.tsx`, sin el prefijo que devuelve el glob. */

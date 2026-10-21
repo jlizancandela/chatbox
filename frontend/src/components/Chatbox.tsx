@@ -203,7 +203,7 @@ export function Chatbox({
 				)}
 
 				{showScrollToEnd && (
-					<button type="button" onClick={() => scrollToEnd()}>
+					<button type="button" data-chatbox-control="scroll-to-end" onClick={() => scrollToEnd()}>
 						{strings.actions.scrollToEnd}
 					</button>
 				)}

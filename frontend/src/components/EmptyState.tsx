@@ -19,7 +19,12 @@ export function EmptyState({
 				<ul>
 					{suggestions.map((suggestion) => (
 						<li key={suggestion}>
-							<button type="button" onClick={() => onSuggestion(suggestion)} disabled={isBusy}>
+							<button
+								type="button"
+								data-chatbox-control="suggestion"
+								onClick={() => onSuggestion(suggestion)}
+								disabled={isBusy}
+							>
 								{suggestion}
 							</button>
 						</li>
