@@ -1,8 +1,8 @@
 # Glosario
 
-Vocabulario compartido del repositorio. Definido en RF-F61 (tema) y RF-F62 (textos de
-UI); cuando un término falte, se declara aquí como decisión de modelado en lugar de
-inventarlo en issues, specs o tests.
+Vocabulario compartido del repositorio. Definido en RF-F61 (tema), RF-F62 (textos de
+UI), RF-F41 (región de estado) y RF-F42 (contraste); cuando un término falte, se declara
+aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests.
 
 ## Tema del widget (RF-F61)
 
@@ -45,3 +45,21 @@ inventarlo en issues, specs o tests.
 - **Turno**: ciclo completo de una pregunta y su respuesta, desde que se envía hasta que
   termina bien, mal o detenido. Un turno produce exactamente un anuncio de desenlace, y el
   aviso de "escribiendo" es lo que precede a ese anuncio en la región.
+
+## Contraste del widget (RF-F42)
+
+- **Piso de contraste**: el mínimo que debe alcanzar cada combinación de tinta y fondo del
+  widget: 4.5:1 para el texto y 3:1 para los componentes visuales y el anillo de foco. Es un
+  límite, no un valor objetivo: por debajo, la combinación no está permitida.
+- **Componente visual**: elemento del widget con borde visible o con anillo de foco. Es la
+  categoría que protege el piso de 3:1. Un control deshabilitado no es componente visual:
+  WCAG exime a los componentes inactivos.
+- **Anillo de foco**: indicador de foco del widget. Se mide contra las superficies del propio
+  widget, nunca contra el fondo del sitio host, porque el widget no controla ese fondo. Como
+  se dibuja desplazado, cae sobre el fondo del contenedor y no sobre el del control.
+- **Token por defecto**: valor de un token de color con la paleta por defecto del widget. La
+  garantía de contraste se refiere a estos valores: un sitio host que los sobrescriba es
+  responsable de su contraste.
+- **Contrato de contraste**: tabla de combinaciones de tinta y fondo con su piso, más la guarda
+  que impide que un color entre al widget sin fila. Se verifica en dos niveles: mecanismo
+  (unidad) y resolución (navegador).
