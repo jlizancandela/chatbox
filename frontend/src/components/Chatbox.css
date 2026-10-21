@@ -1,7 +1,12 @@
-/* Chatbox widget styles — RF-F61 + Stitch (`docs/stitch-frontend-design`).
+/* Chatbox widget styles — RF-F61 + RF-F42 + Stitch (`docs/stitch-frontend-design`).
  * Self-contained theme: the tokens live on `.chatbox` and the widget consumes
  * them. Layer precedence, lowest to highest:
- *   defaults < @media (prefers-color-scheme: dark) < [data-theme] (T3) < forced-colors (T4).
+ *   defaults < @media (prefers-color-scheme: dark) < [data-theme] (T3)
+ *   < @media (prefers-contrast: more) < @media (forced-colors: active) (T4).
+ *
+ * The accessibility layers come last on purpose: a preference of the person using
+ * the site must not be silenced by the site that embeds the widget. That is why
+ * they repeat the host theme selectors — same specificity, later in the source.
  *
  * Palette authority: the Material 3 roles shipped in the Stitch export
  * (`surface-container-lowest`, `on-surface`, `primary`, `secondary`, `outline`,
@@ -84,11 +89,12 @@
 	--chatbox-color-accent-container: #008378;
 }
 
-/* Increased contrast is below forced colors so system colors always win.
- * The turns separate by tone in the default layers; here the tone is gone, so
- * the separation moves to an explicit border.
+/* Increased contrast. It only substitutes the palette when the effective scheme is
+ * light: the dark palette already clears every floor of the contrast contract
+ * (RF-F42), so there is nothing to fix there, and repainting the widget in light
+ * would be a downgrade for the person who asked for more contrast.
  */
-@media (prefers-contrast: more) {
+@media (prefers-contrast: more) and (prefers-color-scheme: light) {
 	.chatbox {
 		--chatbox-color-text: #000000;
 		--chatbox-color-surface: #ffffff;
@@ -101,15 +107,43 @@
 		--chatbox-color-surface-raised: #ffffff;
 		--chatbox-color-accent-container: #004b45;
 	}
+}
 
+/* The host can declare a light theme: the effective scheme is light too. These tokens
+ * win over the host theme by specificity and source order, so an accessibility
+ * preference is never silenced by the site that embeds the widget.
+ */
+@media (prefers-contrast: more) {
+	[data-theme="light"] .chatbox {
+		--chatbox-color-text: #000000;
+		--chatbox-color-surface: #ffffff;
+		--chatbox-color-primary: #004b45;
+		--chatbox-color-link: #00476e;
+		--chatbox-color-border: #111827;
+		--chatbox-color-focus: #00476e;
+		--chatbox-color-error: #7f1d1d;
+		--chatbox-color-surface-subtle: #ffffff;
+		--chatbox-color-surface-raised: #ffffff;
+		--chatbox-color-accent-container: #004b45;
+	}
+
+	/* The turns separate by tone in the default layers; here the tone is gone, so
+	 * the separation moves to an explicit border. It applies in every scheme: the
+	 * tonal separation never reached 3:1 on its own.
+	 */
 	.chatbox__message {
 		border: 1px solid var(--chatbox-color-text);
 	}
 }
 
-/* Forced colors must be the final layer so user-selected system colors always win. */
+/* Forced colors must be the final layer so user-selected system colors always win.
+ * The host theme selectors are repeated here so that a site with an explicit theme
+ * cannot silence the system palette either.
+ */
 @media (forced-colors: active) {
-	.chatbox {
+	.chatbox,
+	[data-theme="dark"] .chatbox,
+	[data-theme="light"] .chatbox {
 		--chatbox-color-text: CanvasText;
 		--chatbox-color-surface: Canvas;
 		--chatbox-color-primary: Highlight;
@@ -210,6 +244,13 @@
 
 .chatbox__status:empty {
 	display: none;
+}
+
+/* The error is told apart by its color. The announced text does not change: the
+ * region also paints the full answer and the "writing" notice (RF-F41).
+ */
+.chatbox__status--error {
+	color: var(--chatbox-color-error);
 }
 
 .chatbox__conversation {

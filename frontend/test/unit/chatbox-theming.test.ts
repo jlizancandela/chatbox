@@ -1,8 +1,14 @@
-import postcss, { type AtRule, type Rule } from "postcss";
+import type { Rule } from "postcss";
 import { describe, expect, it } from "vitest";
-import css from "../../src/components/Chatbox.css?raw";
-
-const root = postcss.parse(css);
+import { contrastRatio } from "../contrast";
+import {
+	declarationsOf,
+	mediaRule,
+	offsetOf,
+	ruleInside,
+	tokensOf,
+	topLevelRule,
+} from "../css-layers";
 
 // Stitch Material 3 roles: `on-surface`, `surface-container-lowest`, `primary`,
 // `secondary`, `outline`, `error`, `surface-container`, `surface-container-high`
@@ -34,48 +40,17 @@ const DARK_TOKENS: Record<string, string> = {
 	"--chatbox-color-accent-container": "#89f5e7",
 };
 
-const declarations = (rule: Rule): Record<string, string> =>
-	Object.fromEntries(
-		rule.nodes.filter((node) => node.type === "decl").map((node) => [node.prop, node.value])
-	);
-
-const tokensOf = (rule: Rule): Record<string, string> =>
-	Object.fromEntries(
-		Object.entries(declarations(rule)).filter(([prop]) => prop.startsWith("--chatbox-color-"))
-	);
-
 const declarationNodes = (rule: Rule) => rule.nodes.filter((node) => node.type === "decl");
-
-const topLevelRule = (selector: string): Rule => {
-	const rule = root.nodes.find(
-		(node): node is Rule => node.type === "rule" && node.selector === selector
-	);
-	if (!rule) throw new Error(`Missing top-level CSS rule: ${selector}`);
-	return rule;
-};
-
-const mediaRule = (condition: string): AtRule => {
-	const media = root.nodes.find(
-		(node): node is AtRule =>
-			node.type === "atrule" &&
-			node.name === "media" &&
-			(node.params ?? "").replace(/\s+/g, " ").trim() === condition
-	);
-	if (!media) throw new Error(`Missing media query: ${condition}`);
-	return media;
-};
-
-const ruleInside = (container: AtRule, selector: string): Rule => {
-	const rule = (container.nodes ?? []).find(
-		(node): node is Rule => node.type === "rule" && node.selector === selector
-	);
-	if (!rule) throw new Error(`Missing rule ${selector} inside @media ${container.params}`);
-	return rule;
-};
 
 const DARK_MEDIA = "(prefers-color-scheme: dark)";
 const FORCED_COLORS_MEDIA = "(forced-colors: active)";
-const PREFERS_CONTRAST_MEDIA = "(prefers-contrast: more)";
+/**
+ * The increased-contrast layer only substitutes the palette in the light scheme: the dark
+ * palette already clears every floor of the contrast contract (RF-F42). The rule that carries
+ * those tokens for a host-declared light theme lives in the unrestricted
+ * `(prefers-contrast: more)` block — see `chatbox-contrast.test.ts`.
+ */
+const PREFERS_CONTRAST_MEDIA = "(prefers-contrast: more) and (prefers-color-scheme: light)";
 
 const FORCED_COLOR_KEYWORDS = [
 	"Canvas",
@@ -95,36 +70,17 @@ const prefersContrastRule = (): Rule => ruleInside(mediaRule(PREFERS_CONTRAST_ME
 const hostRule = (theme: "dark" | "light"): Rule =>
 	topLevelRule(`[data-theme="${theme}"] .chatbox`);
 
-const offsetOf = (rule: Rule): number => {
-	const offset = rule.source?.start?.offset;
-	if (offset === undefined) throw new Error("Missing source offset");
-	return offset;
-};
-
-const relativeLuminance = (value: string): number => {
-	const hex = value.replace("#", "");
-	const expanded =
-		hex.length === 3
-			? hex
-					.split("")
-					.map((char) => char + char)
-					.join("")
-			: hex;
-	const [r, g, b] = (expanded.match(/../g) ?? []).map((pair) => Number.parseInt(pair, 16) / 255);
-	const linear = (component: number): number =>
-		component <= 0.03928 ? component / 12.92 : ((component + 0.055) / 1.055) ** 2.4;
-	return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
-};
-
-const contrast = (a: string, b: string): number => {
-	const first = relativeLuminance(a);
-	const second = relativeLuminance(b);
-	return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
-};
-
-// Minimum ratio per token role, per the RF-F61 palette target:
-// body text AAA (>=7:1), chromatic text AA (>=4.5:1), non-text AA 1.4.11 (>=3:1).
-const CONTRAST_MINIMUMS: Record<string, number> = {
+/**
+ * Objetivos de paleta de RF-F61: el texto del cuerpo en AAA (>=7:1), el texto cromático en AA
+ * (>=4.5:1) y lo que no es texto en AA 1.4.11 (>=3:1).
+ *
+ * **No** son criterios de aceptación de RF-F42: el contrato de ese RF fija 4.5:1 para el texto
+ * y 3:1 para los componentes visuales y el anillo de foco. Estos umbrales son más estrictos
+ * para el texto del cuerpo y más exigidos para el foco. Se quedan como asertos duros a
+ * propósito: una paleta que los tumbe tiene que ser una decisión consciente, no un descuido.
+ * El contrato vive en `chatbox-contrast.test.ts`.
+ */
+const PALETTE_TARGETS: Record<string, number> = {
 	text: 7,
 	link: 4.5,
 	primary: 4.5,
@@ -144,20 +100,20 @@ describe("Chatbox.css (RF-F61/T1 — light defaults)", () => {
 	});
 
 	it("consumes text and surface on .chatbox", () => {
-		expect(declarations(baseRule())).toMatchObject({
+		expect(declarationsOf(baseRule())).toMatchObject({
 			color: "var(--chatbox-color-text)",
 			"background-color": "var(--chatbox-color-surface)",
 		});
 	});
 
 	it("uses var(--chatbox-color-link) for .chatbox a", () => {
-		expect(declarations(topLevelRule(".chatbox a"))).toMatchObject({
+		expect(declarationsOf(topLevelRule(".chatbox a"))).toMatchObject({
 			color: "var(--chatbox-color-link)",
 		});
 	});
 
 	it("uses the primary and surface tokens for the submit button", () => {
-		expect(declarations(topLevelRule('.chatbox__footer button[type="submit"]'))).toMatchObject({
+		expect(declarationsOf(topLevelRule('.chatbox__footer button[type="submit"]'))).toMatchObject({
 			"background-color": "var(--chatbox-color-primary)",
 			color: "var(--chatbox-color-surface)",
 		});
@@ -176,7 +132,7 @@ describe("Chatbox.css (RF-F61/T4 — system accessibility preferences)", () => {
 		);
 	});
 
-	it("overrides all 7 tokens for prefers-contrast: more", () => {
+	it("declares the 10 tokens for prefers-contrast: more in the light scheme", () => {
 		expect(Object.keys(tokensOf(prefersContrastRule()))).toHaveLength(10);
 		expect(offsetOf(prefersContrastRule())).toBeGreaterThan(offsetOf(baseRule()));
 	});
@@ -210,7 +166,7 @@ describe("Chatbox.css (RF-F61/T2 — prefers-color-scheme: dark)", () => {
 	});
 
 	it("does not paint inside the dark block (tokens only)", () => {
-		const props = Object.keys(declarations(darkRule()));
+		const props = Object.keys(declarationsOf(darkRule()));
 		expect(props).not.toContain("color");
 		expect(props).not.toContain("background-color");
 	});
@@ -221,18 +177,18 @@ describe("Chatbox.css (RF-F61/T2 — prefers-color-scheme: dark)", () => {
 });
 
 for (const [theme, tokens] of Object.entries(PARSED_TOKENS)) {
-	describe(`RF-F61 contrast — ${theme}`, () => {
-		for (const [role, minimum] of Object.entries(CONTRAST_MINIMUMS)) {
+	describe(`Objetivo de paleta — ${theme} (RF-F61; no es un AC de RF-F42)`, () => {
+		for (const [role, minimum] of Object.entries(PALETTE_TARGETS)) {
 			it(`--chatbox-color-${role} meets ${minimum}:1 against surface`, () => {
 				expect(
-					contrast(tokens[`--chatbox-color-${role}`], tokens["--chatbox-color-surface"])
+					contrastRatio(tokens[`--chatbox-color-${role}`], tokens["--chatbox-color-surface"])
 				).toBeGreaterThanOrEqual(minimum);
 			});
 		}
 
 		it("submit label meets 4.5:1 against primary", () => {
 			expect(
-				contrast(tokens["--chatbox-color-surface"], tokens["--chatbox-color-primary"])
+				contrastRatio(tokens["--chatbox-color-surface"], tokens["--chatbox-color-primary"])
 			).toBeGreaterThanOrEqual(4.5);
 		});
 
@@ -240,13 +196,13 @@ for (const [theme, tokens] of Object.entries(PARSED_TOKENS)) {
 		// ink that sits on it instead of against the shell surface.
 		it("body text meets 7:1 against the tonal surface", () => {
 			expect(
-				contrast(tokens["--chatbox-color-text"], tokens["--chatbox-color-surface-subtle"])
+				contrastRatio(tokens["--chatbox-color-text"], tokens["--chatbox-color-surface-subtle"])
 			).toBeGreaterThanOrEqual(7);
 		});
 
 		it("badge ink meets 4.5:1 against the accent container", () => {
 			expect(
-				contrast(tokens["--chatbox-color-surface"], tokens["--chatbox-color-accent-container"])
+				contrastRatio(tokens["--chatbox-color-surface"], tokens["--chatbox-color-accent-container"])
 			).toBeGreaterThanOrEqual(4.5);
 		});
 	});

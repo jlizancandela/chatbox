@@ -1,20 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import axe from "axe-core";
 import { strings } from "../../src/strings.es";
-
-const sourcesFrame = `event: sources\ndata: ${JSON.stringify({ sources: [], history: [] })}\n\n`;
-const tokenFrame = (token: string) => `event: token\ndata: ${JSON.stringify({ token })}\n\n`;
-const doneFrame = "event: done\ndata: {}\n\n";
-
-async function mockChatApi(page: Page, answer = "Respuesta breve.") {
-	await page.route("**/api/chat", (route) =>
-		route.fulfill({
-			status: 200,
-			contentType: "text/event-stream",
-			body: sourcesFrame + tokenFrame(answer) + doneFrame,
-		})
-	);
-}
+import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
 
 async function openChatbox(page: Page) {
 	await page.goto("/");
@@ -76,14 +63,14 @@ test.describe("RF-F40 keyboard navigation", () => {
 	});
 
 	test("tras enviar con Enter el foco queda en el campo de texto", async ({ page }) => {
-		await mockChatApi(page);
+		await mockChatApi(page, tokenFrame("Respuesta breve."));
 		await openChatbox(page);
 		await sendByKeyboard(page, "¿Qué experiencia tiene Jorge?");
 		await expect(page.locator("#chatbox-question")).toBeFocused();
 	});
 
 	test("tras enviar con el botón el foco queda en el campo de texto", async ({ page }) => {
-		await mockChatApi(page);
+		await mockChatApi(page, tokenFrame("Respuesta breve."));
 		await openChatbox(page);
 		await page.locator("#chatbox-question").fill("¿Qué stack usa?");
 		await page.keyboard.press("Tab");
@@ -93,7 +80,7 @@ test.describe("RF-F40 keyboard navigation", () => {
 	});
 
 	test("tras enviar una sugerencia el foco queda en el campo de texto", async ({ page }) => {
-		await mockChatApi(page);
+		await mockChatApi(page, tokenFrame("Respuesta breve."));
 		await openChatbox(page);
 		const suggestion = page.getByRole("navigation", {
 			name: strings.a11y.emptyStateNavLabel,
@@ -105,7 +92,7 @@ test.describe("RF-F40 keyboard navigation", () => {
 	});
 
 	test("confirmación de nueva conversación gestiona el foco por teclado", async ({ page }) => {
-		await mockChatApi(page);
+		await mockChatApi(page, tokenFrame("Respuesta breve."));
 		await openChatbox(page);
 		await sendByKeyboard(page, "¿Qué sabes de Jorge?");
 
@@ -140,7 +127,7 @@ test.describe("RF-F40 keyboard navigation", () => {
 			await route.fulfill({
 				status: 200,
 				contentType: "text/event-stream",
-				body: sourcesFrame + tokenFrame("Respuesta completa.") + doneFrame,
+				body: sourcesFrame() + tokenFrame("Respuesta completa.") + doneFrame,
 			});
 		});
 		await openChatbox(page);
@@ -161,7 +148,7 @@ test.describe("RF-F40 keyboard navigation", () => {
 
 	test("'Ir al final' aparece después del último mensaje en el orden de Tab", async ({ page }) => {
 		const longAnswer = Array.from({ length: 60 }, (_, i) => `Párrafo ${i + 1}.`).join("\n\n");
-		await mockChatApi(page, longAnswer);
+		await mockChatApi(page, tokenFrame(longAnswer));
 		await openChatbox(page);
 		await page.addStyleTag({ content: ".chatbox { height: 400px; }" });
 		await sendByKeyboard(page, "¿Qué has hecho?");
@@ -190,7 +177,7 @@ test.describe("RF-F40 keyboard navigation", () => {
 	test("the widget has no axe violations with a conversation and confirmation open", async ({
 		page,
 	}) => {
-		await mockChatApi(page);
+		await mockChatApi(page, tokenFrame("Respuesta breve."));
 		await openChatbox(page);
 		await sendByKeyboard(page, "¿Qué experiencia tiene?");
 		await page.getByRole("button", { name: strings.actions.newConversation }).click();
