@@ -10,23 +10,10 @@
 import { expect, type Page, test } from "@playwright/test";
 import axe from "axe-core";
 import { strings } from "../../src/strings.es";
+import { mockChatApi, tokenFrame } from "../chat-frames";
 
 const STORAGE_KEY = "chatbox:v1";
-const sourceFrame = `event: sources\ndata: ${JSON.stringify({ sources: [], history: [] })}\n\n`;
-const tokenFrame = (token: string) => `event: token\ndata: ${JSON.stringify({ token })}\n\n`;
-const doneFrame = "event: done\ndata: {}\n\n";
-
 const REGION_SEEN = "__rfF41RegionSeen";
-
-async function mockChatApi(page: Page, ...frames: string[]) {
-	await page.route("**/api/chat", (route) =>
-		route.fulfill({
-			status: 200,
-			contentType: "text/event-stream",
-			body: sourceFrame + frames.join("") + doneFrame,
-		})
-	);
-}
 
 async function openChatbox(page: Page) {
 	await page.goto("/");
