@@ -27,6 +27,16 @@ const DEFAULT_SUGGESTIONS: string[] = [...strings.emptyState.suggestions];
 const MAX_QUESTION_LENGTH = 1000;
 
 /**
+ * Clase de la región de estado y su variante de error (RF-F42). La variante solo cambia el
+ * color: el texto que la región anuncia no se toca.
+ */
+const STATUS_CLASS = "chatbox__status";
+const STATUS_ERROR_CLASS = "chatbox__status--error";
+
+/** Lo que la región dice cuando no ha pasado nada: nada, y ningún error. */
+const NO_ANNOUNCEMENT = { text: "", isError: false };
+
+/**
  * Un turno cerrado sin respuesta es un desenlace, no un silencio: se anuncia **y** se pinta en
  * la conversación. La regla vive aquí para que región y aviso no se separen en el futuro.
  */
@@ -60,7 +70,7 @@ export function Chatbox({
 	const chat = useChat(loadFromSessionStorage() ?? undefined);
 	const [question, setQuestion] = useState("");
 	const [localNotice, setLocalNotice] = useState("");
-	const [announcement, setAnnouncement] = useState("");
+	const [announcement, setAnnouncement] = useState(NO_ANNOUNCEMENT);
 	const [showScrollToEnd, setShowScrollToEnd] = useState(false);
 	const [contextWasTrimmed, setContextWasTrimmed] = useState(false);
 
@@ -77,7 +87,7 @@ export function Chatbox({
 			if (closedWithoutAnswer(event)) {
 				setLocalNotice(strings.notices.noContext);
 			}
-			setAnnouncement(announcementFor(event));
+			setAnnouncement({ text: announcementFor(event), isError: event.kind === "failed" });
 		},
 	});
 
@@ -135,7 +145,7 @@ export function Chatbox({
 		setContextWasTrimmed(false);
 		sentContextLength.current = trimHistory(chat.state.context).length;
 		setLocalNotice("");
-		setAnnouncement("");
+		setAnnouncement(NO_ANNOUNCEMENT);
 		void sendQuestion(trimmed);
 		textareaRef.current?.focus();
 	};
@@ -146,7 +156,7 @@ export function Chatbox({
 		saveToSessionStorage([], []);
 		setLocalNotice("");
 		setContextWasTrimmed(false);
-		setAnnouncement("");
+		setAnnouncement(NO_ANNOUNCEMENT);
 		textareaRef.current?.focus();
 	};
 
@@ -156,8 +166,13 @@ export function Chatbox({
 		<section class="chatbox" lang="es" aria-labelledby="chatbox-title">
 			<ChatHeader title={title} notice={strings.header.scopeNotice} />
 
-			<div class="chatbox__status" role="status" aria-live="polite" aria-atomic="true">
-				{announcement || (isBusy ? strings.messages.writing : "")}
+			<div
+				class={announcement.isError ? `${STATUS_CLASS} ${STATUS_ERROR_CLASS}` : STATUS_CLASS}
+				role="status"
+				aria-live="polite"
+				aria-atomic="true"
+			>
+				{announcement.text || (isBusy ? strings.messages.writing : "")}
 			</div>
 
 			<main

@@ -246,6 +246,12 @@
 	display: none;
 }
 
+/* The error is told apart by its color. The announced text does not change: the
+ * region also paints the full answer and the "writing" notice (RF-F41).
+ */
+.chatbox__status--error {
+	color: var(--chatbox-color-error);
+}
 
 .chatbox__conversation {
 	position: relative;

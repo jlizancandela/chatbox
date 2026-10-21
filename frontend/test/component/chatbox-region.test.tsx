@@ -20,73 +20,18 @@ vi.mock("react-markdown", () => ({
 import { STORAGE_KEY } from "../../src/chat/infrastructure/storage";
 import { Chatbox } from "../../src/components/Chatbox";
 import { strings } from "../../src/strings.es";
-
-const sourceFrame = (history: unknown[] = []): string =>
-	`event: sources\ndata: ${JSON.stringify({ sources: [], history })}\n\n`;
-
-const tokenFrame = (token: string): string =>
-	`event: token\ndata: ${JSON.stringify({ token })}\n\n`;
-
-const doneFrame = "event: done\ndata: {}\n\n";
-
-const streamedAnswer = (...frames: string[]): Response => {
-	const stream = new ReadableStream<Uint8Array>({
-		start(controller) {
-			for (const frame of frames) {
-				controller.enqueue(new TextEncoder().encode(frame));
-			}
-			controller.close();
-		},
-	});
-
-	return new Response(stream, {
-		status: 200,
-		headers: { "Content-Type": "text/event-stream" },
-	});
-};
-
-const mockStream = (response: Response): void => {
-	vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response));
-};
-
-const mockFailure = (status: number): void => {
-	vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(null, { status })));
-};
-
-const mockHangingRequest = (): void => {
-	vi.stubGlobal(
-		"fetch",
-		vi.fn().mockImplementation(
-			(_input: RequestInfo | URL, init?: RequestInit) =>
-				new Promise<Response>((_resolve, reject) => {
-					init?.signal?.addEventListener("abort", () => {
-						reject(new DOMException("Aborted", "AbortError"));
-					});
-				})
-		)
-	);
-};
-
-/** Registra cada texto distinto que pasa por la región, para fijar la secuencia real. */
-const observeRegion = (region: HTMLElement): string[] => {
-	const seen = [region.textContent ?? ""];
-	const observer = new MutationObserver(() => {
-		const next = region.textContent ?? "";
-		if (next !== seen[seen.length - 1]) seen.push(next);
-	});
-	observer.observe(region, { childList: true, characterData: true, subtree: true });
-
-	return seen;
-};
-
-const regionOf = (container: Element): HTMLElement =>
-	container.querySelector(".chatbox__status") as HTMLElement;
-
-const send = async (question: string): Promise<void> => {
-	const user = userEvent.setup();
-	await user.type(screen.getByLabelText(strings.input.label), question);
-	await user.click(screen.getByRole("button", { name: strings.input.send.ariaLabel }));
-};
+import {
+	doneFrame,
+	mockFailure,
+	mockHangingRequest,
+	mockStream,
+	observeRegion,
+	regionOf,
+	send,
+	sourcesFrame,
+	streamedAnswer,
+	tokenFrame,
+} from "./fixtures";
 
 beforeEach(() => {
 	sessionStorage.clear();
@@ -108,7 +53,7 @@ describe("RF-F41 — una única región de estado", () => {
 	});
 
 	it("keeps the message list out of the live regions", async () => {
-		mockStream(streamedAnswer(sourceFrame(), tokenFrame("Usa Preact."), doneFrame));
+		mockStream(streamedAnswer(sourcesFrame(), tokenFrame("Usa Preact."), doneFrame));
 		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
 		await send("¿Qué usa Jorge?");
 
@@ -126,7 +71,7 @@ describe("RF-F41 — una única región de estado", () => {
 
 describe("RF-F41 — secuencia de un turno completo", () => {
 	it("goes from empty to writing to the full answer", async () => {
-		mockStream(streamedAnswer(sourceFrame(), tokenFrame("Usa Preact."), doneFrame));
+		mockStream(streamedAnswer(sourcesFrame(), tokenFrame("Usa Preact."), doneFrame));
 		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 		const seen = observeRegion(region);
@@ -138,7 +83,9 @@ describe("RF-F41 — secuencia de un turno completo", () => {
 	});
 
 	it("announces the answer without its markdown syntax", async () => {
-		mockStream(streamedAnswer(sourceFrame(), tokenFrame("Usa **Preact** y `Fastify`."), doneFrame));
+		mockStream(
+			streamedAnswer(sourcesFrame(), tokenFrame("Usa **Preact** y `Fastify`."), doneFrame)
+		);
 		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 
@@ -148,7 +95,7 @@ describe("RF-F41 — secuencia de un turno completo", () => {
 	});
 
 	it("announces that the assistant has nothing when the answer is empty", async () => {
-		mockStream(streamedAnswer(sourceFrame(), doneFrame));
+		mockStream(streamedAnswer(sourcesFrame(), doneFrame));
 		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 
@@ -185,7 +132,7 @@ describe("RF-F41 — secuencia de un turno completo", () => {
 
 	it("announces an identical answer again on the next turn", async () => {
 		const answer = "Usa Preact.";
-		mockStream(streamedAnswer(sourceFrame(), tokenFrame(answer), doneFrame));
+		mockStream(streamedAnswer(sourcesFrame(), tokenFrame(answer), doneFrame));
 		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 
@@ -195,7 +142,7 @@ describe("RF-F41 — secuencia de un turno completo", () => {
 		// La segunda respuesta dice exactamente lo mismo: si el aviso de "escribiendo" no
 		// pasara por la región, el texto no cambiaría y el lector no volvería a anunciarlo.
 		const seen = observeRegion(region);
-		mockStream(streamedAnswer(sourceFrame(), tokenFrame(answer), doneFrame));
+		mockStream(streamedAnswer(sourcesFrame(), tokenFrame(answer), doneFrame));
 		await send("¿Y otra vez?");
 
 		await waitFor(() => expect(region).toHaveTextContent(answer));
