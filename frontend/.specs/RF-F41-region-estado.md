@@ -226,8 +226,14 @@ cd frontend && npm run dev
 | `/?manual=empty` | Turno sin respuesta: se oye el aviso de "no lo tengo" |
 | `/?manual=restore` | Monta con conversación restaurada: no se oye nada (recargar para repetir) |
 
-El texto de la región se ve en `.chatbox__status`, que solo se oculta cuando está vacía: sirve
-de referencia para contrastar lo que se oye. Un test de navegador verifica que el guion sigue
+> *Enmienda (RF-F46, 2026-10-22):* la región ya no pinta lo que está en la conversación. Un
+> turno completado se ve en la burbuja del asistente; la región lo anuncia, pero no lo pinta
+> dos veces. Lo que sí se pinta: el aviso «escribiendo», el error y el aviso de turno
+> detenido. La referencia para contrastar lo que se oye pasa a ser la burbuja, porque la
+> proyección de anuncio coincide con su texto renderizado (ver `RF-F46-respuesta-una-vez.md`).
+>
+> Texto original: el texto de la región se ve en `.chatbox__status`, que solo se oculta cuando
+> está vacía: sirve de referencia para contrastar lo que se oye. Un test de navegador verifica que el guion sigue
 arrancando y anunciando, para que el fixture no se pudra en silencio; no verifica que suene
 nada, que es exactamente lo que no se puede automatizar.
 
