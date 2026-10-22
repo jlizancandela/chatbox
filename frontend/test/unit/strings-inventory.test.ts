@@ -59,6 +59,8 @@ const CSS_CLASSES_AND_IDS = [
 	"chatbox__notice",
 	"chatbox__status",
 	"chatbox__status--error",
+	"chatbox__typing",
+	"chatbox__typing-dot",
 ];
 
 /**

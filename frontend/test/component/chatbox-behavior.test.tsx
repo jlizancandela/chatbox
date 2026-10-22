@@ -4,11 +4,12 @@
  * on internal component names, state shape, hook count, or effect count.
  */
 
-import { cleanup, render, screen, within } from "@testing-library/preact";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/preact";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Chatbox } from "../../src/components/Chatbox";
 import { strings } from "../../src/strings.es";
+import { mockHangingRequest, regionOf, send } from "./fixtures";
 
 // ─── Tests: static render ──────────────────────────────────────────────────────
 
@@ -202,6 +203,40 @@ describe("Chatbox — new conversation (RF-F24 / RF-F25)", () => {
 		await user.click(screen.getByRole("button", { name: strings.actions.newConversation }));
 		await user.click(screen.getByRole("button", { name: strings.actions.confirm.cancel }));
 		expect(screen.getByText(strings.actions.newConversation)).toBeInTheDocument();
+	});
+});
+
+// ─── Tests: RF-F44 — indicador de escritura ─────────────────────────────────────
+
+describe("Chatbox — indicador de escritura (RF-F44)", () => {
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+	});
+
+	it("shows three decorative dots while the assistant writes", async () => {
+		// La petición se queda en el aire: el turno queda en curso y existe la burbuja
+		// vacía del asistente.
+		mockHangingRequest();
+		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+
+		await send("¿Qué usa Jorge?");
+
+		await waitFor(() => expect(container.querySelector(".chatbox__typing")).toBeInTheDocument());
+		expect(container.querySelector(".chatbox__typing")).toHaveAttribute("aria-hidden", "true");
+		expect(container.querySelectorAll(".chatbox__typing-dot")).toHaveLength(3);
+	});
+
+	it("leaves the writing notice only in the status region", async () => {
+		mockHangingRequest();
+		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+
+		await send("¿Qué usa Jorge?");
+
+		await waitFor(() => expect(container.querySelector(".chatbox__typing")).toBeInTheDocument());
+		const bubble = container.querySelector(".chatbox__message--assistant");
+		expect(bubble).not.toHaveTextContent(strings.messages.writing);
+		expect(regionOf(container)).toHaveTextContent(strings.messages.writing);
 	});
 });
 

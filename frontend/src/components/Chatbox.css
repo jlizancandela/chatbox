@@ -324,6 +324,22 @@
 	color: var(--chatbox-color-surface);
 }
 
+/* The typing indicator (RF-F44): three dots that mark the empty assistant turn.
+ * They are decorative — the announcement lives in the status region. */
+.chatbox__typing {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+.chatbox__typing-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 9999px;
+	background-color: var(--chatbox-color-primary);
+	opacity: 0.7;
+}
+
 .chatbox__empty {
 	display: flex;
 	flex-direction: column;

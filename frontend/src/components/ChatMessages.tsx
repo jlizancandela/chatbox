@@ -33,7 +33,17 @@ export function ChatMessages({
 						message.content ? (
 							<AssistantMarkdown content={message.content} />
 						) : (
-							<span>{strings.messages.writing}</span>
+							/*
+							 * El indicador de escritura (RF-F44): tres puntos decorativos. El
+							 * aviso "El asistente está escribiendo" vive en la región de estado,
+							 * que lo muestra y lo anuncia; aquí solo está el ancla visual de
+							 * dónde va a aparecer la respuesta.
+							 */
+							<span class="chatbox__typing" aria-hidden="true">
+								<span class="chatbox__typing-dot" />
+								<span class="chatbox__typing-dot" />
+								<span class="chatbox__typing-dot" />
+							</span>
 						)
 					) : (
 						<p>{message.content}</p>
