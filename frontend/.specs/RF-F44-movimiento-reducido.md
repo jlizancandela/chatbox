@@ -23,8 +23,14 @@
   cambia el movimiento, no la forma. No hay un diseño alternativo.
 - **D6 — El inventario tiene dos entradas**: el indicador de escritura (animación CSS) y el
   scroll suave (decisión de JS). Todo lo demás queda prohibido por la guarda.
-- **D7 — Una sola política de scroll**: la usan el autoscroll y el botón «Ir al final». Regla:
-  suave, salvo que la persona pida menos movimiento.
+- **D7 — Una sola política de scroll**, con la intención como parámetro: la regla decide en un
+  solo sitio. El **seguimiento** del hilo es instantáneo —se actualiza con cada token, y una
+  animación se reinicia en cada actualización y nunca llega— y el **salto** explícito al final
+  es animado, salvo que la persona pida menos movimiento. Los dos caminos se condicionan por
+  separado: dos caminos con la misma decisión y aplicados por separado divergen en el
+  próximo refactor. *(Enmienda del 2026-10-22, con el diagnóstico de RF-F06: el criterio 5
+  de esta spec decía «el mismo comportamiento» para los dos, y eso es exactamente lo que
+  impedía que el hilo siguiera a la respuesta.)*
 - **D8 — Bajo movimiento reducido el scroll pide `"auto"`**: `behavior: "auto"` delega en el
   `scroll-behavior` computado, así que el contrato CSS es el que garantiza el salto
   instantáneo. No se usa `"instant"`: no lo garantizan todas las versiones de Safari y un enum
@@ -141,11 +147,12 @@ Función pura: el `matchMedia` se queda en el componente, que es su único consu
 
 ### Componente
 
-Un solo camino de scroll. El autoscroll y el botón «Ir al final» llaman a la misma regla:
+Un solo camino de scroll. El seguimiento del hilo y el botón «Ir al final» llaman a la misma
+regla, con su intención:
 
 ```tsx
 const reduceMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
-const behavior = scrollBehavior(reduceMotion);
+const behavior = scrollBehavior(reduceMotion, "salto");
 ```
 
 La burbuja del asistente vacío pasa a tres puntos decorativos y deja de pintar el texto:
@@ -220,8 +227,12 @@ La burbuja del asistente vacío pasa a tres puntos decorativos y deja de pintar 
    `transition` ni `@keyframes` fuera de ese bloque.
 4. La caja de scroll declara `scroll-behavior: auto` dentro del bloque `reduce`, y ninguna
    regla del widget la declara `smooth`.
-5. El autoscroll y el botón «Ir al final» piden el mismo comportamiento, y bajo movimiento
-   reducido ninguno de los dos pide `"smooth"`.
+5. El seguimiento del hilo y el salto al final eligen su comportamiento en la misma regla, y
+   bajo movimiento reducido ninguno de los dos pide `"smooth"`. *(Enmienda del 2026-10-22: el
+   criterio decía «piden el mismo comportamiento» para los dos. El diagnóstico de RF-F06
+   mostró que un scroll suave no puede seguir un stream —se reinicia con cada token y nunca
+   llega—, así que el seguimiento es instantáneo y el salto es el animado. Ver
+   `RF-F06-seguimiento-del-hilo.md`.)*
 6. La guarda falla si aparece una fuente de movimiento fuera del inventario, y el test tiene
    una entrada que rechaza de verdad.
 7. En Chromium con `reducedMotion: "reduce"`, `animationName` de los puntos es `"none"`; con

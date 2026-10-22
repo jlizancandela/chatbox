@@ -1,4 +1,4 @@
-import type { ComponentChildren } from "preact";
+import type { ComponentChildren, Ref } from "preact";
 import { AssistantMarkdown } from "../chat/components/AssistantMarkdown";
 import type { ChatMessage } from "../chat/types";
 import { strings } from "../strings.es";
@@ -7,12 +7,19 @@ type ChatMessagesProps = {
 	messages: ChatMessage[];
 	currentResponse: string;
 	isBusy: boolean;
+	/**
+	 * El `<ol>` de los mensajes, para que quien controla el desplazamiento pueda observar
+	 * su tamaño: el contenido crece después del último cambio de estado (el markdown del
+	 * asistente se carga diferido).
+	 */
+	listRef?: Ref<HTMLOListElement>;
 };
 
 export function ChatMessages({
 	messages,
 	currentResponse,
 	isBusy,
+	listRef,
 }: ChatMessagesProps): ComponentChildren {
 	const visibleMessages = [...messages];
 	if (isBusy) {
@@ -22,7 +29,7 @@ export function ChatMessages({
 	if (visibleMessages.length === 0) return null;
 
 	return (
-		<ol class="chatbox__messages" aria-label={strings.messages.listLabel}>
+		<ol class="chatbox__messages" aria-label={strings.messages.listLabel} ref={listRef}>
 			{visibleMessages.map((message, index) => (
 				<li
 					class={`chatbox__message chatbox__message--${message.role}`}
