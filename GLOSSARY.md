@@ -1,7 +1,8 @@
 # Glosario
 
 Vocabulario compartido del repositorio. Definido en RF-F61 (tema), RF-F62 (textos de
-UI), RF-F41 (región de estado), RF-F42 (contraste) y RF-F43 (objetivos táctiles); cuando un término falte, se declara
+UI), RF-F41 (región de estado), RF-F42 (contraste), RF-F43 (objetivos táctiles) y RF-F44
+(movimiento reducido); cuando un término falte, se declara
 aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests.
 
 ## Tema del widget (RF-F61)
@@ -82,3 +83,18 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
 - **Contrato de objetivos táctiles**: inventario de controles, suelo de 44 px y guarda que hace
   que un control nuevo sin inventariar rompa la compilación. Se verifica en dos niveles
   —mecanismo en jsdom y resolución en Chromium— y no tiene nivel manual.
+
+## Movimiento reducido del widget (RF-F44)
+
+- **Movimiento reducido**: la preferencia del sistema operativo que pide menos movimiento en
+  la interfaz. En el widget significa exactamente dos cosas: el indicador de escritura no se
+  anima y el scroll no es suave. No es una propiedad del tema: el sitio host no la hereda ni
+  puede bajarla.
+- **Indicador de escritura**: los tres puntos de la burbuja del asistente vacío que señalan
+  que la respuesta está en camino. Es visual y decorativo —no se anuncia, porque el anuncio
+  vive en la región de estado— y con movimiento reducido son los mismos tres puntos sin
+  animación. No es el aviso de "escribiendo" de la región, que es texto y se anuncia.
+- **Contrato de movimiento**: inventario de las fuentes de movimiento del widget —el indicador
+  de escritura y el scroll suave— más la guarda que impide que una regla nueva declare
+  movimiento fuera de ese inventario. Se verifica en dos niveles —mecanismo y resolución— y no
+  tiene nivel manual.

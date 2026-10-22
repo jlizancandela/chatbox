@@ -8,6 +8,10 @@
  * the site must not be silenced by the site that embeds the widget. That is why
  * they repeat the host theme selectors — same specificity, later in the source.
  *
+ * The motion layers (RF-F44) are orthogonal: they never touch a token, so they sit
+ * at the end without entering the order above. The typing animation is declared
+ * only inside `@media (prefers-reduced-motion: no-preference)`.
+ *
  * Palette authority: the Material 3 roles shipped in the Stitch export
  * (`surface-container-lowest`, `on-surface`, `primary`, `secondary`, `outline`,
  * `error`). The export has no dark scheme, so the dark layer is derived from the
@@ -324,6 +328,24 @@
 	color: var(--chatbox-color-surface);
 }
 
+/* The typing indicator (RF-F44): three dots that mark the empty assistant turn.
+ * They are decorative — the announcement lives in the status region — and they
+ * only bounce when the person allows movement: the animation is declared inside
+ * the `no-preference` block at the end of this file. */
+.chatbox__typing {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+}
+
+.chatbox__typing-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 9999px;
+	background-color: var(--chatbox-color-primary);
+	opacity: 0.7;
+}
+
 .chatbox__empty {
 	display: flex;
 	flex-direction: column;
@@ -424,12 +446,53 @@
 	gap: 0.5rem;
 }
 
+/*
+ * The motion layers (RF-F44).
+ *
+ * The animation only exists inside `no-preference`: with reduced motion there is
+ * nothing declared to override, so no specificity can bring it back.
+ */
+@media (prefers-reduced-motion: no-preference) {
+	@keyframes chatbox-typing-bounce {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-4px);
+		}
+	}
+
+	.chatbox__typing-dot {
+		animation: chatbox-typing-bounce 1s infinite ease-in-out;
+	}
+
+	.chatbox__typing-dot:nth-child(2) {
+		animation-delay: 0.15s;
+	}
+
+	.chatbox__typing-dot:nth-child(3) {
+		animation-delay: 0.3s;
+	}
+}
+
+/*
+ * Reduced motion: the widget does not move.
+ *
+ * `transition` and `animation` are cancelled for the whole subtree, which also
+ * neutralizes what a host page animates inside the widget. The scroll box declares
+ * the instant jump, because `behavior: "auto"` delegates to the computed
+ * `scroll-behavior`: the CSS is what makes the scroll not smooth.
+ */
 @media (prefers-reduced-motion: reduce) {
 	.chatbox *,
 	.chatbox *::before,
 	.chatbox *::after {
 		transition: none;
 		animation: none;
+	}
+
+	.chatbox__conversation {
 		scroll-behavior: auto;
 	}
 }
