@@ -1,6 +1,7 @@
 import type { ComponentChildren, ComponentProps, ComponentType } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { ExternalLink } from "./ExternalLink";
+import { TypingIndicator } from "./TypingIndicator";
 
 const ALLOWED_ELEMENTS = ["p", "strong", "em", "code", "a", "ul", "ol", "li"];
 export const isSafeUrl = (url: string): boolean => {
@@ -62,7 +63,10 @@ export function AssistantMarkdown({ content }: AssistantMarkdownProps) {
 	}, []);
 
 	if (loadFailed) return <p>{content}</p>;
-	if (!Renderer) return null;
+	// El renderizador se carga diferido (RF-F30): mientras no llega, la burbuja mostraría
+	// solo la etiqueta de autor. El indicador de escritura la llena: el mensaje está escrito,
+	// lo que falta es poder pintarlo.
+	if (!Renderer) return <TypingIndicator />;
 
 	return (
 		<Renderer

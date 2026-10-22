@@ -33,9 +33,24 @@ const MAX_QUESTION_LENGTH = 1000;
  */
 const STATUS_CLASS = "chatbox__status";
 const STATUS_ERROR_CLASS = "chatbox__status--error";
+const STATUS_ANNOUNCED_CLASS = "chatbox__status--announced";
+
+/**
+ * La clase de la región de estado.
+ *
+ * La región **anuncia siempre**, pero solo **pinta** lo que no está en la conversación: el
+ * desenlace de un turno completado ya se ve en la burbuja (o en el aviso de la conversación),
+ * y pintarlo también arriba lo mostraba dos veces.
+ */
+const statusClass = (announcement: { isError: boolean; inConversation: boolean }): string => {
+	const classes = [STATUS_CLASS];
+	if (announcement.isError) classes.push(STATUS_ERROR_CLASS);
+	if (announcement.inConversation) classes.push(STATUS_ANNOUNCED_CLASS);
+	return classes.join(" ");
+};
 
 /** Lo que la región dice cuando no ha pasado nada: nada, y ningún error. */
-const NO_ANNOUNCEMENT = { text: "", isError: false };
+const NO_ANNOUNCEMENT = { text: "", isError: false, inConversation: false };
 
 /**
  * El comportamiento de scroll del widget, leído en el momento de usarlo (RF-F44).
@@ -107,7 +122,13 @@ export function Chatbox({
 			if (closedWithoutAnswer(event)) {
 				setLocalNotice(strings.notices.noContext);
 			}
-			setAnnouncement({ text: announcementFor(event), isError: event.kind === "failed" });
+			setAnnouncement({
+				text: announcementFor(event),
+				isError: event.kind === "failed",
+				// El desenlace de un turno completado ya esta en la conversacion: la region lo
+				// anuncia, pero no lo pinta dos veces.
+				inConversation: event.kind === "completed",
+			});
 		},
 	});
 
@@ -210,12 +231,7 @@ export function Chatbox({
 		<section class="chatbox" lang="es" aria-labelledby="chatbox-title">
 			<ChatHeader title={title} notice={strings.header.scopeNotice} />
 
-			<div
-				class={announcement.isError ? `${STATUS_CLASS} ${STATUS_ERROR_CLASS}` : STATUS_CLASS}
-				role="status"
-				aria-live="polite"
-				aria-atomic="true"
-			>
+			<div class={statusClass(announcement)} role="status" aria-live="polite" aria-atomic="true">
 				{announcement.text || (isBusy ? strings.messages.writing : "")}
 			</div>
 

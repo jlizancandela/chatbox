@@ -1,5 +1,6 @@
 import type { ComponentChildren, Ref } from "preact";
 import { AssistantMarkdown } from "../chat/components/AssistantMarkdown";
+import { TypingIndicator } from "../chat/components/TypingIndicator";
 import type { ChatMessage } from "../chat/types";
 import { strings } from "../strings.es";
 
@@ -46,11 +47,7 @@ export function ChatMessages({
 							 * que lo muestra y lo anuncia; aquí solo está el ancla visual de
 							 * dónde va a aparecer la respuesta.
 							 */
-							<span class="chatbox__typing" aria-hidden="true">
-								<span class="chatbox__typing-dot" />
-								<span class="chatbox__typing-dot" />
-								<span class="chatbox__typing-dot" />
-							</span>
+							<TypingIndicator />
 						)
 					) : (
 						<p>{message.content}</p>

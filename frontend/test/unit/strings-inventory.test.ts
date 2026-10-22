@@ -59,8 +59,7 @@ const CSS_CLASSES_AND_IDS = [
 	"chatbox__notice",
 	"chatbox__status",
 	"chatbox__status--error",
-	"chatbox__typing",
-	"chatbox__typing-dot",
+	"chatbox__status--announced",
 ];
 
 /**
@@ -172,6 +171,10 @@ const JUSTIFIED_WITHOUT_COPY: Record<string, string> = {
 		"identidad de control declarada en `chat/components/ExternalLink.tsx` (RF-F43); ese componente vive fuera de `src/components/`, que es el alcance de este escáner",
 	"(prefers-reduced-motion: reduce)":
 		"consulta de la preferencia de movimiento declarada en `chat/domain/motion.ts` (RF-F44); ese módulo vive fuera de `src/components/`, que es el alcance de este escáner",
+	chatbox__typing:
+		"clase del indicador de escritura declarada en `chat/components/TypingIndicator.tsx` (RF-F44); ese componente vive fuera de `src/components/`, que es el alcance de este escáner",
+	"chatbox__typing-dot":
+		"clase de los puntos del indicador de escritura declarada en `chat/components/TypingIndicator.tsx` (RF-F44); ese componente vive fuera de `src/components/`, que es el alcance de este escáner",
 	smooth:
 		"comportamiento de scroll declarado en `chat/domain/motion.ts` (RF-F44); ese módulo vive fuera de `src/components/`, que es el alcance de este escáner",
 };

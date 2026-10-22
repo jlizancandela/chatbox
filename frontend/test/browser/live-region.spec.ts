@@ -100,6 +100,65 @@ test.describe("RF-F41 región de estado", () => {
 		expect(politeRegions).toBe(1);
 	});
 
+	test("el texto de la respuesta se ve una sola vez", async ({ page }) => {
+		// La región de estado anuncia el desenlace del turno y el mensaje vive en la
+		// conversación: si la región lo pintara también, la respuesta se vería dos veces.
+		await mockChatApi(page, tokenFrame("Usa Preact y Fastify."));
+		await openChatbox(page);
+		await sendQuestion(page, "¿Qué usa Jorge?");
+		await expect(page.locator(".chatbox__message--assistant")).toContainText(
+			"Usa Preact y Fastify."
+		);
+
+		const visibleCopies = await page.evaluate((needle) => {
+			const copies: string[] = [];
+			for (const element of Array.from(document.querySelectorAll<HTMLElement>(".chatbox *"))) {
+				if ((element.textContent ?? "").trim() !== needle) continue;
+				const style = window.getComputedStyle(element);
+				const rect = element.getBoundingClientRect();
+				// "Visualmente oculto" no es `display: none`: el patrón del clip deja el
+				// elemento en el árbol de accesibilidad, y por eso hay que mirar la caja.
+				const hidden =
+					style.display === "none" ||
+					style.visibility === "hidden" ||
+					(rect.width <= 1 && rect.height <= 1);
+				if (hidden) continue;
+				const inBubble = element.closest(".chatbox__message--assistant");
+				copies.push(inBubble ? "chatbox__message--assistant" : element.className);
+			}
+			return copies;
+		}, "Usa Preact y Fastify.");
+
+		expect(visibleCopies).toEqual(["chatbox__message--assistant"]);
+	});
+
+	test("mientras carga el markdown, la burbuja no queda en blanco", async ({ page }) => {
+		// El renderizador se carga diferido: sin el indicador, la copia que se acaba de ocultar
+		// en la región dejaría la respuesta sin ver durante la carga.
+		await page.route("**/react-markdown*", async (route) => {
+			await new Promise((resolve) => setTimeout(resolve, 1200));
+			await route.continue();
+		});
+		await mockChatApi(page, tokenFrame("Usa Preact y Fastify."));
+		await openChatbox(page);
+		await sendQuestion(page, "¿Qué usa Jorge?");
+
+		const bubble = page.locator(".chatbox__message--assistant");
+		await expect(bubble.locator(".chatbox__typing")).toBeVisible();
+		await expect(bubble).toContainText("Usa Preact y Fastify.");
+	});
+
+	test("el error se sigue viendo en la región", async ({ page }) => {
+		// El error no está en ninguna otra parte: si la región lo ocultara, nadie lo vería.
+		await page.route("**/api/chat", (route) => route.fulfill({ status: 500, body: "boom" }));
+		await openChatbox(page);
+		await sendQuestion(page, "¿Qué usa Jorge?");
+
+		const region = page.locator(".chatbox__status");
+		await expect(region).toBeVisible();
+		await expect(region).toHaveText(strings.errors.HTTP_SERVER);
+	});
+
 	test("el widget no tiene violaciones de axe con la respuesta anunciada", async ({ page }) => {
 		await mockChatApi(page, tokenFrame("Usa Preact."));
 		await openChatbox(page);
