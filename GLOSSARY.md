@@ -35,7 +35,10 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
 
 - **Región de estado**: el único elemento del widget que un lector de pantalla trata como
   zona de anuncio (`role="status"`). Recibe un texto y lo dice una vez. La lista de mensajes
-  no es una región de estado: anunciar cada token hace la respuesta inusable.
+  no es una región de estado: anunciar cada token hace la respuesta inusable. Anuncia
+  siempre, pero **pinta solo lo que no está en la conversación**: el desenlace de un turno
+  completado ya se ve en la burbuja, así que la región lo oculta visualmente sin sacarlo del
+  árbol de accesibilidad (RF-F46).
 - **Anuncio**: el texto que una región de estado comunica en un momento dado. El widget
   anuncia una vez por turno —inicio, desenlace y, si procede, la respuesta completa— y
   nunca anuncia algo que no acabe de producir: restaurar una conversación no es anunciar.
@@ -90,8 +93,8 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
   la interfaz. En el widget significa exactamente dos cosas: el indicador de escritura no se
   anima y el scroll no es suave. No es una propiedad del tema: el sitio host no la hereda ni
   puede bajarla.
-- **Indicador de escritura**: los tres puntos de la burbuja del asistente vacío que señalan
-  que la respuesta está en camino. Es visual y decorativo —no se anuncia, porque el anuncio
+- **Indicador de escritura**: los tres puntos de la burbuja del asistente que señalan que la
+  respuesta está en camino: mientras llega, y mientras el markdown ya recibido se carga (RF-F46). Es visual y decorativo —no se anuncia, porque el anuncio
   vive en la región de estado— y con movimiento reducido son los mismos tres puntos sin
   animación. No es el aviso de "escribiendo" de la región, que es texto y se anuncia.
 - **Contrato de movimiento**: inventario de las fuentes de movimiento del widget —el indicador

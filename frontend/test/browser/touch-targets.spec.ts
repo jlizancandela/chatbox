@@ -186,7 +186,9 @@ test.describe("con una conversación larga", () => {
 		await page.goto("/");
 		await page.locator("#chatbox-question").fill("Cuéntame algo largo");
 		await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
-		await expect(page.locator(".chatbox__message--assistant")).toBeVisible();
+		// La respuesta completa antes de subir el hilo: si no, la subida cae a menos de ~80 px
+		// del final y el widget la trata como seguimiento (RF-F06).
+		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra119");
 
 		// Precondición, no decoración: si la conversación no se desplaza, el botón no
 		// aparece y el test pasaría sin haber medido nada.
