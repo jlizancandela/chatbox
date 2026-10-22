@@ -72,6 +72,24 @@ const animationNameOf = (page: Page): Promise<string> =>
 		.first()
 		.evaluate((element) => window.getComputedStyle(element).animationName);
 
+/**
+ * Espera a que la conversación deje de crecer.
+ *
+ * El markdown del asistente se carga diferido (RF-F30): la burbuja crece cuando el módulo
+ * llega, después del scroll. Sin esta espera, el botón calcularía su destino con una altura
+ * que aún va a cambiar.
+ */
+async function waitForConversationToSettle(page: Page): Promise<void> {
+	await page.waitForFunction(() => {
+		const conversation = document.querySelector(".chatbox__conversation");
+		if (!conversation) return false;
+		const store = window as unknown as { __rfF44Height?: number };
+		const previous = store.__rfF44Height;
+		store.__rfF44Height = conversation.scrollHeight;
+		return previous !== undefined && previous === conversation.scrollHeight;
+	});
+}
+
 test.describe("RF-F44 — el indicador de escritura", () => {
 	test("no se anima con movimiento reducido", async ({ page }) => {
 		await page.emulateMedia({ reducedMotion: "reduce" });
@@ -104,15 +122,17 @@ test.describe("RF-F44 — el scroll de la conversación", () => {
 	test.use({ viewport: { width: 420, height: 520 } });
 
 	const longAnswer = Array.from({ length: 120 }, (_, index) => `palabra${index} `).join("");
+	const LONG_ANSWER_MARK = "palabra0";
 
-	test("no se pide suave con movimiento reducido", async ({ page }) => {
-		await page.emulateMedia({ reducedMotion: "reduce" });
-		await recordScrollBehaviors(page);
-		await mockChatApi(page, tokenFrame(longAnswer), doneFrame);
-
+	/** Una conversación larga, desplazada arriba, con el botón «Ir al final» a la vista. */
+	async function longConversationWithScrollToEnd(page: Page): Promise<void> {
 		await page.goto("/");
 		await askSomething(page);
-		await expect(page.locator(".chatbox__message--assistant")).toBeVisible();
+		// El markdown del asistente se carga diferido (RF-F30) y, hasta que llega, la
+		// burbuja está vacía: hay que esperarlo o el scroll se calcula sobre una altura que
+		// aún va a cambiar.
+		await expect(page.locator(".chatbox__message--assistant")).toContainText(LONG_ANSWER_MARK);
+		await waitForConversationToSettle(page);
 
 		// Precondición, no decoración: si la conversación no se desplaza, el botón no
 		// aparece y el test pasaría sin haber pedido ningún scroll.
@@ -127,11 +147,32 @@ test.describe("RF-F44 — el scroll de la conversación", () => {
 			if (conversation) conversation.scrollTop = 0;
 		}, SCROLL_BOX_SELECTOR);
 		await expect(page.getByRole("button", { name: strings.actions.scrollToEnd })).toBeVisible();
+	}
+
+	/** Si el hilo quedó al final. */
+	const isAtTheEnd = (page: Page): Promise<boolean> =>
+		page.evaluate((selector) => {
+			const conversation = document.querySelector(selector);
+			if (!conversation) return false;
+			return conversation.scrollTop + conversation.clientHeight >= conversation.scrollHeight - 1;
+		}, SCROLL_BOX_SELECTOR);
+
+	test("no se pide suave con movimiento reducido", async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: "reduce" });
+		await recordScrollBehaviors(page);
+		await mockChatApi(page, tokenFrame(longAnswer), doneFrame);
+
+		await longConversationWithScrollToEnd(page);
 		await page.getByRole("button", { name: strings.actions.scrollToEnd }).click();
 
 		const behaviors = await scrollBehaviors(page);
 		expect(behaviors.length, "el widget tiene que pedir algún scroll").toBeGreaterThan(0);
 		expect(behaviors).not.toContain("smooth");
+		// Sondeo, no aserción: el desplazamiento se aplica en el frame de render, así que
+		// leer `scrollTop` justo después del clic sería una carrera.
+		await expect
+			.poll(() => isAtTheEnd(page), { message: "el hilo tiene que quedar al final" })
+			.toBe(true);
 	});
 
 	test("se pide suave cuando la persona permite el movimiento", async ({ page }) => {
@@ -139,10 +180,16 @@ test.describe("RF-F44 — el scroll de la conversación", () => {
 		await recordScrollBehaviors(page);
 		await mockChatApi(page, tokenFrame(longAnswer), doneFrame);
 
-		await page.goto("/");
-		await askSomething(page);
-		await expect(page.locator(".chatbox__message--assistant")).toBeVisible();
+		await longConversationWithScrollToEnd(page);
+		await page.getByRole("button", { name: strings.actions.scrollToEnd }).click();
 
-		expect(await scrollBehaviors(page)).toContain("smooth");
+		// Los dos caminos —el autoscroll y el botón— piden lo mismo: sin movimiento
+		// reducido los dos piden scroll suave.
+		const behaviors = await scrollBehaviors(page);
+		expect(behaviors.length, "el widget tiene que pedir algún scroll").toBeGreaterThan(0);
+		expect(behaviors).toContain("smooth");
+		await expect
+			.poll(() => isAtTheEnd(page), { message: "el hilo tiene que quedar al final" })
+			.toBe(true);
 	});
 });

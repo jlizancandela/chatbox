@@ -163,14 +163,23 @@ La burbuja del asistente vacío pasa a tres puntos decorativos y deja de pintar 
 - `test/motion.ts`: fuente única de las fuentes de movimiento, de sus selectores y de las
   media queries del contrato. Lo comparten los dos niveles, como `test/touch-targets.ts` en
   RF-F43.
-- El verificador del contrato (`findMotionViolations(css)`) es una función pura sobre el
-  texto de la hoja: la guarda la usa contra la hoja real y el test la usa contra una hoja
-  crafted que viola el contrato. **El test tiene que incluir la entrada que rechaza**: una
+- El verificador del contrato (`findMotionViolations(root)`) es una función pura sobre el
+  árbol ya parseado: la guarda la usa contra la hoja real —parseada una sola vez, por
+  `test/css-layers.ts`, que ya la comparte con el theming y el contraste— y el test la usa
+  contra hojas escritas a mano. **El test tiene que incluir la entrada que rechaza**: una
   animación fuera del bloque `no-preference` tiene que producir una violación.
+- La guarda es **bidireccional**, y las dos direcciones importan:
+  - *inventariado → declarado*: cada fuente del inventario tiene que existir en la hoja;
+  - *declarado → inventariado*: nada puede animarse fuera de los selectores del inventario.
+    Con una sola dirección, una animación nueva se cuela en silencio.
+- El detector del literal del scroll suave (`findSmoothScrollOffenders(sources)`) también es
+  una función pura, para que el test pueda alimentarla con un mapa escrito a mano: es la
+  entrada que rechaza de un detector que afirma una ausencia.
 - `test/unit/chatbox-motion.test.ts` (**mecanismo**):
   - existen los dos bloques de media query del contrato;
   - ninguna regla declara `animation` ni `transition` con valor distinto de `none`, y ningún
     `@keyframes`, fuera del bloque `no-preference`;
+  - ninguna animación se declara sobre un selector que no esté en el inventario;
   - la caja de scroll declara `scroll-behavior: auto` dentro del bloque `reduce`, y ninguna
     regla del widget la declara `smooth`;
   - el literal `"smooth"` no aparece en `src/` fuera de `src/chat/domain/motion.ts`.
@@ -197,7 +206,7 @@ La burbuja del asistente vacío pasa a tres puntos decorativos y deja de pintar 
 | `test/unit/chat/domain/motion.test.ts` | Nuevo: la regla pura de scroll, sin DOM |
 | `test/browser/motion.spec.ts` | Nuevo: resolución |
 | `test/component/chatbox-behavior.test.tsx` | El indicador de escritura: tres puntos decorativos y ningún texto en la burbuja |
-| `test/unit/strings-inventory.test.ts` | Lista blanca: `chatbox__typing` y `chatbox__typing-dot`; la consulta de la media query pasa a la lista de escapes justificados |
+| `test/unit/strings-inventory.test.ts` | Lista blanca: `chatbox__typing` y `chatbox__typing-dot`; la consulta de la media query y el literal `smooth` salen del alcance del escáner y pasan a la lista de escapes justificados |
 | `TODO.md` | Marcar RF-F44 al cerrar |
 
 ## Criterios de aceptación

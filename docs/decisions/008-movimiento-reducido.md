@@ -83,6 +83,11 @@ El movimiento reducido del widget es un **contrato**, no una lista de comprobaci
     que aparezca una tercera: ninguna regla puede declarar `animation`, `transition` o
     `@keyframes` fuera del bloque `no-preference`, ni `scroll-behavior: smooth` en la caja de
     scroll, y el literal `"smooth"` no puede aparecer en `src/` fuera de la regla de scroll.
+    La guarda es **bidireccional**: cada fuente del inventario tiene que existir en la hoja
+    —*inventariado → declarado*— y nada puede animarse sobre un selector que no esté en el
+    inventario —*declarado → inventariado*. Con una sola de las dos direcciones, una animación
+    nueva se cuela en silencio: la primera deja pasar un indicador sin animación, la segunda
+    deja pasar un tercer elemento que nadie inventarió.
 11. **La identidad de cada fuente de movimiento es su selector CSS**, no un atributo de
     markup: el movimiento se declara en CSS y un atributo no añadiría detección.
 12. **Dos niveles, con el nivel declarado en cada aserto**, igual que las Decisiones 002, 006 y

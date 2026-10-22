@@ -8,6 +8,7 @@
 
 import postcss, { type AtRule, type Rule } from "postcss";
 import css from "../src/components/Chatbox.css?raw";
+import { normalizeMediaParams } from "./media-params";
 
 export const cssSource = css;
 
@@ -32,12 +33,13 @@ export const topLevelRule = (selector: string): Rule => {
 	return rule;
 };
 
+/** La condición de una media query, normalizada: los espacios no son parte del nombre. */
 export const mediaRule = (condition: string): AtRule => {
 	const media = styles.nodes.find(
 		(node): node is AtRule =>
 			node.type === "atrule" &&
 			node.name === "media" &&
-			(node.params ?? "").replace(/\s+/g, " ").trim() === condition
+			normalizeMediaParams(node.params) === condition
 	);
 	if (!media) throw new Error(`Falta la media query: ${condition}`);
 	return media;
