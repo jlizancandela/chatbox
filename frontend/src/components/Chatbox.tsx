@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { ExternalLink } from "../chat/components/ExternalLink";
 import { toAnnouncementText } from "../chat/domain/announcement";
 import { trimHistory } from "../chat/domain/conversation";
+import { REDUCED_MOTION_QUERY, scrollBehavior } from "../chat/domain/motion";
 import { useChat } from "../chat/hooks/useChat";
 import { type TurnEnd, useChatStream } from "../chat/hooks/useChatStream";
 import { useFocusOnMount } from "../chat/hooks/useFocusOnMount";
@@ -35,6 +36,17 @@ const STATUS_ERROR_CLASS = "chatbox__status--error";
 
 /** Lo que la región dice cuando no ha pasado nada: nada, y ningún error. */
 const NO_ANNOUNCEMENT = { text: "", isError: false };
+
+/**
+ * El comportamiento de scroll del widget, leído en el momento de usarlo (RF-F44).
+ *
+ * Una sola política para los dos caminos que desplazan la conversación —el autoscroll y el
+ * botón «Ir al final»—: suave, salvo que la persona pida menos movimiento. La preferencia
+ * se lee aquí y no en un estado: se cambia en la configuración del sistema operativo, y el
+ * siguiente scroll ya la respeta.
+ */
+const currentScrollBehavior = (): ScrollBehavior =>
+	scrollBehavior(window.matchMedia(REDUCED_MOTION_QUERY).matches);
 
 /**
  * Un turno cerrado sin respuesta es un desenlace, no un silencio: se anuncia **y** se pinta en
@@ -103,10 +115,9 @@ export function Chatbox({
 	useEffect(() => {
 		const element = conversationRef.current;
 		if (!element || !wasNearEnd.current) return;
-		const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 		element.scrollTo({
 			top: element.scrollHeight,
-			behavior: reduceMotion ? "auto" : "smooth",
+			behavior: currentScrollBehavior(),
 		});
 	}, [chat.state.messages, chat.state.currentResponse, localNotice]);
 
@@ -129,12 +140,10 @@ export function Chatbox({
 		handleConversationScroll();
 	}, [chat.state.messages, chat.state.currentResponse, localNotice]);
 
-	const scrollToEnd = (behavior: ScrollBehavior = "smooth"): void => {
+	const scrollToEnd = (behavior: ScrollBehavior): void => {
 		wasNearEnd.current = true;
-		conversationRef.current?.scrollTo({
-			top: conversationRef.current.scrollHeight,
-			behavior,
-		});
+		const element = conversationRef.current;
+		if (element) element.scrollTo({ top: element.scrollHeight, behavior });
 		setShowScrollToEnd(false);
 	};
 
@@ -203,7 +212,11 @@ export function Chatbox({
 				)}
 
 				{showScrollToEnd && (
-					<button type="button" data-chatbox-control="scroll-to-end" onClick={() => scrollToEnd()}>
+					<button
+						type="button"
+						data-chatbox-control="scroll-to-end"
+						onClick={() => scrollToEnd(currentScrollBehavior())}
+					>
 						{strings.actions.scrollToEnd}
 					</button>
 				)}

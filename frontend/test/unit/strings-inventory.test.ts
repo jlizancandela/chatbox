@@ -74,10 +74,7 @@ const ATTRIBUTE_VALUES = ["es", "true", "polite", "off", "status", "submit", "bu
 const KEYBOARD_KEYS = ["Enter", "Escape"];
 
 /** Scroll y CSSOM: `scrollTo({ behavior })` y los estilos del autogrow del textarea. */
-const SCROLL_AND_CSSOM_VALUES = ["smooth", "auto", "hidden"];
-
-/** Media queries de accesibilidad. Valores compuestos: pueden llevar espacios. */
-const MEDIA_QUERIES = ["(prefers-reduced-motion: reduce)"];
+const SCROLL_AND_CSSOM_VALUES = ["auto", "hidden"];
 
 /** Estados de turno: conjunto cerrado de `chat-reducer`, no redacción. */
 const TURN_STATES = ["idle", "connecting", "generating", "streaming", "error", "aborted"];
@@ -111,7 +108,6 @@ const ALLOWED = new Set([
 	...ATTRIBUTE_VALUES,
 	...KEYBOARD_KEYS,
 	...SCROLL_AND_CSSOM_VALUES,
-	...MEDIA_QUERIES,
 	...CONTROL_IDENTITIES,
 	...TURN_STATES,
 	...TURN_END_KINDS,
@@ -167,6 +163,10 @@ const JUSTIFIED_WITHOUT_COPY: Record<string, string> = {
 	idle: "estado declarado en `chat-reducer`; desde RF-F41 ningún componente lo nombra porque la región se deduce de eventos",
 	"inline-link":
 		"identidad de control declarada en `chat/components/ExternalLink.tsx` (RF-F43); ese componente vive fuera de `src/components/`, que es el alcance de este escáner",
+	"(prefers-reduced-motion: reduce)":
+		"consulta de la preferencia de movimiento declarada en `chat/domain/motion.ts` (RF-F44); ese módulo vive fuera de `src/components/`, que es el alcance de este escáner",
+	smooth:
+		"comportamiento de scroll declarado en `chat/domain/motion.ts` (RF-F44); ese módulo vive fuera de `src/components/`, que es el alcance de este escáner",
 };
 
 /** `src/components/Chatbox.tsx`, sin el prefijo que devuelve el glob. */
