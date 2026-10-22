@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { ExternalLink } from "../chat/components/ExternalLink";
 import { toAnnouncementText } from "../chat/domain/announcement";
 import { trimHistory } from "../chat/domain/conversation";
-import { REDUCED_MOTION_QUERY, scrollBehavior } from "../chat/domain/motion";
+import { REDUCED_MOTION_QUERY, type ScrollIntent, scrollBehavior } from "../chat/domain/motion";
 import { useChat } from "../chat/hooks/useChat";
 import { type TurnEnd, useChatStream } from "../chat/hooks/useChatStream";
 import { useFocusOnMount } from "../chat/hooks/useFocusOnMount";
@@ -40,13 +40,13 @@ const NO_ANNOUNCEMENT = { text: "", isError: false };
 /**
  * El comportamiento de scroll del widget, leído en el momento de usarlo (RF-F44).
  *
- * Una sola política para los dos caminos que desplazan la conversación —el autoscroll y el
- * botón «Ir al final»—: suave, salvo que la persona pida menos movimiento. La preferencia
- * se lee aquí y no en un estado: se cambia en la configuración del sistema operativo, y el
+ * Una sola política para los dos caminos que desplazan la conversación —el seguimiento y el
+ * salto al final—, con la diferencia de intención que la regla sabe. La preferencia se lee
+ * aquí y no en un estado: se cambia en la configuración del sistema operativo, y el
  * siguiente scroll ya la respeta.
  */
-const currentScrollBehavior = (): ScrollBehavior =>
-	scrollBehavior(window.matchMedia(REDUCED_MOTION_QUERY).matches);
+const currentScrollBehavior = (intent: ScrollIntent): ScrollBehavior =>
+	scrollBehavior(window.matchMedia(REDUCED_MOTION_QUERY).matches, intent);
 
 /**
  * Un turno cerrado sin respuesta es un desenlace, no un silencio: se anuncia **y** se pinta en
@@ -88,7 +88,15 @@ export function Chatbox({
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const conversationRef = useRef<HTMLElement>(null);
-	const wasNearEnd = useRef(true);
+	const messagesListRef = useRef<HTMLOListElement | null>(null);
+	/**
+	 * Si la persona sigue el hilo. El widget desplaza siempre hacia el final, así que la
+	 * posición intermedia de una animación no dice nada de ella: solo deja de seguirlo
+	 * cuando alguien sube el hilo de verdad.
+	 */
+	const following = useRef(true);
+	/** La última posición conocida, para distinguir "desplazó el widget" de "subió alguien". */
+	const lastScrollTop = useRef(0);
 	const sentContextLength = useRef(0);
 
 	const { sendQuestion, abort } = useChatStream({
@@ -104,6 +112,7 @@ export function Chatbox({
 	});
 
 	const isBusy = ["connecting", "generating", "streaming"].includes(chat.state.turnState);
+	const showMessages = chat.state.messages.length > 0;
 
 	useFocusOnMount(textareaRef);
 
@@ -114,10 +123,10 @@ export function Chatbox({
 
 	useEffect(() => {
 		const element = conversationRef.current;
-		if (!element || !wasNearEnd.current) return;
+		if (!element || !following.current) return;
 		element.scrollTo({
 			top: element.scrollHeight,
-			behavior: currentScrollBehavior(),
+			behavior: currentScrollBehavior("seguimiento"),
 		});
 	}, [chat.state.messages, chat.state.currentResponse, localNotice]);
 
@@ -129,8 +138,14 @@ export function Chatbox({
 		// que él, ninguna posición estaba lejos del final y el botón no podía
 		// aparecer nunca (widget corto, viewport pequeño o teclado abierto en móvil).
 		const threshold = Math.min(80, Math.max(16, element.clientHeight / 2));
-		wasNearEnd.current = distanceFromEnd < threshold;
-		setShowScrollToEnd(!wasNearEnd.current);
+		// El widget desplaza el hilo hacia el final: durante un scroll suave la posición es
+		// intermedia y medirla daría un falso "la persona se fue" que cortaría el
+		// seguimiento a mitad de la respuesta. Solo cuenta como alejarse que alguien suba.
+		const scrolledUp = element.scrollTop < lastScrollTop.current;
+		lastScrollTop.current = element.scrollTop;
+		if (distanceFromEnd < threshold) following.current = true;
+		else if (scrolledUp) following.current = false;
+		setShowScrollToEnd(!following.current);
 	};
 
 	// El contenido crece con cada token y crecer no dispara ningún evento `scroll`:
@@ -140,8 +155,30 @@ export function Chatbox({
 		handleConversationScroll();
 	}, [chat.state.messages, chat.state.currentResponse, localNotice]);
 
+	// El contenido crece después del último cambio de estado: el markdown del asistente se
+	// carga diferido (RF-F30) y la burbuja crece cuando llega. El desplazamiento sigue al
+	// tamaño del hilo, no al estado: si no, quien seguía la respuesta se queda a mitad.
+	useEffect(() => {
+		const list = messagesListRef.current;
+		if (!list || typeof ResizeObserver === "undefined") return;
+		const observer = new ResizeObserver(() => {
+			const element = conversationRef.current;
+			if (!element) return;
+			if (following.current) {
+				element.scrollTo({
+					top: element.scrollHeight,
+					behavior: currentScrollBehavior("seguimiento"),
+				});
+				return;
+			}
+			handleConversationScroll();
+		});
+		observer.observe(list);
+		return () => observer.disconnect();
+	}, [showMessages]);
+
 	const scrollToEnd = (behavior: ScrollBehavior): void => {
-		wasNearEnd.current = true;
+		following.current = true;
 		const element = conversationRef.current;
 		if (element) element.scrollTo({ top: element.scrollHeight, behavior });
 		setShowScrollToEnd(false);
@@ -168,8 +205,6 @@ export function Chatbox({
 		setAnnouncement(NO_ANNOUNCEMENT);
 		textareaRef.current?.focus();
 	};
-
-	const showMessages = chat.state.messages.length > 0;
 
 	return (
 		<section class="chatbox" lang="es" aria-labelledby="chatbox-title">
@@ -206,6 +241,7 @@ export function Chatbox({
 						isBusy={
 							isBusy || chat.state.turnState === "error" || chat.state.turnState === "aborted"
 						}
+						listRef={messagesListRef}
 					/>
 				) : (
 					<EmptyState suggestions={suggestions} isBusy={isBusy} onSuggestion={submit} />
@@ -215,7 +251,7 @@ export function Chatbox({
 					<button
 						type="button"
 						data-chatbox-control="scroll-to-end"
-						onClick={() => scrollToEnd(currentScrollBehavior())}
+						onClick={() => scrollToEnd(currentScrollBehavior("salto"))}
 					>
 						{strings.actions.scrollToEnd}
 					</button>

@@ -14,12 +14,29 @@
 export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 /**
- * El comportamiento de scroll del widget: suave, salvo que la persona pida menos movimiento.
+ * Para qué se desplaza el hilo.
+ *
+ * - `seguimiento`: el hilo se mantiene al final mientras llega la respuesta. Se actualiza
+ *   con cada fragmento de texto, así que una animación se reinicia en cada actualización y
+ *   nunca llega: el hilo se quedaría a mitad de la respuesta.
+ * - `salto`: la persona pide ir al final. Es una navegación puntual, no un seguimiento.
+ */
+export type ScrollIntent = "seguimiento" | "salto";
+
+/**
+ * El comportamiento de scroll del widget, en un solo sitio.
+ *
+ * El seguimiento es **siempre instantáneo**: es una posición que se persigue de forma
+ * continua, y una animación reiniciada con cada token no llega a ningún sitio. El salto sí
+ * se anima, salvo que la persona pida menos movimiento.
  *
  * `"auto"` no significa "instantáneo": delega en el `scroll-behavior` computado del
- * elemento. `"instant"` daría la misma garantía sin depender del CSS, pero no lo
+ * elemento, y el contrato de RF-F44 declara `auto` en la caja de scroll cuando hay
+ * movimiento reducido. `"instant"` daría la misma garantía sin depender del CSS, pero no lo
  * garantizan todas las versiones de Safari y un valor inválido lanza `TypeError` — y el
  * widget se embebe en sitios que no controla.
  */
-export const scrollBehavior = (reduceMotion: boolean): ScrollBehavior =>
-	reduceMotion ? "auto" : "smooth";
+export const scrollBehavior = (reduceMotion: boolean, intent: ScrollIntent): ScrollBehavior => {
+	if (intent === "seguimiento") return "auto";
+	return reduceMotion ? "auto" : "smooth";
+};

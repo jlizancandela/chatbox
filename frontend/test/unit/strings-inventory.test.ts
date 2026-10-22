@@ -76,6 +76,12 @@ const KEYBOARD_KEYS = ["Enter", "Escape"];
 /** Scroll y CSSOM: `scrollTo({ behavior })` y los estilos del autogrow del textarea. */
 const SCROLL_AND_CSSOM_VALUES = ["auto", "hidden"];
 
+/**
+ * Intención del scroll (RF-F44): para qué se desplaza el hilo. Son valores técnicos de
+ * `chat/domain/motion.ts`, no redacción de interfaz.
+ */
+const SCROLL_INTENTS = ["seguimiento", "salto"];
+
 /** Estados de turno: conjunto cerrado de `chat-reducer`, no redacción. */
 const TURN_STATES = ["idle", "connecting", "generating", "streaming", "error", "aborted"];
 
@@ -108,6 +114,7 @@ const ALLOWED = new Set([
 	...ATTRIBUTE_VALUES,
 	...KEYBOARD_KEYS,
 	...SCROLL_AND_CSSOM_VALUES,
+	...SCROLL_INTENTS,
 	...CONTROL_IDENTITIES,
 	...TURN_STATES,
 	...TURN_END_KINDS,
