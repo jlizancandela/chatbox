@@ -78,7 +78,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F41` — Región `role="status"` / `aria-live="polite"` para anuncios; lista de mensajes no es región viva.
 - [x] `RF-F42` — Contraste mínimo 4.5:1 / 3:1 en tema claro y oscuro; contrato de contraste con guarda de tokens (#96).
 - [x] `RF-F43` — Controles táctiles ≥ 44×44 px: suelo en px absolutos (no en `rem`, que dependía del `font-size` del host), `min-width` añadida, contrato con inventario y guarda de identidad por control, y medición real en Chromium por estado (#98).
-- [ ] `RF-F44` — `prefers-reduced-motion`: sin animación del indicador ni scroll suave.
+- [x] `RF-F44` — `prefers-reduced-motion`: el indicador de escritura son tres puntos que solo se animan con movimiento permitido, y el scroll no es suave. Contrato con inventario y guarda, verificado en dos niveles —mecanismo y resolución en Chromium— (#100).
 - [ ] `RF-F45` — Label en textarea, `aria-label` en botones solo-icono, `lang="es"` en componente.
 - [ ] Pasada automática con axe + prueba manual con NVDA y VoiceOver (`RF-F41`).
 
