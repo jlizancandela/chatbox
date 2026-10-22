@@ -63,9 +63,16 @@ El movimiento reducido del widget es un **contrato**, no una lista de comprobaci
    `.chatbox *` protegen al subtree del widget frente al CSS que le meta un sitio host; el
    `scroll-behavior` sale de la regla global y pasa a la caja de scroll, que es donde el
    contrato lo necesita.
-6. **Hay una sola política de scroll**, usada por el autoscroll y por el botón «Ir al final»:
-   suave, salvo que la persona pida menos movimiento. Dos caminos condicionados por separado
-   divergen en el próximo refactor, y el que divergió hoy fue el que nadie tocó.
+6. **Hay una sola política de scroll**, usada por el seguimiento del hilo y por el botón
+   «Ir al final»: la regla decide en un solo sitio, con la **intención** como parámetro. El
+   seguimiento es **instantáneo** —se actualiza con cada token, y una animación se reinicia
+   en cada actualización y nunca llega, así que el hilo se quedaría a mitad de la respuesta— y
+   el salto explícito es **animado**, salvo que la persona pida menos movimiento. Dos caminos
+   con decisiones distintas y aplicadas por separado divergen en el próximo refactor, y el que
+   divergió hoy fue el que nadie tocó. *(Enmienda del 2026-10-22: esta decisión decía «suave»
+   para los dos. El diagnóstico de RF-F06 —issue #102— midió que con scroll suave el hilo se
+   quedaba en el 1% de una respuesta de 8000 px, porque medir la distancia durante una
+   animación da un falso «la persona se fue». Ver `frontend/.specs/RF-F06-seguimiento-del-hilo.md`.)*
 7. **Bajo movimiento reducido el scroll pide `behavior: "auto"`**, no `"instant"`. `auto`
    delega en el `scroll-behavior` computado, y el contrato CSS declara `scroll-behavior: auto`
    en la caja de scroll: el CSS es el que garantiza el salto instantáneo. `"instant"` daría
