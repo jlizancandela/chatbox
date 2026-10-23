@@ -236,13 +236,15 @@ describe("Chatbox — indicador de escritura (RF-F44)", () => {
 
 		await waitFor(() => expect(container.querySelector(".chatbox__typing")).toBeInTheDocument());
 		const bubble = container.querySelector(".chatbox__message--assistant");
+		expect(bubble, "el bocadillo del asistente tiene que estar").not.toBeNull();
 		const notice = bubble?.querySelector(".chatbox__writing");
 		expect(notice).toHaveTextContent(strings.messages.writing);
 		// Decorativa: la región de estado es la única que anuncia.
 		expect(notice).toHaveAttribute("aria-hidden", "true");
 		// Lo que dice la región no cambia: cambia si se pinta.
-		expect(regionOf(container)).toHaveTextContent(strings.messages.writing);
-		expect(regionOf(container)).toHaveClass("chatbox__status--announced");
+		const region = regionOf(container);
+		expect(region).toHaveTextContent(strings.messages.writing);
+		expect(region).toHaveClass("chatbox__status--announced");
 	});
 });
 

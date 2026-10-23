@@ -15,6 +15,13 @@ import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames
 const STORAGE_KEY = "chatbox:v1";
 const REGION_SEEN = "__rfF41RegionSeen";
 
+/**
+ * Ancho de la región cuando está "visualmente oculta" (RF-F46): una caja de 1×1 px con
+ * el texto recortado. El patrón deja la región dentro del árbol de accesibilidad, que
+ * es lo que hace que el anuncio se siga oyendo.
+ */
+const ANCHO_REGION_OCULTA_PX = 1;
+
 async function openChatbox(page: Page) {
 	await page.goto("/");
 	await expect(page.locator(".chatbox")).toBeVisible();
@@ -132,7 +139,7 @@ test.describe("RF-F41 región de estado", () => {
 		const region = page.locator(".chatbox__status");
 		await expect(region).toHaveText(strings.messages.writing);
 		const box = await region.boundingBox();
-		expect(box?.width).toBeLessThanOrEqual(1);
+		expect(box?.width).toBeLessThanOrEqual(ANCHO_REGION_OCULTA_PX);
 
 		// Y lo que se ve no se oye dos veces: la copia del bocadillo es decorativa, y el
 		// texto que se anuncia sigue en el árbol de accesibilidad de la región.

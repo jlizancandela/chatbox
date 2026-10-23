@@ -19,6 +19,15 @@ const ANSWER_WORDS = 20;
 const TOKENS = 60;
 
 /**
+ * Desborde mínimo del hilo para que subirlo sea apartarse de verdad.
+ *
+ * El widget trata como "seguir" lo que queda a menos de ~80 px del final (RF-F06), así
+ * que la respuesta tiene que desbordar la conversación con holgura: 300 px es esa
+ * holgura, para que el test no dependa del borde ni de la longitud del guion.
+ */
+const DESBORDE_MINIMO_PX = 300;
+
+/**
  * Sustituye el `fetch` del API por un stream SSE que emite tokens con retardo.
  *
  * El body de una respuesta HTTP llega entero, así que el mock de `test/chat-frames.ts`
@@ -135,6 +144,9 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 		await page.goto("/");
 		await ask(page);
 
+		// La respuesta tiene que haber llegado: el hilo que se aparta es el que ya tiene
+		// contenido, no un bocadillo vacío.
+		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra2");
 		// Precondición: tiene que haber hilo que apartar. El widget trata como "seguir" lo
 		// que queda a menos de ~80 px del final (RF-F06), así que la respuesta tiene que
 		// desbordar la conversación con holgura antes de subir el hilo.
@@ -143,7 +155,7 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 				const state = await threadState(page);
 				return state.scrollHeight - state.clientHeight;
 			})
-			.toBeGreaterThan(300);
+			.toBeGreaterThan(DESBORDE_MINIMO_PX);
 		await expect.poll(async () => (await threadState(page)).atBottom).toBe(true);
 
 		// Quien se aparta lee por su cuenta: el hilo se queda donde lo dejó y aparece el
