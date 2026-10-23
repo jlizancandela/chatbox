@@ -89,6 +89,12 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
   que un control nuevo sin inventariar rompa la compilación. Se verifica en dos niveles
   —mecanismo en jsdom y resolución en Chromium— y no tiene nivel manual.
 
+## Seguimiento del hilo (RF-F06/RF-F48)
+
+- **Umbral de seguimiento**: distancia máxima al final de la conversación que todavía se
+  considera seguimiento. Son 16 px fijos: más allá, la persona está apartada y el botón
+  «Ir al final» aparece; no depende de la altura del widget.
+
 ## Movimiento reducido del widget (RF-F44)
 
 - **Movimiento reducido**: la preferencia del sistema operativo que pide menos movimiento en
