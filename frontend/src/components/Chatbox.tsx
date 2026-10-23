@@ -134,10 +134,12 @@ export function Chatbox({
 	});
 
 	const isBusy = ["connecting", "generating", "streaming"].includes(chat.state.turnState);
-	// Lo que la región dice ya está en la conversación: el aviso "escribiendo", que se ve
-	// en el bocadillo (RF-F47), y el desenlace de un turno completado, que se ve en la
-	// burbuja (RF-F46). La región lo anuncia igual, pero no lo pinta dos veces.
-	const statusIsInConversation = announcement.inConversation || isBusy;
+	// ¿Lo que la región dice ya está en la conversación? El desenlace de un turno
+	// completado se ve en la burbuja (RF-F46) y el aviso de escritura se ve en el
+	// bocadillo (RF-F47). Cuando es así, la región lo anuncia igual, pero no lo pinta
+	// dos veces. El aviso solo cuenta cuando es lo que la región está diciendo: si
+	// quedara un desenlace anterior, ese es el texto que se ve, y no el aviso.
+	const statusIsInConversation = announcement.inConversation || (isBusy && !announcement.text);
 	const showMessages = chat.state.messages.length > 0;
 
 	useFocusOnMount(textareaRef);

@@ -32,9 +32,11 @@ export function ChatMessages({
 	return (
 		<ol class="chatbox__messages" aria-label={strings.messages.listLabel} ref={listRef}>
 			{visibleMessages.map((message, index) => {
-				// La burbuja en curso es la última, y solo existe mientras el turno está en
-				// marcha: es la única que puede llevar el aviso de escritura.
-				const isPending = isBusy && index === visibleMessages.length - 1;
+				// ¿Es esta la burbuja en curso? La última, del asistente, y solo mientras
+				// el turno está en marcha. El aviso de escritura vive en ella; que
+				// todavía no tenga texto lo decide la rama del render.
+				const isPending =
+					isBusy && index === visibleMessages.length - 1 && message.role === "assistant";
 				return (
 					<li
 						class={`chatbox__message chatbox__message--${message.role}`}
