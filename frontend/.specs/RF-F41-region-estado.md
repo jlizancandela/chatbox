@@ -242,8 +242,9 @@ cd frontend && npm run dev
 > no aparecen en ningún otro sitio. Lo que se anuncia no cambia: el mismo texto, en el mismo
 > momento, por la misma región (ver `RF-F47-aviso-en-la-burbuja.md`).
 >
-> Texto original: el texto de la región se ve en `.chatbox__status`, que solo se oculta cuando
-> está vacía: sirve de referencia para contrastar lo que se oye. Un test de navegador verifica que el guion sigue
+> Texto original (RF-F41, 2026-10-20; lo que RF-F47 toca ya no está vigente): el texto de la región
+> se ve en `.chatbox__status`, que solo se oculta cuando está vacía: sirve de referencia para
+> contrastar lo que se oye. Un test de navegador verifica que el guion sigue
 arrancando y anunciando, para que el fixture no se pudra en silencio; no verifica que suene
 nada, que es exactamente lo que no se puede automatizar.
 

@@ -36,12 +36,13 @@
   - Alcance: el aviso visible del turno en curso se pinta dentro del bocadillo del asistente y
     la región de estado deja de pintarlo.
   - Criterio: durante el turno, `strings.messages.writing` se ve dentro de
-    `.chatbox__message--assistant` y no se ve en `.chatbox__status`.
+    `.chatbox__message--assistant` y la región `.chatbox__status` **no lo pinta**: su
+    texto sigue ahí —para que se anuncie—, pero su caja es de 1×1 px.
   - Comprobación: test de navegador (nivel 2) y test de componente (nivel 1).
 - **S2 — La región sigue anunciando lo mismo.**
   - Alcance: la región conserva rol, atributos y contenido; lo único que cambia es si se pinta.
-  - Criterio: `.chatbox__status` contiene el aviso durante el turno y sigue en el árbol de
-    accesibilidad.
+  - Criterio: `.chatbox__status` **contiene** el aviso durante el turno (es lo que se
+    anuncia) y sigue en el árbol de accesibilidad, aunque no lo pinte.
   - Comprobación: test de componente (el texto) + test de navegador (el árbol de accesibilidad).
 - **S3 — La copia visible es decorativa.**
   - Alcance: la copia del bocadillo lleva `aria-hidden="true"`.
@@ -76,12 +77,13 @@ none` y `visibility: hidden` la sacarían del árbol de accesibilidad y el anunc
 | `src/components/Chatbox.tsx` | La región deja de pintar el aviso «escribiendo» |
 | `src/components/Chatbox.css` | `.chatbox__writing` |
 | `test/component/chatbox-behavior.test.tsx` | «leaves the writing notice only in the status region» fija lo contrario: se reescribe con el contrato nuevo |
-| `test/browser/live-region.spec.ts` | Test nuevo: el aviso se ve en el bocadillo, la región lo anuncia sin pintarlo |
+| `test/browser/live-region.spec.ts` | Test nuevo: el aviso se ve en el bocadillo, la región lo anuncia sin pintarlo. Retiene la respuesta con una puerta que abre el test, no con un retardo fijo |
+| `test/browser/scroll-follow.spec.ts` | La precondición de RF-F06: la respuesta tiene que desbordar el hilo antes de apartarse de él (ver «Riesgos») |
 | `test/unit/strings-inventory.test.ts` | Lista blanca: `chatbox__writing` |
 | `.specs/RF-F41-region-estado.md` | Enmienda: la región no pinta el aviso; la referencia manual es la burbuja |
 | `.specs/RF-F44-movimiento-reducido.md` | Enmienda: D3 y el criterio 1 quedan invertidos |
 | `.specs/RF-F46-respuesta-una-vez.md` | Enmienda: D2 y el criterio 2 (la región deja de pintar el aviso) |
-| `../../GLOSSARY.md` | «Región de estado» e «Indicador de escritura» |
+| `../../GLOSSARY.md` | «Región de estado» (enmienda) y «Aviso de escritura» (entrada nueva) |
 | `TODO.md` | RF-F47 |
 
 ## Riesgos
