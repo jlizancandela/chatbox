@@ -103,10 +103,15 @@ test.describe("RF-F41 región de estado", () => {
 	test("el aviso de escritura se ve en el bocadillo, y la región solo lo anuncia", async ({
 		page,
 	}) => {
-		// La respuesta se retiene a propósito: el aviso solo existe mientras la burbuja
-		// todavía no tiene texto.
+		// La respuesta se retiene con una puerta que abre el test, no con un reloj: un
+		// retardo fijo dejaba las aserciones dentro de una ventana que el test no
+		// controlaba, y en un runner lento llegaban después de la respuesta (R3-001).
+		let abrir: () => void = () => {};
+		const puerta = new Promise<void>((resolve) => {
+			abrir = resolve;
+		});
 		await page.route("**/api/chat", async (route) => {
-			await new Promise((resolve) => setTimeout(resolve, 800));
+			await puerta;
 			await route.fulfill({
 				status: 200,
 				contentType: "text/event-stream",
@@ -133,6 +138,12 @@ test.describe("RF-F41 región de estado", () => {
 		// texto que se anuncia sigue en el árbol de accesibilidad de la región.
 		expect(await bubble.ariaSnapshot()).not.toContain(strings.messages.writing);
 		expect(await region.ariaSnapshot()).toContain(strings.messages.writing);
+
+		// Al llegar la respuesta, el aviso desaparece: la respuesta se ve en la burbuja y
+		// no queda texto duplicado dentro de ella (D4 de RF-F47).
+		abrir();
+		await expect(bubble).toContainText("Usa Preact y Fastify.");
+		await expect(bubble.locator(".chatbox__writing")).toHaveCount(0);
 	});
 
 	test("el texto de la respuesta se ve una sola vez", async ({ page }) => {
