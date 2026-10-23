@@ -135,7 +135,15 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 		await page.goto("/");
 		await ask(page);
 
-		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra0");
+		// Precondición: tiene que haber hilo que apartar. El widget trata como "seguir" lo
+		// que queda a menos de ~80 px del final (RF-F06), así que la respuesta tiene que
+		// desbordar la conversación con holgura antes de subir el hilo.
+		await expect
+			.poll(async () => {
+				const state = await threadState(page);
+				return state.scrollHeight - state.clientHeight;
+			})
+			.toBeGreaterThan(300);
 		await expect.poll(async () => (await threadState(page)).atBottom).toBe(true);
 
 		// Quien se aparta lee por su cuenta: el hilo se queda donde lo dejó y aparece el

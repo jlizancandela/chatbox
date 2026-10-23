@@ -10,7 +10,7 @@
 import { expect, type Page, test } from "@playwright/test";
 import axe from "axe-core";
 import { strings } from "../../src/strings.es";
-import { mockChatApi, tokenFrame } from "../chat-frames";
+import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
 
 const STORAGE_KEY = "chatbox:v1";
 const REGION_SEEN = "__rfF41RegionSeen";
@@ -98,6 +98,41 @@ test.describe("RF-F41 región de estado", () => {
 
 		const politeRegions = await page.locator('[aria-live="polite"]').count();
 		expect(politeRegions).toBe(1);
+	});
+
+	test("el aviso de escritura se ve en el bocadillo, y la región solo lo anuncia", async ({
+		page,
+	}) => {
+		// La respuesta se retiene a propósito: el aviso solo existe mientras la burbuja
+		// todavía no tiene texto.
+		await page.route("**/api/chat", async (route) => {
+			await new Promise((resolve) => setTimeout(resolve, 800));
+			await route.fulfill({
+				status: 200,
+				contentType: "text/event-stream",
+				body: sourcesFrame() + tokenFrame("Usa Preact y Fastify.") + doneFrame,
+			});
+		});
+		await openChatbox(page);
+		await sendQuestion(page, "¿Qué usa Jorge?");
+
+		// El aviso se ve dentro del bocadillo, junto a los tres puntos.
+		const bubble = page.locator(".chatbox__message--assistant");
+		const notice = bubble.locator(".chatbox__writing");
+		await expect(notice).toBeVisible();
+		await expect(notice).toHaveText(strings.messages.writing);
+
+		// La región lo dice, pero no lo pinta: su caja es de 1×1 px (el patrón de
+		// "visualmente oculto" de RF-F46).
+		const region = page.locator(".chatbox__status");
+		await expect(region).toHaveText(strings.messages.writing);
+		const box = await region.boundingBox();
+		expect(box?.width).toBeLessThanOrEqual(1);
+
+		// Y lo que se ve no se oye dos veces: la copia del bocadillo es decorativa, y el
+		// texto que se anuncia sigue en el árbol de accesibilidad de la región.
+		expect(await bubble.ariaSnapshot()).not.toContain(strings.messages.writing);
+		expect(await region.ariaSnapshot()).toContain(strings.messages.writing);
 	});
 
 	test("el texto de la respuesta se ve una sola vez", async ({ page }) => {

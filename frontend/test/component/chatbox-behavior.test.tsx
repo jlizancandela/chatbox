@@ -227,7 +227,8 @@ describe("Chatbox — indicador de escritura (RF-F44)", () => {
 		expect(container.querySelectorAll(".chatbox__typing-dot")).toHaveLength(3);
 	});
 
-	it("leaves the writing notice only in the status region", async () => {
+	it("shows the writing notice inside the assistant bubble, decoratively", async () => {
+		// RF-F47: el aviso se ve dentro del bocadillo y la región solo lo anuncia.
 		mockHangingRequest();
 		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
 
@@ -235,8 +236,13 @@ describe("Chatbox — indicador de escritura (RF-F44)", () => {
 
 		await waitFor(() => expect(container.querySelector(".chatbox__typing")).toBeInTheDocument());
 		const bubble = container.querySelector(".chatbox__message--assistant");
-		expect(bubble).not.toHaveTextContent(strings.messages.writing);
+		const notice = bubble?.querySelector(".chatbox__writing");
+		expect(notice).toHaveTextContent(strings.messages.writing);
+		// Decorativa: la región de estado es la única que anuncia.
+		expect(notice).toHaveAttribute("aria-hidden", "true");
+		// Lo que dice la región no cambia: cambia si se pinta.
 		expect(regionOf(container)).toHaveTextContent(strings.messages.writing);
+		expect(regionOf(container)).toHaveClass("chatbox__status--announced");
 	});
 });
 

@@ -350,6 +350,13 @@
  * They are decorative — the announcement lives in the status region — and they
  * only bounce when the person allows movement: the animation is declared inside
  * the `no-preference` block at the end of this file. */
+/* El aviso de escritura vive dentro del bocadillo (RF-F47): el texto y los tres puntos
+ * van en la misma línea. El texto es decorativo (lo anuncia la región de estado) y no
+ * introduce ningún token de color nuevo: hereda el de la burbuja. */
+.chatbox__writing {
+	margin-right: 0.5rem;
+}
+
 .chatbox__typing {
 	display: inline-flex;
 	align-items: center;

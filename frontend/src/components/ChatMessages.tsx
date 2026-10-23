@@ -31,29 +31,47 @@ export function ChatMessages({
 
 	return (
 		<ol class="chatbox__messages" aria-label={strings.messages.listLabel} ref={listRef}>
-			{visibleMessages.map((message, index) => (
-				<li
-					class={`chatbox__message chatbox__message--${message.role}`}
-					key={`${message.role}-${index}`}
-				>
-					<span class="chatbox__message-author">{strings.messages.author[message.role]}</span>
-					{message.role === "assistant" ? (
-						message.content ? (
-							<AssistantMarkdown content={message.content} />
+			{visibleMessages.map((message, index) => {
+				// La burbuja en curso es la última, y solo existe mientras el turno está en
+				// marcha: es la única que puede llevar el aviso de escritura.
+				const isPending = isBusy && index === visibleMessages.length - 1;
+				return (
+					<li
+						class={`chatbox__message chatbox__message--${message.role}`}
+						key={`${message.role}-${index}`}
+					>
+						<span class="chatbox__message-author">{strings.messages.author[message.role]}</span>
+						{message.role === "assistant" ? (
+							message.content ? (
+								<AssistantMarkdown content={message.content} />
+							) : (
+								<>
+									{isPending && (
+										/*
+										 * El aviso de escritura (RF-F47): se ve dentro del bocadillo, en
+										 * el sitio donde aparecerá la respuesta. Es decorativo, como
+										 * los puntos: la región de estado es la que lo anuncia
+										 * (RF-F41), así que no se duplica texto visible y audible.
+										 */
+										<span class="chatbox__writing" aria-hidden="true">
+											{strings.messages.writing}
+										</span>
+									)}
+									{/*
+									 * El indicador de escritura (RF-F44): tres puntos decorativos. El
+									 * aviso "El asistente está escribiendo" lo anuncia la región de
+									 * estado, que ya no lo pinta: aquí solo queda el ancla visual
+									 * de dónde va a aparecer la respuesta.
+									 */}
+									<TypingIndicator />
+								</>
+							)
 						) : (
-							/*
-							 * El indicador de escritura (RF-F44): tres puntos decorativos. El
-							 * aviso "El asistente está escribiendo" vive en la región de estado,
-							 * que lo muestra y lo anuncia; aquí solo está el ancla visual de
-							 * dónde va a aparecer la respuesta.
-							 */
-							<TypingIndicator />
-						)
-					) : (
-						<p>{message.content}</p>
-					)}
-				</li>
-			))}
+							<p>{message.content}</p>
+						)}
+					</li>
+				);
+			})}
 		</ol>
 	);
 }
