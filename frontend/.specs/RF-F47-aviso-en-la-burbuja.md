@@ -112,8 +112,10 @@ npm run test:browser  # suite de Playwright (Chromium)
 
 | Tarea | Specs | Ruta | Estado |
 |---|---|---|---|
-| T1 — El aviso en el bocadillo y la región que no lo pinta | S1-S5 | inline | hecho (`dd5ee8e`… ver commit `fix(frontend): el aviso de escritura se ve dentro del bocadillo (RF-F47)`) |
-| T2 — Spec, enmiendas, glosario y TODO | S1-S5 | inline | hecho (este commit) |
+| T1 — El aviso en el bocadillo y la región que no lo pinta | S1-S5 | inline | hecho (`533d9b5`) |
+| T2 — Spec, enmiendas, glosario y TODO | S1-S5 | inline | hecho (`f0aca9c`) |
+| T3 — Corrección de la revisión nativa (R3-001) | S1-S2 | inline | hecho (`a91cfe5`) |
+| T4 — Avisos de la revisión: tests, código y spec | S1-S5 | inline | hecho (`e93e218`, `ad07507`, `000afba`) |
 
 ## Plan de commits
 
