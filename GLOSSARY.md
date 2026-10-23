@@ -37,8 +37,10 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
   zona de anuncio (`role="status"`). Recibe un texto y lo dice una vez. La lista de mensajes
   no es una región de estado: anunciar cada token hace la respuesta inusable. Anuncia
   siempre, pero **pinta solo lo que no está en la conversación**: el desenlace de un turno
-  completado ya se ve en la burbuja, así que la región lo oculta visualmente sin sacarlo del
-  árbol de accesibilidad (RF-F46).
+  completado ya se ve en la burbuja (RF-F46) y el aviso «escribiendo» se ve dentro del
+  bocadillo (RF-F47), así que la región los oculta visualmente sin sacarlos del árbol de
+  accesibilidad. Lo que la región sí pinta es el error de un turno fallido y el aviso de un
+  turno detenido: no aparecen en ningún otro sitio.
 - **Anuncio**: el texto que una región de estado comunica en un momento dado. El widget
   anuncia una vez por turno —inicio, desenlace y, si procede, la respuesta completa— y
   nunca anuncia algo que no acabe de producir: restaurar una conversación no es anunciar.
@@ -93,6 +95,10 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
   la interfaz. En el widget significa exactamente dos cosas: el indicador de escritura no se
   anima y el scroll no es suave. No es una propiedad del tema: el sitio host no la hereda ni
   puede bajarla.
+- **Aviso de escritura**: la frase «El asistente está escribiendo» que se ve dentro del
+  bocadillo del asistente mientras el turno está en marcha y la respuesta todavía no ha
+  llegado (RF-F47). Es decorativa —`aria-hidden`—: la anuncia la región de estado, y así no se
+  duplica texto visible y audible. Es el mismo texto que se anuncia, en el mismo momento.
 - **Indicador de escritura**: los tres puntos de la burbuja del asistente que señalan que la
   respuesta está en camino: mientras llega, y mientras el markdown ya recibido se carga (RF-F46). Es visual y decorativo —no se anuncia, porque el anuncio
   vive en la región de estado— y con movimiento reducido son los mismos tres puntos sin

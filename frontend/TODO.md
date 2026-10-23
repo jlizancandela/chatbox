@@ -80,6 +80,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F43` — Controles táctiles ≥ 44×44 px: suelo en px absolutos (no en `rem`, que dependía del `font-size` del host), `min-width` añadida, contrato con inventario y guarda de identidad por control, y medición real en Chromium por estado (#98).
 - [x] `RF-F44` — `prefers-reduced-motion`: el indicador de escritura son tres puntos que solo se animan con movimiento permitido, y el scroll no es suave. Contrato con inventario y guarda, verificado en dos niveles —mecanismo y resolución en Chromium— (#100).
 - [x] `RF-F46` — La respuesta se ve una sola vez: la región de estado anuncia siempre y pinta solo lo que no está en la conversación; la burbuja muestra el indicador mientras carga el markdown (#104).
+- [x] `RF-F47` — El aviso «El asistente está escribiendo» se ve dentro del bocadillo y la región de estado lo anuncia sin pintarlo; la copia visible es decorativa (#106).
 - [ ] `RF-F45` — Label en textarea, `aria-label` en botones solo-icono, `lang="es"` en componente.
 - [ ] Pasada automática con axe + prueba manual con NVDA y VoiceOver (`RF-F41`).
 

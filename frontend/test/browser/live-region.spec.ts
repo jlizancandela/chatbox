@@ -10,10 +10,17 @@
 import { expect, type Page, test } from "@playwright/test";
 import axe from "axe-core";
 import { strings } from "../../src/strings.es";
-import { mockChatApi, tokenFrame } from "../chat-frames";
+import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
 
 const STORAGE_KEY = "chatbox:v1";
 const REGION_SEEN = "__rfF41RegionSeen";
+
+/**
+ * Ancho de la región cuando está "visualmente oculta" (RF-F46): una caja de 1×1 px con
+ * el texto recortado. El patrón deja la región dentro del árbol de accesibilidad, que
+ * es lo que hace que el anuncio se siga oyendo.
+ */
+const ANCHO_REGION_OCULTA_PX = 1;
 
 async function openChatbox(page: Page) {
 	await page.goto("/");
@@ -98,6 +105,52 @@ test.describe("RF-F41 región de estado", () => {
 
 		const politeRegions = await page.locator('[aria-live="polite"]').count();
 		expect(politeRegions).toBe(1);
+	});
+
+	test("el aviso de escritura se ve en el bocadillo, y la región solo lo anuncia", async ({
+		page,
+	}) => {
+		// La respuesta se retiene con una puerta que abre el test, no con un reloj: un
+		// retardo fijo dejaba las aserciones dentro de una ventana que el test no
+		// controlaba, y en un runner lento llegaban después de la respuesta (R3-001).
+		let abrir: () => void = () => {};
+		const puerta = new Promise<void>((resolve) => {
+			abrir = resolve;
+		});
+		await page.route("**/api/chat", async (route) => {
+			await puerta;
+			await route.fulfill({
+				status: 200,
+				contentType: "text/event-stream",
+				body: sourcesFrame() + tokenFrame("Usa Preact y Fastify.") + doneFrame,
+			});
+		});
+		await openChatbox(page);
+		await sendQuestion(page, "¿Qué usa Jorge?");
+
+		// El aviso se ve dentro del bocadillo, junto a los tres puntos.
+		const bubble = page.locator(".chatbox__message--assistant");
+		const notice = bubble.locator(".chatbox__writing");
+		await expect(notice).toBeVisible();
+		await expect(notice).toHaveText(strings.messages.writing);
+
+		// La región lo dice, pero no lo pinta: su caja es de 1×1 px (el patrón de
+		// "visualmente oculto" de RF-F46).
+		const region = page.locator(".chatbox__status");
+		await expect(region).toHaveText(strings.messages.writing);
+		const box = await region.boundingBox();
+		expect(box?.width).toBeLessThanOrEqual(ANCHO_REGION_OCULTA_PX);
+
+		// Y lo que se ve no se oye dos veces: la copia del bocadillo es decorativa, y el
+		// texto que se anuncia sigue en el árbol de accesibilidad de la región.
+		expect(await bubble.ariaSnapshot()).not.toContain(strings.messages.writing);
+		expect(await region.ariaSnapshot()).toContain(strings.messages.writing);
+
+		// Al llegar la respuesta, el aviso desaparece: la respuesta se ve en la burbuja y
+		// no queda texto duplicado dentro de ella (D4 de RF-F47).
+		abrir();
+		await expect(bubble).toContainText("Usa Preact y Fastify.");
+		await expect(bubble.locator(".chatbox__writing")).toHaveCount(0);
 	});
 
 	test("el texto de la respuesta se ve una sola vez", async ({ page }) => {

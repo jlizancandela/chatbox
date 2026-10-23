@@ -17,6 +17,10 @@
 - **D3 — La burbuja deja de pintar el texto**: la frase "El asistente está escribiendo" queda
   solo en la región de estado, que ya la muestra y ya la anuncia. Hoy aparece **dos veces**
   (región y burbuja); con los puntos, una sola.
+  > *Enmienda (RF-F47, 2026-10-23):* invertida. La frase se ve ahora **dentro del bocadillo**,
+  > en el sitio donde aparecerá la respuesta, y la región deja de pintarla: lo anuncia igual.
+  > El texto no cambia y la copia del bocadillo es decorativa (`aria-hidden="true"`), como los
+  > puntos, para no duplicar texto visible y audible. Ver `RF-F47-aviso-en-la-burbuja.md`.
 - **D4 — Los puntos son decorativos**: `aria-hidden="true"`. El anuncio vive en la región de
   estado (RF-F41); no se duplica texto audible.
 - **D5 — La variante con movimiento reducido son los mismos tres puntos sin animación**:
@@ -220,6 +224,9 @@ La burbuja del asistente vacío pasa a tres puntos decorativos y deja de pintar 
 
 1. La burbuja del asistente vacío muestra tres puntos y ningún texto; el texto "El asistente
    está escribiendo" aparece **solo** en la región de estado.
+   > *Enmienda (RF-F47, 2026-10-23):* la frase aparece **solo en la burbuja** y la región deja
+   > de pintarla. La burbuja del asistente vacío muestra los tres puntos y la frase, ambos
+   > decorativos; la región la anuncia sin pintarla.
 2. Los puntos son decorativos (`aria-hidden`) y la región de estado sigue anunciando el
    aviso de "escribiendo" una sola vez (RF-F41 no se toca).
 3. La hoja de estilos declara la animación **dentro** de

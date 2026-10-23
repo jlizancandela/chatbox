@@ -15,6 +15,9 @@
 - **D2 — Lo que la región sigue pintando**: el aviso «El asistente está escribiendo»
   mientras el turno está en curso, el error de un turno fallido (no aparece en ningún otro
   sitio) y el aviso de un turno detenido (no aparece en ningún otro sitio).
+  > *Enmienda (RF-F47, 2026-10-23):* el aviso «El asistente está escribiendo» deja de pintarse
+  > en la región: se ve dentro del bocadillo. Los que la región sigue pintando son el error
+  > de un turno fallido y el aviso de un turno detenido, que no aparecen en ningún otro sitio.
 - **D3 — Se oculta con el patrón de «visualmente oculto», no con `display: none` ni
   `visibility: hidden`.** Esos dos lo sacan del árbol de accesibilidad y el anuncio no se
   oiría. El patrón del clip lo deja dentro.
@@ -69,6 +72,8 @@
 
 1. Tras un turno completado, el texto de la respuesta tiene **una** copia visible (en la burbuja).
 2. Mientras el turno está en curso, la región muestra «El asistente está escribiendo».
+   > *Enmienda (RF-F47, 2026-10-23):* la región lo **anuncia** (su texto sigue ahí) pero no lo
+   > **pinta**: la frase se ve dentro del bocadillo del asistente.
 3. Un turno fallido o detenido sigue mostrando su aviso visible en la región.
 4. El anuncio sigue existiendo para lectores de pantalla: la región sigue en el árbol de
    accesibilidad y su texto no cambia.

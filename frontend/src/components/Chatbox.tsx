@@ -39,13 +39,14 @@ const STATUS_ANNOUNCED_CLASS = "chatbox__status--announced";
  * La clase de la región de estado.
  *
  * La región **anuncia siempre**, pero solo **pinta** lo que no está en la conversación: el
- * desenlace de un turno completado ya se ve en la burbuja (o en el aviso de la conversación),
- * y pintarlo también arriba lo mostraba dos veces.
+ * aviso "escribiendo" (RF-F47) y el desenlace de un turno completado (RF-F46) ya se ven en la
+ * burbuja, y pintarlos también arriba lo mostraba dos veces. El error y el aviso de turno
+ * detenido no están en ningún otro sitio: esos sí se pintan.
  */
-const statusClass = (announcement: { isError: boolean; inConversation: boolean }): string => {
+const statusClass = (announcement: { isError: boolean }, inConversation: boolean): string => {
 	const classes = [STATUS_CLASS];
 	if (announcement.isError) classes.push(STATUS_ERROR_CLASS);
-	if (announcement.inConversation) classes.push(STATUS_ANNOUNCED_CLASS);
+	if (inConversation) classes.push(STATUS_ANNOUNCED_CLASS);
 	return classes.join(" ");
 };
 
@@ -133,6 +134,12 @@ export function Chatbox({
 	});
 
 	const isBusy = ["connecting", "generating", "streaming"].includes(chat.state.turnState);
+	// ¿Lo que la región dice ya está en la conversación? El desenlace de un turno
+	// completado se ve en la burbuja (RF-F46) y el aviso de escritura se ve en el
+	// bocadillo (RF-F47). Cuando es así, la región lo anuncia igual, pero no lo pinta
+	// dos veces. El aviso solo cuenta cuando es lo que la región está diciendo: si
+	// quedara un desenlace anterior, ese es el texto que se ve, y no el aviso.
+	const statusIsInConversation = announcement.inConversation || (isBusy && !announcement.text);
 	const showMessages = chat.state.messages.length > 0;
 
 	useFocusOnMount(textareaRef);
@@ -231,7 +238,12 @@ export function Chatbox({
 		<section class="chatbox" lang="es" aria-labelledby="chatbox-title">
 			<ChatHeader title={title} notice={strings.header.scopeNotice} />
 
-			<div class={statusClass(announcement)} role="status" aria-live="polite" aria-atomic="true">
+			<div
+				class={statusClass(announcement, statusIsInConversation)}
+				role="status"
+				aria-live="polite"
+				aria-atomic="true"
+			>
 				{announcement.text || (isBusy ? strings.messages.writing : "")}
 			</div>
 

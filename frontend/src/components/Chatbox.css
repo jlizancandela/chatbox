@@ -364,6 +364,13 @@
 	opacity: 0.7;
 }
 
+/* El aviso de escritura vive dentro del bocadillo (RF-F47): el texto y los tres puntos
+ * van en la misma línea. El texto es decorativo (lo anuncia la región de estado) y no
+ * introduce ningún token de color nuevo: hereda el de la burbuja. */
+.chatbox__writing {
+	margin-right: 0.5rem;
+}
+
 .chatbox__empty {
 	display: flex;
 	flex-direction: column;
