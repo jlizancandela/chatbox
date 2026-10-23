@@ -12,9 +12,14 @@
 - **D1 — El desplazamiento sigue al tamaño, no al estado**: un `ResizeObserver` sobre la lista
   de mensajes. Cuando el hilo crece, si la persona lo sigue, se vuelve al final; si se ha
   apartado, se recalcula la distancia y aparece el botón.
-- **D2 — La distancia se mide cuando significa algo**: el widget desplaza el hilo **hacia el
-  final**, así que la posición intermedia de una animación no dice nada de la persona. Solo
-  se deja de seguir el hilo cuando alguien **sube**.
+- **D2 — La distancia se mide cuando significa algo**: fuera de un salto animado, estar a más
+  del umbral del final significa que la persona se ha apartado. Durante un salto animado, las
+  posiciones intermedias son del widget y no cuentan como interacción; el salto se reconoce
+  con una bandera hasta que la distancia vuelve a cero.
+  > *Enmienda (RF-F48, 2026-10-23):* la regla vive en `src/chat/domain/scroll.ts` y el umbral
+  > fijo es 16 px. El componente ya no compara contra un `scrollTop` anterior: esa referencia
+  > podía quedar obsoleta entre el crecimiento del stream y el gesto de la persona, y tragarse
+  > un apartarse de 30 px. Ver `RF-F48-umbral-de-seguimiento.md`.
 - **D3 — Seguimiento instantáneo, salto animado**: una sola regla decide según la intención.
   Con `prefers-reduced-motion` ninguno de los dos se mueve.
 - **D4 — El seguimiento es instantáneo porque es continuo**: se actualiza con cada token, y
@@ -26,6 +31,9 @@
   sin que el padre tenga que conocer el markup del hijo.
 - **D7 — Verificación de navegador con stream realista**: el mock que entrega la respuesta
   entera de golpe no genera los casos en los que el seguimiento importa.
+- **D9 — Umbral de seguimiento**: la regla pura de 16 px vive en el dominio y los tests de
+  navegador derivan de ella sus precondiciones; cambiar el umbral no rompe el test por un
+  número duplicado.
 - **D8 — Enmienda a RF-F44**: su criterio 5 («el autoscroll y el botón piden el mismo
   comportamiento») es lo que impide arreglar el seguimiento. Se enmienda en
   `docs/decisions/008-movimiento-reducido.md` (decisión 6) y en la spec de RF-F44.

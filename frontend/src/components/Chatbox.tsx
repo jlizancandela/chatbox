@@ -4,6 +4,7 @@ import { ExternalLink } from "../chat/components/ExternalLink";
 import { toAnnouncementText } from "../chat/domain/announcement";
 import { trimHistory } from "../chat/domain/conversation";
 import { REDUCED_MOTION_QUERY, type ScrollIntent, scrollBehavior } from "../chat/domain/motion";
+import { isAwayFromEnd } from "../chat/domain/scroll";
 import { useChat } from "../chat/hooks/useChat";
 import { type TurnEnd, useChatStream } from "../chat/hooks/useChatStream";
 import { useFocusOnMount } from "../chat/hooks/useFocusOnMount";
@@ -106,13 +107,13 @@ export function Chatbox({
 	const conversationRef = useRef<HTMLElement>(null);
 	const messagesListRef = useRef<HTMLOListElement | null>(null);
 	/**
-	 * Si la persona sigue el hilo. El widget desplaza siempre hacia el final, así que la
-	 * posición intermedia de una animación no dice nada de ella: solo deja de seguirlo
-	 * cuando alguien sube el hilo de verdad.
+	 * Si la persona sigue el hilo. Fuera de un salto animado, la distancia al final decide:
+	 * a más de 16 px se ha apartado; durante el salto las posiciones intermedias son del
+	 * widget y no cuentan como interacción (RF-F48).
 	 */
 	const following = useRef(true);
-	/** La última posición conocida, para distinguir "desplazó el widget" de "subió alguien". */
-	const lastScrollTop = useRef(0);
+	/** Un salto animado es del widget: sus posiciones intermedias no son un apartarse. */
+	const jumping = useRef(false);
 	const sentContextLength = useRef(0);
 
 	const { sendQuestion, abort } = useChatStream({
@@ -162,17 +163,17 @@ export function Chatbox({
 		const element = conversationRef.current;
 		if (!element) return;
 		const distanceFromEnd = element.scrollHeight - element.scrollTop - element.clientHeight;
-		// El umbral tiene que caber en el contenedor: si la conversación es más baja
-		// que él, ninguna posición estaba lejos del final y el botón no podía
-		// aparecer nunca (widget corto, viewport pequeño o teclado abierto en móvil).
-		const threshold = Math.min(80, Math.max(16, element.clientHeight / 2));
-		// El widget desplaza el hilo hacia el final: durante un scroll suave la posición es
-		// intermedia y medirla daría un falso "la persona se fue" que cortaría el
-		// seguimiento a mitad de la respuesta. Solo cuenta como alejarse que alguien suba.
-		const scrolledUp = element.scrollTop < lastScrollTop.current;
-		lastScrollTop.current = element.scrollTop;
-		if (distanceFromEnd < threshold) following.current = true;
-		else if (scrolledUp) following.current = false;
+		// Un salto animado es del widget: sus posiciones intermedias no dicen nada de la
+		// persona y no deben mostrar el botón. Al terminar, la distancia vuelve a cero.
+		if (jumping.current) {
+			if (!isAwayFromEnd(distanceFromEnd)) jumping.current = false;
+			setShowScrollToEnd(false);
+			return;
+		}
+		// Fuera de un salto del widget, la distancia es la señal estable: estar a más de
+		// 16 px del final significa que la persona se apartó, sin depender de un scrollTop
+		// anterior que puede quedar obsoleto mientras crece el stream.
+		following.current = !isAwayFromEnd(distanceFromEnd);
 		setShowScrollToEnd(!following.current);
 	};
 
@@ -206,6 +207,7 @@ export function Chatbox({
 	}, [showMessages]);
 
 	const scrollToEnd = (behavior: ScrollBehavior): void => {
+		jumping.current = behavior !== "auto";
 		following.current = true;
 		const element = conversationRef.current;
 		if (element) element.scrollTo({ top: element.scrollHeight, behavior });

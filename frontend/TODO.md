@@ -47,7 +47,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F03` — Textarea con autogrow (max 5 líneas), contador al 80% del límite de 1000 chars.
 - [x] `RF-F04` — `Enter` envía, `Shift+Enter` salto de línea; IME `isComposing` no envía.
 - [x] `RF-F05` — Botón "Enviar" ↔ "Detener"; `Esc` aborta.
-- [x] `RF-F06` — Scroll automático solo si está a <80 px del final; botón "Ir al final" si no. El seguimiento sigue al tamaño del hilo (el markdown llega después) y no lo corta una animación en curso (#102).
+- [x] `RF-F06` — Scroll automático mientras está a menos de 16 px del final; botón "Ir al final" si no. El umbral vive en el dominio, el seguimiento sigue al tamaño del hilo y no lo corta una animación en curso (#102, #108).
 - [x] `RF-F07` — Mensajes del usuario: texto plano.
 - [x] `RF-F10` — Burbuja del usuario + burbuja vacía del asistente con indicador "escribiendo".
 - [x] `RF-F11` — Tokens agrupados por `requestAnimationFrame`.

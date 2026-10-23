@@ -13,19 +13,14 @@
  */
 
 import { expect, type Page, test } from "@playwright/test";
+import { followThreshold } from "../../src/chat/domain/scroll";
 import { strings } from "../../src/strings.es";
 
 const ANSWER_WORDS = 20;
 const TOKENS = 60;
 
-/**
- * Desborde mínimo del hilo para que subirlo sea apartarse de verdad.
- *
- * El widget trata como "seguir" lo que queda a menos de ~80 px del final (RF-F06), así
- * que la respuesta tiene que desbordar la conversación con holgura: 300 px es esa
- * holgura, para que el test no dependa del borde ni de la longitud del guion.
- */
-const DESBORDE_MINIMO_PX = 300;
+/** Cuánto se aparta la persona del final en un gesto pequeño (RF-F48). */
+const APARTE_UN_POCO_PX = 30;
 
 /**
  * Sustituye el `fetch` del API por un stream SSE que emite tokens con retardo.
@@ -139,6 +134,31 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 			.toBe(true);
 	});
 
+	test("apartarse un poco tampoco es «seguir»", async ({ page }) => {
+		await slowStream(page, TOKENS);
+		await page.goto("/");
+		await ask(page);
+
+		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra2");
+		await expect.poll(async () => (await threadState(page)).atBottom).toBe(true);
+
+		// 30 px del final: más que el umbral (16 px) y menos que lo que el widget
+		// toltaba antes (80 px). Un gesto pequeño de verdad es un apartarse de verdad.
+		const away = await page.evaluate((distance) => {
+			const conversation = document.querySelector(".chatbox__conversation") as HTMLElement;
+			conversation.scrollTop = conversation.scrollHeight - conversation.clientHeight - distance;
+			conversation.dispatchEvent(new Event("scroll"));
+			return conversation.scrollTop;
+		}, APARTE_UN_POCO_PX);
+
+		await expect(page.getByRole("button", { name: strings.actions.scrollToEnd })).toBeVisible();
+
+		// Y el hilo se queda donde lo dejó mientras sigue llegando texto.
+		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra10");
+		const after = await threadState(page);
+		expect(after.scrollTop, "el hilo no tiene que volver solo al final").toBe(away);
+	});
+
 	test("no arrastra a quien se aparta del hilo", async ({ page }) => {
 		await slowStream(page, TOKENS);
 		await page.goto("/");
@@ -147,15 +167,15 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 		// La respuesta tiene que haber llegado: el hilo que se aparta es el que ya tiene
 		// contenido, no un bocadillo vacío.
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra2");
-		// Precondición: tiene que haber hilo que apartar. El widget trata como "seguir" lo
-		// que queda a menos de ~80 px del final (RF-F06), así que la respuesta tiene que
-		// desbordar la conversación con holgura antes de subir el hilo.
+		// Precondición: tiene que haber hilo que apartar. La regla es la del widget
+		// (RF-F48): subir el hilo deja a la persona a una distancia del final igual al
+		// desborde, así que el desborde tiene que superar el umbral.
 		await expect
 			.poll(async () => {
 				const state = await threadState(page);
-				return state.scrollHeight - state.clientHeight;
+				return state.scrollHeight - state.clientHeight - followThreshold();
 			})
-			.toBeGreaterThan(DESBORDE_MINIMO_PX);
+			.toBeGreaterThan(0);
 		await expect.poll(async () => (await threadState(page)).atBottom).toBe(true);
 
 		// Quien se aparta lee por su cuenta: el hilo se queda donde lo dejó y aparece el
