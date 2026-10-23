@@ -205,6 +205,10 @@ Dos niveles, con el nivel declarado en cada assert (ver
 - **Manual, condición de cierre**: checklist de NVDA (Windows) y VoiceOver (macOS) sobre
   inicio, respuesta completa, respuesta idéntica a la anterior, fallo, aborto y montaje con
   conversación restaurada. Se adjunta a la issue.
+  > *Enmienda (RF-F47, 2026-10-23):* la referencia para contrastar lo que se oye es el
+  > **bocadillo**, no la región: la región ya no pinta ni la respuesta ni el aviso
+  > «escribiendo». La checklist tiene que comprobar además que el aviso «escribiendo» **se
+  > sigue oyendo** aunque la región esté oculta visualmente.
 
 ### Cómo se hace la pasada manual
 
@@ -231,6 +235,12 @@ cd frontend && npm run dev
 > dos veces. Lo que sí se pinta: el aviso «escribiendo», el error y el aviso de turno
 > detenido. La referencia para contrastar lo que se oye pasa a ser la burbuja, porque la
 > proyección de anuncio coincide con su texto renderizado (ver `RF-F46-respuesta-una-vez.md`).
+>
+> *Enmienda (RF-F47, 2026-10-23):* el aviso «escribiendo» también pasa a estar en la
+> conversación —se ve dentro del bocadillo—, así que la región deja de pintarlo. Lo que la
+> región sigue pintando es el error de un turno fallido y el aviso de un turno detenido, que
+> no aparecen en ningún otro sitio. Lo que se anuncia no cambia: el mismo texto, en el mismo
+> momento, por la misma región (ver `RF-F47-aviso-en-la-burbuja.md`).
 >
 > Texto original: el texto de la región se ve en `.chatbox__status`, que solo se oculta cuando
 > está vacía: sirve de referencia para contrastar lo que se oye. Un test de navegador verifica que el guion sigue
