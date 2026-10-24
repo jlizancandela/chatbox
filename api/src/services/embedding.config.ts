@@ -14,6 +14,12 @@ export const embeddingConfig: EmbeddingConfig = {
 	),
 };
 
+/**
+ * Identifica la configuración que produce los embeddings. Forma parte de la versión
+ * de los documentos: cambiarla invalida el corpus y obliga a reingerirlo.
+ */
+export const embeddingSignature = `${embeddingConfig.geminiEmbeddingModel}:${embeddingConfig.geminiVectorDimension}`;
+
 if (
 	Number.isNaN(embeddingConfig.geminiVectorDimension) ||
 	embeddingConfig.geminiVectorDimension <= 0
