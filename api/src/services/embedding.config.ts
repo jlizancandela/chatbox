@@ -4,6 +4,17 @@ export type EmbeddingConfig = {
 	geminiVectorDimension: number;
 };
 
+/**
+ * Tipos de tarea de Gemini para la recuperación. Una consulta y un documento no se
+ * codifican igual: el corpus se embebe como documento y la pregunta como consulta.
+ */
+export const EMBEDDING_TASK = {
+	document: "RETRIEVAL_DOCUMENT",
+	query: "RETRIEVAL_QUERY",
+} as const;
+
+export type EmbedPurpose = keyof typeof EMBEDDING_TASK;
+
 export const embeddingConfig: EmbeddingConfig = {
 	geminiApiKey: process.env.GEMINI_API_KEY ?? "",
 	geminiEmbeddingModel:
@@ -18,7 +29,7 @@ export const embeddingConfig: EmbeddingConfig = {
  * Identifica la configuración que produce los embeddings. Forma parte de la versión
  * de los documentos: cambiarla invalida el corpus y obliga a reingerirlo.
  */
-export const embeddingSignature = `${embeddingConfig.geminiEmbeddingModel}:${embeddingConfig.geminiVectorDimension}`;
+export const embeddingSignature = `${embeddingConfig.geminiEmbeddingModel}:${embeddingConfig.geminiVectorDimension}:${EMBEDDING_TASK.document}`;
 
 if (
 	Number.isNaN(embeddingConfig.geminiVectorDimension) ||

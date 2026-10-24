@@ -102,13 +102,38 @@ La ingesta:
 
 1. Lee cada archivo desde `ingest/`.
 2. Lo divide en fragmentos de 512 caracteres con solapamiento de 50.
-3. Genera embeddings de 768 dimensiones con Gemini.
+3. Genera embeddings de 768 dimensiones con Gemini, con el tipo de tarea de
+   documento (`RETRIEVAL_DOCUMENT`) y el título del documento.
 4. Guarda el documento, sus fragmentos y vectores en PostgreSQL.
 5. Informa los archivos y fragmentos procesados; termina con código de error si
    algún archivo falla.
 
 Asegúrate de haber aplicado las migraciones y de tener configurados
 `DATABASE_URL`, `GEMINI_API_KEY` y `GEMINI_VECTOR_DIMENSION` antes de ingerir.
+
+### Reingerir el corpus
+
+La versión de un documento se calcula con su contenido, su título y la firma de la
+configuración de embeddings (modelo, dimensión y tipo de tarea). Si la ingesta
+encuentra un documento con la misma versión, lo reactiva **sin volver a embeberlo**.
+
+Cambiar la firma de embeddings —por ejemplo, pasar de un tipo de tarea a otro— invalida
+el corpus: los vectores anteriores viven en otro espacio y no son comparables con los
+nuevos. Cuando eso ocurre hay que reingerir:
+
+```bash
+pnpm ingest curriculum-jorge-lizan.md informe-github-jlizancandela.md
+```
+
+El corpus se embebe antes de que se sirva la primera consulta: comparar vectores de
+espacios distintos no da error, da rankings sin sentido. Después de reingerir,
+`SIMILARITY_THRESHOLD` hay que recalibrarlo sobre el espacio nuevo, porque el umbral
+vigente se calibró sobre el anterior. El CLI de calibración imprime las distancias
+de los mejores fragmentos sin llamar al modelo generativo:
+
+```bash
+node dist/cli/calibrate.js "¿Qué stack tecnológico usa Jorge?"
+```
 
 ## Arranque de la API
 

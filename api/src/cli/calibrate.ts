@@ -17,7 +17,7 @@ async function main() {
 		}
 
 		for (const question of questions) {
-			const sqlEmbedding = await embedText(question, "calibration");
+			const sqlEmbedding = await embedText(question, { purpose: "query" });
 			const result = await app.pg.query<{
 				title: string;
 				chunk_index: number;

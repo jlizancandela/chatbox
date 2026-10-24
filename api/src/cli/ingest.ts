@@ -48,7 +48,11 @@ async function main() {
 					title,
 					embeddingSignature,
 				});
-				const embeddedChunks = await getDocumentEmbeddings(content, chunks);
+				const embeddedChunks = await getDocumentEmbeddings(
+					content,
+					chunks,
+					title,
+				);
 
 				await ingestDocument({
 					content,

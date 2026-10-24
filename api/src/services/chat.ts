@@ -240,7 +240,7 @@ export const chatService = (
 ) => {
 	const retrieve = async (question: string): Promise<ChatSource[]> => {
 		const { embedText } = embeddingService();
-		const sqlEmbedding = await embedText(question, "question");
+		const sqlEmbedding = await embedText(question, { purpose: "query" });
 
 		const relevantChunks = await findChunksByEmbedding(
 			pg,

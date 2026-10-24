@@ -90,8 +90,8 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 ## Paso 8 — Respuesta fundamentada y atribuida
 
 - [x] Calcular la versión del documento con la firma de la configuración de embeddings.
-- [ ] Reingerir el corpus con el tipo de tarea de documento.
-- [ ] Recalibrar `SIMILARITY_THRESHOLD` sobre el espacio de embeddings nuevo.
+- [x] Reingerir el corpus con el tipo de tarea de documento.
+- [x] Recalibrar `SIMILARITY_THRESHOLD` sobre el espacio de embeddings nuevo.
 - [x] Etiquetar el contexto con el número y el título del documento de cada fragmento.
 - [x] Enviar el título del documento en el evento `sources`.
 - [x] Reemplazar el tope de tres frases por una regla de estructura de la respuesta.
