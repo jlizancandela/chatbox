@@ -35,6 +35,10 @@ ignorado por Git y no debe versionarse ni compartirse.
 | `GROQ_API_KEY` | Sí | — | Acceso al modelo generativo de Groq. |
 | `GROQ_MODEL_DEFAULT` | No | `openai/gpt-oss-20b` | Modelo usado para responder. |
 | `SIMILARITY_THRESHOLD` | No | `0.5` | Umbral de similitud coseno para recuperar contexto. |
+| `RETRIEVAL_TOP_K` | No | `5` | Número de fragmentos recuperados por pregunta. |
+| `GENERATION_TEMPERATURE` | No | `0.6` | Temperatura de la generación, entre `0` y `2`. |
+| `GENERATION_MAX_COMPLETION_TOKENS` | No | `2048` | Límite de tokens de la respuesta, razonamiento incluido. |
+| `GENERATION_REASONING_EFFORT` | No | `low` | Esfuerzo de razonamiento del modelo: `low`, `medium` o `high`. |
 | `CORS_ORIGIN` | Sí | — | Único origen permitido por CORS, por ejemplo `http://localhost:3000`. |
 
 ### Variables de Docker Compose

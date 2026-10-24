@@ -1,5 +1,7 @@
 export type ChatConfig = {
 	similarityThreshold: number;
+	topK: number;
+	generation: GenerationConfig;
 	historyLimits: HistoryLimits;
 };
 
@@ -7,6 +9,14 @@ export type HistoryLimits = {
 	maxMessages: number;
 	maxMessageChars: number;
 	maxTotalChars: number;
+};
+
+export type ReasoningEffort = "low" | "medium" | "high";
+
+export type GenerationConfig = {
+	temperature: number;
+	maxCompletionTokens: number;
+	reasoningEffort: ReasoningEffort;
 };
 
 const readPositiveInt = (
@@ -23,6 +33,40 @@ const readPositiveInt = (
 		throw new Error(`${key} must be a positive integer`);
 	}
 	return value;
+};
+
+const readFloatInRange = (
+	env: NodeJS.ProcessEnv,
+	key: string,
+	fallback: number,
+	min: number,
+	max: number,
+): number => {
+	const raw = env[key];
+	if (raw === undefined || raw.trim() === "") {
+		return fallback;
+	}
+	const value = Number(raw);
+	if (!Number.isFinite(value) || value < min || value > max) {
+		throw new Error(`${key} must be a number between ${min} and ${max}`);
+	}
+	return value;
+};
+
+const readEnum = <T extends string>(
+	env: NodeJS.ProcessEnv,
+	key: string,
+	fallback: T,
+	allowed: readonly T[],
+): T => {
+	const raw = env[key]?.trim().toLowerCase();
+	if (raw === undefined || raw === "") {
+		return fallback;
+	}
+	if (!allowed.includes(raw as T)) {
+		throw new Error(`${key} must be one of ${allowed.join(", ")}`);
+	}
+	return raw as T;
 };
 
 const createHistoryLimits = (
@@ -45,10 +89,44 @@ const createHistoryLimits = (
 	return limits;
 };
 
+/**
+ * La temperatura que usa el proveedor por defecto (1) es más alta de lo que
+ * conviene para responder con datos: Groq recomienda 0.5-0.7 para gpt-oss. El
+ * límite de tokens tiene que contemplar el razonamiento del modelo, y el
+ * esfuerzo por defecto ("medium") paga razonamiento en cada pregunta de un
+ * widget que pide datos concretos.
+ */
+export const createGenerationConfig = (
+	env: NodeJS.ProcessEnv = process.env,
+): GenerationConfig => ({
+	temperature: readFloatInRange(
+		env,
+		"GENERATION_TEMPERATURE",
+		0.6,
+		0,
+		2,
+	),
+	maxCompletionTokens: readPositiveInt(
+		env,
+		"GENERATION_MAX_COMPLETION_TOKENS",
+		2048,
+	),
+	reasoningEffort: readEnum(env, "GENERATION_REASONING_EFFORT", "low", [
+		"low",
+		"medium",
+		"high",
+	]),
+});
+
+export const createTopK = (env: NodeJS.ProcessEnv = process.env): number =>
+	readPositiveInt(env, "RETRIEVAL_TOP_K", 5);
+
 export const chatConfig: ChatConfig = {
 	similarityThreshold: parseFloat(
 		process.env.SIMILARITY_THRESHOLD ?? "0.5",
 	),
+	topK: createTopK(),
+	generation: createGenerationConfig(),
 	historyLimits: createHistoryLimits(),
 };
 

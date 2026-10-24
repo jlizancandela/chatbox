@@ -94,7 +94,7 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [ ] Recalibrar `SIMILARITY_THRESHOLD` sobre el espacio de embeddings nuevo.
 - [x] Etiquetar el contexto con el número y el título del documento de cada fragmento.
 - [x] Enviar el título del documento en el evento `sources`.
-- [ ] Reemplazar el tope de tres frases por una regla de estructura de la respuesta.
-- [ ] Configurar `temperature`, `max_completion_tokens` y `reasoning_effort`.
-- [ ] Configurar `top-k` en lugar de hardcodearlo.
+- [x] Reemplazar el tope de tres frases por una regla de estructura de la respuesta.
+- [x] Configurar `temperature`, `max_completion_tokens` y `reasoning_effort`.
+- [x] Configurar `top-k` en lugar de hardcodearlo.
 - [ ] Pintar las fuentes en el widget.
