@@ -108,10 +108,11 @@ export const findChunksByEmbedding = async (
 	const result = await queryClient.query<{
 		document_id: string;
 		chunk_index: number;
+		title: string;
 		content: string;
 		distance: number;
 	}>(
-		`SELECT dc.document_id, dc.chunk_index, dc.content,
+		`SELECT dc.document_id, dc.chunk_index, d.title, dc.content,
 		        dc.embedding <=> $1 AS distance
 		 FROM document_chunks dc
 		 JOIN documents d ON d.id = dc.document_id

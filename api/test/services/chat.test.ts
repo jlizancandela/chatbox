@@ -3,6 +3,7 @@ import { test } from "node:test";
 import type Groq from "groq-sdk";
 import {
 	buildChatMessages,
+	buildContext,
 	createAskStream,
 	trimHistory,
 	type ChatEvent,
@@ -16,6 +17,7 @@ type FakeChunk = { choices?: Array<{ delta?: FakeDelta }> };
 const source = (overrides: Partial<ChatSource> = {}): ChatSource => ({
 	documentId: "1",
 	chunkIndex: 0,
+	title: "Currículum",
 	content: "Contexto de ejemplo.",
 	distance: 0.2,
 	...overrides,
@@ -258,6 +260,18 @@ test("buildChatMessages includes history and merges consecutive user turns", () 
 				content: "Pregunta sin respuesta\n\nNueva pregunta",
 			},
 		],
+	);
+});
+
+test("buildContext etiqueta cada fragmento con su número y su documento", () => {
+	const context = buildContext([
+		source({ title: "Currículum", content: "Jorge usa React." }),
+		source({ title: "Informe de GitHub", content: "22 repositorios públicos." }),
+	]);
+
+	assert.strictEqual(
+		context,
+		"[1] Currículum — Jorge usa React.\n\n[2] Informe de GitHub — 22 repositorios públicos.",
 	);
 });
 

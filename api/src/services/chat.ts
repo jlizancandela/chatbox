@@ -9,6 +9,7 @@ import { embeddingService } from "./embedding";
 export type ChatSource = {
 	documentId: string;
 	chunkIndex: number;
+	title: string;
 	content: string;
 	distance: number;
 };
@@ -62,6 +63,16 @@ Reglas:
 === CONTEXT ===
 ${context}
 === END CONTEXT ===`;
+
+/**
+ * El contexto que ve el modelo lleva el número del fragmento y el documento del que
+ * sale. Sin esa etiqueta los fragmentos son bloques anónimos: el modelo no puede
+ * saber de dónde viene un dato ni atribuirlo.
+ */
+export const buildContext = (sources: ChatSource[]): string =>
+	sources
+		.map((source, index) => `[${index + 1}] ${source.title} — ${source.content}`)
+		.join("\n\n");
 
 const mergeAdjacentRoles = (messages: ChatMessage[]): ChatMessage[] => {
 	const merged: ChatMessage[] = [];
@@ -181,7 +192,7 @@ export const createAskStream =
 			return;
 		}
 
-		const context = sources.map((source) => source.content).join("\n\n");
+		const context = buildContext(sources);
 
 		try {
 			const completion = (await groqClient.chat.completions.create(
@@ -229,11 +240,13 @@ export const chatService = (
 			(chunk: {
 				document_id: string;
 				chunk_index: number;
+				title: string;
 				content: string;
 				distance: number;
 			}) => ({
 				documentId: chunk.document_id,
 				chunkIndex: chunk.chunk_index,
+				title: chunk.title,
 				content: chunk.content,
 				distance: chunk.distance,
 			}),
