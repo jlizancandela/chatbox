@@ -39,6 +39,12 @@ ignorado por Git y no debe versionarse ni compartirse.
 | `GENERATION_TEMPERATURE` | No | `0.6` | Temperatura de la generación, entre `0` y `2`. |
 | `GENERATION_MAX_COMPLETION_TOKENS` | No | `2048` | Límite de tokens de la respuesta, razonamiento incluido. |
 | `GENERATION_REASONING_EFFORT` | No | `low` | Esfuerzo de razonamiento del modelo: `low`, `medium` o `high`. |
+
+El límite de tokens incluye el razonamiento del modelo: con un esfuerzo alto, el
+modelo puede gastar el presupuesto antes de responder y devolver la respuesta
+vacía. `GENERATION_MAX_COMPLETION_TOKENS` tiene que cubrir las dos cosas. Con
+`low`, el razonamiento de una pregunta del widget son unos pocos tokens; con
+`medium` (el valor por defecto del proveedor) son del orden de varios cientos.
 | `CORS_ORIGIN` | Sí | — | Único origen permitido por CORS, por ejemplo `http://localhost:3000`. |
 
 ### Variables de Docker Compose
