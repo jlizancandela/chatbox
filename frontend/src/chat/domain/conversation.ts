@@ -1,4 +1,5 @@
-import type { ChatMessage } from "../types";
+import type { ChatMessage, VisibleMessage } from "../types";
+import { isChatSource } from "./sources";
 
 export const HISTORY_MAX_MESSAGES = 20;
 export const HISTORY_MAX_MESSAGE_CHARS = 2000;
@@ -18,7 +19,7 @@ export const DEFAULT_LIMITS: ChatLimits = {
 };
 
 export type ConversationState = {
-	messages: ChatMessage[];
+	messages: VisibleMessage[];
 	context: ChatMessage[];
 };
 
@@ -27,7 +28,7 @@ export type ChatRequest = {
 	history: ChatMessage[];
 };
 
-const isChatMessage = (value: unknown): value is ChatMessage => {
+export const isChatMessage = (value: unknown): value is ChatMessage => {
 	if (typeof value !== "object" || value === null) {
 		return false;
 	}
@@ -37,6 +38,23 @@ const isChatMessage = (value: unknown): value is ChatMessage => {
 		(candidate.role === "user" || candidate.role === "assistant") &&
 		typeof candidate.content === "string"
 	);
+};
+
+/**
+ * Un mensaje visible es un mensaje del API que puede traer las fuentes de la
+ * respuesta. Las fuentes son opcionales: los mensajes del usuario no las tienen.
+ */
+export const isVisibleMessage = (value: unknown): value is VisibleMessage => {
+	if (!isChatMessage(value)) {
+		return false;
+	}
+
+	const sources = (value as VisibleMessage).sources;
+	if (sources === undefined) {
+		return true;
+	}
+
+	return Array.isArray(sources) && sources.every(isChatSource);
 };
 
 const copyMessage = (message: ChatMessage): ChatMessage => ({

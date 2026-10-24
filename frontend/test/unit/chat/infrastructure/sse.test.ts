@@ -30,6 +30,7 @@ describe("SSE parser", () => {
 		const source = {
 			documentId: "cv.md",
 			chunkIndex: 0,
+			title: "Currículum",
 			content: "Preact",
 			distance: 0.2,
 		};
@@ -45,6 +46,15 @@ describe("SSE parser", () => {
 				history: [{ role: "user", content: "¿Qué usa?" }],
 			},
 		]);
+	});
+
+	it("rejects a source without a title", () => {
+		const frame = `event: sources\ndata: ${JSON.stringify({
+			sources: [{ documentId: "cv.md", chunkIndex: 0, content: "Preact", distance: 0.2 }],
+			history: [],
+		})}\n\n`;
+
+		expect(parseSSE(frame)).toBeNull();
 	});
 
 	it("parses error events and ignores invalid payloads", () => {

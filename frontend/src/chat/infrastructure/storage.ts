@@ -1,27 +1,25 @@
-import type { ConversationState } from "../domain/conversation";
-import type { ChatMessage } from "../types";
+import { type ConversationState, isChatMessage, isVisibleMessage } from "../domain/conversation";
+import type { ChatMessage, VisibleMessage } from "../types";
 
 export const STORAGE_KEY = "chatbox:v1";
-
-const isChatMessage = (value: unknown): value is ChatMessage => {
-	if (typeof value !== "object" || value === null) {
-		return false;
-	}
-
-	const candidate = value as Record<string, unknown>;
-	return (
-		(candidate.role === "user" || candidate.role === "assistant") &&
-		typeof candidate.content === "string"
-	);
-};
 
 const copyMessage = (message: ChatMessage): ChatMessage => ({
 	role: message.role,
 	content: message.content,
 });
 
+/**
+ * El mensaje visible conserva sus fuentes: sin ellas, una conversación restaurada
+ * mostraría respuestas sin atribución.
+ */
+const copyVisibleMessage = (message: VisibleMessage): VisibleMessage => ({
+	role: message.role,
+	content: message.content,
+	...(message.sources ? { sources: message.sources.map((source) => ({ ...source })) } : {}),
+});
+
 export const saveToSessionStorage = (
-	messages: readonly ChatMessage[],
+	messages: readonly VisibleMessage[],
 	context: readonly ChatMessage[]
 ): boolean => {
 	try {
@@ -32,7 +30,7 @@ export const saveToSessionStorage = (
 		sessionStorage.setItem(
 			STORAGE_KEY,
 			JSON.stringify({
-				messages: messages.filter(isChatMessage).map(copyMessage),
+				messages: messages.filter(isVisibleMessage).map(copyVisibleMessage),
 				context: context.filter(isChatMessage).map(copyMessage),
 			})
 		);
@@ -64,7 +62,7 @@ export const loadFromSessionStorage = (): ConversationState | null => {
 		}
 
 		return {
-			messages: candidate.messages.filter(isChatMessage).map(copyMessage),
+			messages: candidate.messages.filter(isVisibleMessage).map(copyVisibleMessage),
 			context: candidate.context.filter(isChatMessage).map(copyMessage),
 		};
 	} catch {
