@@ -1,10 +1,14 @@
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import fastify from "fastify";
 import db from "../plugins/db";
+import { embeddingSignature } from "../services/embedding.config";
 import { documentEmbeddingsService } from "../services/documentEmbeddings";
+import {
+	computeDocumentVersion,
+	resolveDisplayTitle,
+} from "../services/documentIdentity";
 import documentService from "../services/documents";
 
 async function main() {
@@ -37,14 +41,23 @@ async function main() {
 				const filePath = path.join(dir, arg);
 				const content = await readFile(filePath, "utf-8");
 				const fileName = path.parse(arg).name;
+				const title = resolveDisplayTitle(arg, fileName);
 				const chunks = await splitter.splitText(content);
-				const version = createHash("sha256").update(content).digest("hex");
-				const embeddedChunks = await getDocumentEmbeddings(content, chunks);
+				const version = computeDocumentVersion({
+					content,
+					title,
+					embeddingSignature,
+				});
+				const embeddedChunks = await getDocumentEmbeddings(
+					content,
+					chunks,
+					title,
+				);
 
 				await ingestDocument({
 					content,
 					source: arg,
-					title: fileName,
+					title,
 					version,
 					chunks: embeddedChunks,
 				});

@@ -4,7 +4,7 @@ import { chatErrors, isAbortError } from "../infrastructure/chat-errors";
 import type { ChatEvent } from "../infrastructure/sse";
 import { readChatEvents, requestChatStream } from "../infrastructure/stream-transport";
 import { createTokenBuffer, type TokenBuffer } from "../infrastructure/token-buffer";
-import type { ChatError } from "../types";
+import type { ChatError, ChatSource } from "../types";
 import type { ChatController } from "./useChat";
 
 export const DEFAULT_TIMEOUT_MS = 30_000;
@@ -13,9 +13,10 @@ export const DEFAULT_TIMEOUT_MS = 30_000;
  * Fin de turno tal como lo ve quien usa el widget: el texto que se anuncia vive aquí y no
  * en el estado, porque `turn-completed` ya lo ha limpiado cuando el evento se emite (RF-F41).
  * `completed` con `text` vacío significa que el asistente no tenía nada que decir.
+ * Las fuentes viajan con el desenlace porque también se anuncian: lo que se ve, se oye.
  */
 export type TurnEnd =
-	| { kind: "completed"; text: string }
+	| { kind: "completed"; text: string; sources: ChatSource[] }
 	| { kind: "failed"; error: ChatError }
 	| { kind: "aborted" };
 
@@ -50,6 +51,7 @@ type ActiveTurn = {
 	failed: boolean;
 	ended: boolean;
 	assistantText: string;
+	sources: ChatSource[];
 	termination: "active" | "aborted" | "timeout";
 };
 
@@ -152,6 +154,9 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 		switch (event.type) {
 			case "sources":
 				options.onSources?.(event.history.length);
+				if (active) {
+					active.sources = event.sources;
+				}
 				options.chat.receiveSources(event.sources, event.history);
 				break;
 			case "token":
@@ -163,7 +168,11 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 					active.completed = true;
 				}
 				options.chat.completeTurn();
-				endTurn({ kind: "completed", text: active?.assistantText ?? "" });
+				endTurn({
+					kind: "completed",
+					text: active?.assistantText ?? "",
+					sources: active?.sources ?? [],
+				});
 				break;
 			case "error": {
 				flushTokens();
@@ -209,6 +218,7 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 			failed: false,
 			ended: false,
 			assistantText: "",
+			sources: [],
 			termination: "active",
 		};
 		active = turn;

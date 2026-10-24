@@ -7,14 +7,16 @@ export const documentEmbeddingsService = () => {
 	const getDocumentEmbeddings = async (
 		file: string,
 		chunks: string[],
+		title?: string,
 	): Promise<DocumentChunk[]> => {
 		const embeddedChunks: DocumentChunk[] = [];
 
 		for (const [chunkIndex, text] of chunks.entries()) {
-			const sqlEmbedding = await embedText(
-				text,
-				`chunk ${chunkIndex} of file: ${file}`,
-			);
+			const sqlEmbedding = await embedText(text, {
+				purpose: "document",
+				title,
+				context: `chunk ${chunkIndex} of file: ${file}`,
+			});
 			embeddedChunks.push({
 				chunkIndex,
 				text,

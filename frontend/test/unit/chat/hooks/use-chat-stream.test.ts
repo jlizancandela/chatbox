@@ -41,8 +41,8 @@ const responseFor = (...events: string[]): Response => {
 	});
 };
 
-const sourceFrame = (history: unknown[] = []): string =>
-	`event: sources\ndata: ${JSON.stringify({ sources: [], history })}\n\n`;
+const sourceFrame = (history: unknown[] = [], sources: unknown[] = []): string =>
+	`event: sources\ndata: ${JSON.stringify({ sources, history })}\n\n`;
 
 const tokenFrame = (token: string): string =>
 	`event: token\ndata: ${JSON.stringify({ token })}\n\n`;
@@ -237,9 +237,31 @@ describe("useChatStream runner — turn end events (RF-F41)", () => {
 
 		await runner.run("¿Qué usa Jorge?");
 
-		expect(events).toEqual([{ kind: "completed", text: "Usa Preact." }]);
+		expect(events).toEqual([{ kind: "completed", text: "Usa Preact.", sources: [] }]);
 		// El texto viaja en el evento porque el estado ya no lo conserva tras `done`.
 		expect(chat.state.currentResponse).toBe("");
+	});
+
+	it("emits a completed event carrying the sources of the answer", async () => {
+		const source = {
+			documentId: "cv.md",
+			chunkIndex: 0,
+			title: "Currículum",
+			content: "Preact",
+			distance: 0.2,
+		};
+		const { runner, events } = createRunner(
+			createChat(),
+			vi
+				.fn()
+				.mockResolvedValue(
+					responseFor(sourceFrame([], [source]), tokenFrame("Usa Preact."), doneFrame)
+				)
+		);
+
+		await runner.run("¿Qué usa Jorge?");
+
+		expect(events).toEqual([{ kind: "completed", text: "Usa Preact.", sources: [source] }]);
 	});
 
 	it("emits a completed event with empty text when the assistant answers nothing", async () => {
@@ -250,7 +272,7 @@ describe("useChatStream runner — turn end events (RF-F41)", () => {
 
 		await runner.run("Pregunta fuera del perfil");
 
-		expect(events).toEqual([{ kind: "completed", text: "" }]);
+		expect(events).toEqual([{ kind: "completed", text: "", sources: [] }]);
 	});
 
 	it.each([
@@ -372,6 +394,6 @@ describe("useChatStream runner — turn end events (RF-F41)", () => {
 
 		await runner.run("Pregunta");
 
-		expect(events).toEqual([{ kind: "completed", text: "" }]);
+		expect(events).toEqual([{ kind: "completed", text: "", sources: [] }]);
 	});
 });

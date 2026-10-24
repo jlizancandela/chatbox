@@ -60,16 +60,27 @@ export const chatReducer = (state: ChatState, action: ChatAction): ChatState => 
 		case "turn-completed": {
 			const hasCompletedResponse =
 				state.currentQuestion !== null && state.currentResponse.length > 0;
+			const sources = state.sources.length > 0 ? state.sources : undefined;
 			const assistantMessage = hasCompletedResponse
-				? { role: "assistant" as const, content: state.currentResponse }
+				? {
+						role: "assistant" as const,
+						content: state.currentResponse,
+						...(sources ? { sources } : {}),
+					}
 				: null;
 
 			return {
 				...state,
 				messages: assistantMessage ? [...state.messages, assistantMessage] : state.messages,
+				// El contexto es lo que se envía al API: solo rol y contenido. Las fuentes
+				// se quedan en la conversación, que es donde se ven.
 				context:
 					assistantMessage && state.currentQuestion
-						? [...state.context, { role: "user", content: state.currentQuestion }, assistantMessage]
+						? [
+								...state.context,
+								{ role: "user", content: state.currentQuestion },
+								{ role: "assistant", content: state.currentResponse },
+							]
 						: state.context,
 				currentQuestion: null,
 				currentResponse: "",

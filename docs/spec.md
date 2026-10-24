@@ -81,8 +81,11 @@ Por qué: poder compararla con los fragmentos almacenados.
 
 **RF-12 — Búsqueda top-k**
 Cuando se disponga del embedding de la pregunta, el sistema deberá recuperar los
-`k` fragmentos más similares. En el MVP, `k` es `5` y el umbral de similitud coseno es `0.5`.
-Por qué: seleccionar únicamente el contexto relevante para la respuesta.
+`k` fragmentos más similares. `k` es configurable con `RETRIEVAL_TOP_K` (por defecto `5`)
+y el umbral de similitud coseno con `SIMILARITY_THRESHOLD` (por defecto `0.5`, calibrado
+sobre el espacio de embeddings vigente).
+Por qué: seleccionar únicamente el contexto relevante para la respuesta y poder ajustar
+ambos parámetros sin tocar el código.
 
 **RF-13 — Respuesta con contexto**
 Cuando exista contexto suficiente, el sistema deberá enviar a Groq únicamente la
@@ -163,6 +166,58 @@ recuperado del resto de la conversación.
 Por qué: prevenir que contenido malicioso en mensajes del historial del cliente
 manipule el comportamiento del modelo.
 
+### Respuesta fundamentada y atribución
+
+**RF-21 — Contexto etiquetado**
+Cuando se componga el contexto para la generación, el sistema lo etiquetará con el
+número del fragmento y el título del documento de origen, en el formato
+`[n] Título — contenido`.
+Por qué: para que el modelo sepa de qué documento sale cada dato, pueda atribuir y no
+responda de forma genérica.
+
+**RF-22 — Estructura de la respuesta**
+Cuando se genere una respuesta con contexto, el prompt de sistema exigirá una
+respuesta directa al principio y el detalle después, permitirá viñetas solo cuando
+haya varias opciones, pasos o requisitos, y no impondrá un tope de frases.
+Por qué: una respuesta escueta no debe venir de un tope escrito en las instrucciones,
+sino de que el contexto no dé para más.
+
+**RF-23 — Parámetros de generación**
+Cuando se llame al proveedor generativo, el sistema enviará la temperatura, el límite
+de tokens de completion y el esfuerzo de razonamiento leídos del entorno
+(`GENERATION_TEMPERATURE`, `GENERATION_MAX_COMPLETION_TOKENS`,
+`GENERATION_REASONING_EFFORT`) y validados al arrancar.
+Por qué: la temperatura por defecto del proveedor es más alta de lo que conviene para
+RAG factual, y el límite de tokens debe contemplar el razonamiento del modelo.
+
+**RF-24 — Recuperación asimétrica**
+Cuando se embebida un fragmento de documento, el sistema usará el tipo de tarea de
+recuperación de documentos; cuando se embebida una pregunta, el de recuperación de
+consultas.
+Por qué: los embeddings de consulta y de documento son asimétricos; codificarlos con
+el mismo tipo degrada el ranking de la recuperación.
+
+**RF-25 — Versión ligada a la configuración de embeddings**
+Cuando se ingiera un documento, el sistema calculará su versión a partir del
+contenido, el título y la firma de la configuración de embeddings, de modo que un
+cambio de configuración invalide el corpus.
+Por qué: con la versión basada solo en el contenido, reingerir los mismos archivos no
+re-embebe y la base queda con vectores de un espacio anterior, incomparables con los
+nuevos.
+
+**RF-26 — Fuentes atribuidas**
+Cuando se emita el evento `sources`, cada fuente incluirá el título del documento de
+origen además del identificador, el índice del fragmento, el contenido y la distancia.
+Por qué: sin el título, el cliente recibe datos que no puede atribuir a nada y las
+fuentes no se muestran.
+
+La reinjestada del corpus va acompañada de la recalibración de
+`SIMILARITY_THRESHOLD`: el umbral vigente se calibró sobre el espacio de embeddings
+anterior y deja de significar lo mismo al cambiar de tipo de tarea. El orden es
+embeber el corpus con el tipo de documento antes de servir la primera consulta con el
+tipo de consulta; comparar vectores de espacios distintos no da error, da rankings sin
+sentido.
+
 ## Fuera de alcance actual
 
 - Embeddings locales.
@@ -174,6 +229,9 @@ manipule el comportamiento del modelo.
 - Observabilidad avanzada, métricas o trazas distribuidas.
 - LangChain.
 - Panel de administración.
+- Citas inline tipo `[^1]` dentro del texto visible de la respuesta: la atribución se
+  muestra en la línea de fuentes del widget.
+- Cambio de modelo generativo: el modelo vigente acepta los parámetros que faltan.
 
 La memoria temporal del Paso 6 queda fuera de la implementación actual hasta
 que se complete su checklist en `api/TODO.md`. Cuando se implemente, seguirá
@@ -194,3 +252,5 @@ El MVP se considera completo cuando se verifican todos estos puntos:
   quedan documentados.
 - El flujo completo funciona desde un entorno limpio: instalar, ingerir un
   documento y responder consultas con rate limiting activo y errores JSON.
+- La respuesta se compone a partir de fragmentos etiquetados con su documento de
+  origen, y el widget muestra de qué documento sale.

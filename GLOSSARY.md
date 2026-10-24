@@ -27,7 +27,10 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
 - **Cadena fija**: valor constante dentro de `strings.es.ts`, modelado como entrada de un
   registro o de un objeto `as const`.
 - **Interpolación real**: hueco de texto que se rellena con un valor de ejecución. Es la
-  única razón para modelar una entrada de `strings.es.ts` como función.
+  única razón para modelar una entrada de `strings.es.ts` como función. Hay dos: el
+  contador de caracteres (`input.chars`) y la línea de fuentes de la respuesta
+  (`messages.sources`), cuyo texto es fijo y lo que cambia son los títulos de los
+  documentos.
 - **Lista blanca**: literales permitidos fuera de `strings.es.ts`, declarados de forma
   explícita en el test de inventario para que la lista sea auditable en un vistazo.
 
@@ -88,6 +91,23 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
 - **Contrato de objetivos táctiles**: inventario de controles, suelo de 44 px y guarda que hace
   que un control nuevo sin inventariar rompa la compilación. Se verifica en dos niveles
   —mecanismo en jsdom y resolución en Chromium— y no tiene nivel manual.
+
+## Respuesta fundamentada y atribución
+
+- **Fragmento etiquetado**: fragmento recuperado que se entrega al modelo con un
+  número y el título de su documento de origen (`[1] Currículum — ...`). El número
+  ordena los fragmentos; el título dice de dónde sale el dato.
+- **Espacio de embeddings**: conjunto de vectores comparables entre sí. Cambiar el
+  modelo, la dimensión o el tipo de tarea de embedding abre un espacio nuevo: los
+  vectores del anterior dejan de ser comparables con los nuevos.
+- **Firma de embeddings**: identificador de la configuración que produce un espacio
+  de embeddings (modelo, dimensión y tipo de tarea). Forma parte de la versión de un
+  documento, de modo que cambiar la firma invalida el corpus y obliga a reingerirlo.
+- **Atribución**: vínculo entre una respuesta y los documentos de los que procede.
+  Se muestra en la línea de fuentes del widget, no como marcadores dentro del texto.
+- **Reingestada**: volver a embeber un documento ya presente. Solo produce vectores
+  nuevos si la firma de embeddings ha cambiado; si no, el documento se reactiva sin
+  rehacer sus fragmentos.
 
 ## Seguimiento del hilo (RF-F06/RF-F48)
 

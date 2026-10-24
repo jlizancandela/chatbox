@@ -5,6 +5,7 @@ import { toAnnouncementText } from "../chat/domain/announcement";
 import { trimHistory } from "../chat/domain/conversation";
 import { REDUCED_MOTION_QUERY, type ScrollIntent, scrollBehavior } from "../chat/domain/motion";
 import { isAwayFromEnd } from "../chat/domain/scroll";
+import { sourceTitles } from "../chat/domain/sources";
 import { useChat } from "../chat/hooks/useChat";
 import { type TurnEnd, useChatStream } from "../chat/hooks/useChatStream";
 import { useFocusOnMount } from "../chat/hooks/useFocusOnMount";
@@ -79,10 +80,18 @@ const closedWithoutAnswer = (event: TurnEnd): boolean =>
  */
 const announcementFor = (event: TurnEnd): string => {
 	switch (event.kind) {
-		case "completed":
-			return closedWithoutAnswer(event)
-				? strings.notices.noContext
-				: toAnnouncementText(event.text);
+		case "completed": {
+			if (closedWithoutAnswer(event)) {
+				return strings.notices.noContext;
+			}
+
+			const text = toAnnouncementText(event.text);
+			const titles = sourceTitles(event.sources);
+
+			// Lo que se ve en la burbuja también se oye: la línea de fuentes forma parte
+			// del turno que se anuncia.
+			return titles.length > 0 ? `${text}\n${strings.messages.sources(titles)}` : text;
+		}
 		case "failed":
 			return event.error.message;
 		case "aborted":

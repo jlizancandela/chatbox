@@ -1,12 +1,6 @@
 import { createParser, type EventSourceMessage } from "eventsource-parser";
-import type {
-	ChatMessage,
-	ChatSource,
-	DoneEvent,
-	ErrorEvent,
-	SourcesEvent,
-	TokenEvent,
-} from "../types";
+import { isChatSource } from "../domain/sources";
+import type { ChatMessage, DoneEvent, ErrorEvent, SourcesEvent, TokenEvent } from "../types";
 
 export type ChatEvent = SourcesEvent | TokenEvent | DoneEvent | ErrorEvent;
 
@@ -22,13 +16,6 @@ const isChatMessage = (value: unknown): value is ChatMessage =>
 	isRecord(value) &&
 	(value.role === "user" || value.role === "assistant") &&
 	typeof value.content === "string";
-
-const isChatSource = (value: unknown): value is ChatSource =>
-	isRecord(value) &&
-	typeof value.documentId === "string" &&
-	typeof value.chunkIndex === "number" &&
-	typeof value.content === "string" &&
-	typeof value.distance === "number";
 
 const parseEvent = (event: EventSourceMessage): ChatEvent | null => {
 	let payload: unknown;

@@ -37,6 +37,11 @@ export const strings = {
 		writing: "El asistente está escribiendo",
 		stopped: "Respuesta detenida",
 		listLabel: "Mensajes",
+		/**
+		 * La línea de fuentes. Es una interpolación real como el contador de caracteres: el
+		 * texto es fijo y lo que cambia son los títulos de los documentos.
+		 */
+		sources: (titles: readonly string[]): string => `Fuentes: ${titles.join(", ")}`,
 	},
 	actions: {
 		scrollToEnd: "Ir al final",

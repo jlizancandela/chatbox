@@ -8,8 +8,8 @@
 
 import type { Page } from "@playwright/test";
 
-export const sourcesFrame = (history: unknown[] = []): string =>
-	`event: sources\ndata: ${JSON.stringify({ sources: [], history })}\n\n`;
+export const sourcesFrame = (history: unknown[] = [], sources: unknown[] = []): string =>
+	`event: sources\ndata: ${JSON.stringify({ sources, history })}\n\n`;
 
 export const tokenFrame = (token: string): string =>
 	`event: token\ndata: ${JSON.stringify({ token })}\n\n`;

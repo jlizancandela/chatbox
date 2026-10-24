@@ -8,6 +8,7 @@ import {
 const source = {
 	documentId: "cv.md",
 	chunkIndex: 0,
+	title: "Currículum",
 	content: "Preact",
 	distance: 0.2,
 };
@@ -51,6 +52,20 @@ describe("chatReducer", () => {
 			{ role: "user", content: "¿Qué usa Jorge?" },
 			{ role: "assistant", content: "Usa Preact." },
 		]);
+	});
+
+	it("keeps the sources with the answer and out of the context", () => {
+		let state = started();
+		state = chatReducer(state, {
+			type: "sources-received",
+			sources: [source],
+			history: [],
+		});
+		state = chatReducer(state, { type: "token-received", token: "Usa Preact." });
+		state = chatReducer(state, { type: "turn-completed" });
+
+		expect(state.messages[1].sources).toEqual([source]);
+		expect(state.context[1]).toEqual({ role: "assistant", content: "Usa Preact." });
 	});
 
 	it("does not commit a turn without a response", () => {

@@ -4,7 +4,7 @@ import {
 	STORAGE_KEY,
 	saveToSessionStorage,
 } from "../../../../src/chat/infrastructure/storage";
-import type { ChatMessage } from "../../../../src/chat/types";
+import type { ChatMessage, VisibleMessage } from "../../../../src/chat/types";
 
 const message = (role: ChatMessage["role"], content: string): ChatMessage => ({
 	role,
@@ -40,6 +40,22 @@ describe("session storage", () => {
 		expect(saveToSessionStorage(messages, context)).toBe(true);
 		expect(sessionStorage.getItem(STORAGE_KEY)).not.toBeNull();
 		expect(loadFromSessionStorage()).toEqual({ messages, context });
+	});
+
+	it("keeps the sources of an answer", () => {
+		const sources = [
+			{
+				documentId: "cv.md",
+				chunkIndex: 0,
+				title: "Currículum",
+				content: "Preact",
+				distance: 0.2,
+			},
+		];
+		const messages: VisibleMessage[] = [{ role: "assistant", content: "Usa Preact.", sources }];
+
+		expect(saveToSessionStorage(messages, [])).toBe(true);
+		expect(loadFromSessionStorage()).toEqual({ messages, context: [] });
 	});
 
 	it("returns null for corrupt or incomplete data", () => {

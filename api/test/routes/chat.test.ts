@@ -82,11 +82,13 @@ test('chat stream returns sources, tokens and done for a relevant question', asy
   for (const source of sources as Array<{
     documentId: string
     chunkIndex: number
+    title: string
     content: string
     distance: number
   }>) {
     assert.equal(typeof source.documentId, 'string')
     assert.equal(typeof source.chunkIndex, 'number')
+    assert.equal(typeof source.title, 'string')
     assert.equal(typeof source.content, 'string')
     assert.equal(typeof source.distance, 'number')
     assert.ok(source.distance < 0.5)

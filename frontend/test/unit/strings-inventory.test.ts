@@ -60,6 +60,7 @@ const CSS_CLASSES_AND_IDS = [
 	"chatbox__status",
 	"chatbox__status--error",
 	"chatbox__status--announced",
+	"chatbox__sources",
 	"chatbox__writing",
 ];
 

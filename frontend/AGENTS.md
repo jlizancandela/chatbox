@@ -181,8 +181,10 @@ Límites que deben mantenerse alineados con el API:
   para navegadores modernos.
 - Mantener `messages` (transcripción visible) separado de `context` (historial
   enviado al API).
-- No introducir autenticación, WebSockets, persistencia server-side ni
-  visualización de fuentes en el MVP.
+- No introducir autenticación, WebSockets ni persistencia server-side.
+- La visualización de fuentes sí está permitida desde la issue #110: cada respuesta
+  nombra los documentos de los que viene (ver `.specs/110-fuentes-visibles.md`). Lo
+  que no se permite son citas inline dentro del texto.
 
 ## Reglas de UI, seguridad y accesibilidad
 

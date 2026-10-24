@@ -11,8 +11,18 @@ export type ChatMessage = {
 export type ChatSource = {
 	documentId: string;
 	chunkIndex: number;
+	title: string;
 	content: string;
 	distance: number;
+};
+
+/**
+ * Mensaje visible en la conversación: un mensaje del API más las fuentes de la
+ * respuesta. Las fuentes no se envían de vuelta al API —son la atribución de lo que
+ * se ve, no parte del contexto— y por eso no viajan en el historial.
+ */
+export type VisibleMessage = ChatMessage & {
+	sources?: ChatSource[];
 };
 
 export type SourcesEvent = {
