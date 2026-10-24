@@ -97,4 +97,4 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Reemplazar el tope de tres frases por una regla de estructura de la respuesta.
 - [x] Configurar `temperature`, `max_completion_tokens` y `reasoning_effort`.
 - [x] Configurar `top-k` en lugar de hardcodearlo.
-- [ ] Pintar las fuentes en el widget.
+- [x] Pintar las fuentes en el widget.

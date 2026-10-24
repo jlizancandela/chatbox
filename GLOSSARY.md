@@ -27,7 +27,10 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
 - **Cadena fija**: valor constante dentro de `strings.es.ts`, modelado como entrada de un
   registro o de un objeto `as const`.
 - **Interpolación real**: hueco de texto que se rellena con un valor de ejecución. Es la
-  única razón para modelar una entrada de `strings.es.ts` como función.
+  única razón para modelar una entrada de `strings.es.ts` como función. Hay dos: el
+  contador de caracteres (`input.chars`) y la línea de fuentes de la respuesta
+  (`messages.sources`), cuyo texto es fijo y lo que cambia son los títulos de los
+  documentos.
 - **Lista blanca**: literales permitidos fuera de `strings.es.ts`, declarados de forma
   explícita en el test de inventario para que la lista sea auditable en un vistazo.
 

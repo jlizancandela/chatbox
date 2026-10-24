@@ -346,6 +346,15 @@
 	color: var(--chatbox-color-surface);
 }
 
+/* The sources of the answer (issue #110): the documents it comes from. Full-strength
+ * ink, like the rest of the bubble: the attribution has to be readable, not decorative,
+ * and blending it down would drop it under the 4.5:1 floor. */
+.chatbox__sources {
+	margin: 0.35rem 0 0;
+	font-size: 0.75rem;
+	color: var(--chatbox-color-text);
+}
+
 /* The typing indicator (RF-F44): three dots that mark the empty assistant turn.
  * They are decorative — the announcement lives in the status region — and they
  * only bounce when the person allows movement: the animation is declared inside

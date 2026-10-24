@@ -53,7 +53,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F11` — Tokens agrupados por `requestAnimationFrame`.
 - [x] `RF-F12` — Mensaje local de "no lo tengo" cuando `sources: []` + `done` sin tokens.
 - [x] `RF-F14` — No mostrar nunca el `message` de un `error` ni JSON de error.
-- [x] `RF-F15` — Guardar `sources` en estado sin mostrarlas (MVP).
+- [x] `RF-F15` — Guardar `sources` en estado. Desde la issue #110 también se muestran: cada respuesta nombra los documentos de los que viene.
 - [x] `RF-F20` — Estado con `messages` y `context` separados.
 - [x] `RF-F21` — Recorte de historial en cada petición.
 - [x] `RF-F22` — `context` se sustituye por el `history` del evento `sources`.
@@ -61,6 +61,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F24` — Persistencia en `sessionStorage` bajo clave versionada.
 - [x] `RF-F25` — Botón "Nueva conversación" con confirmación en línea.
 - [x] `RF-F26` — Nota discreta cuando el servidor recorta el historial.
+- [x] Línea de fuentes bajo la respuesta del asistente, con los documentos distintos, y su anuncio en la región de estado (#110).
 
 ## Paso 4 — Renderizado y estilos
 

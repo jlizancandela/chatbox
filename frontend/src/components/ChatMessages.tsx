@@ -1,11 +1,12 @@
 import type { ComponentChildren, Ref } from "preact";
 import { AssistantMarkdown } from "../chat/components/AssistantMarkdown";
 import { TypingIndicator } from "../chat/components/TypingIndicator";
-import type { ChatMessage } from "../chat/types";
+import { sourceTitles } from "../chat/domain/sources";
+import type { ChatMessage, ChatSource, VisibleMessage } from "../chat/types";
 import { strings } from "../strings.es";
 
 type ChatMessagesProps = {
-	messages: ChatMessage[];
+	messages: VisibleMessage[];
 	currentResponse: string;
 	isBusy: boolean;
 	/**
@@ -15,6 +16,18 @@ type ChatMessagesProps = {
 	 */
 	listRef?: Ref<HTMLOListElement>;
 };
+
+/**
+ * Los documentos de los que viene la respuesta (issue #110). Sin fuentes no hay línea:
+ * la atribución solo existe cuando hay algo que atribuir.
+ */
+function SourceTitles({ sources }: { sources?: ChatSource[] }) {
+	const titles = sourceTitles(sources ?? []);
+
+	if (titles.length === 0) return null;
+
+	return <p class="chatbox__sources">{strings.messages.sources(titles)}</p>;
+}
 
 export function ChatMessages({
 	messages,
@@ -45,7 +58,10 @@ export function ChatMessages({
 						<span class="chatbox__message-author">{strings.messages.author[message.role]}</span>
 						{message.role === "assistant" ? (
 							message.content ? (
-								<AssistantMarkdown content={message.content} />
+								<>
+									<AssistantMarkdown content={message.content} />
+									<SourceTitles sources={message.sources} />
+								</>
 							) : (
 								<>
 									{isPending && (
