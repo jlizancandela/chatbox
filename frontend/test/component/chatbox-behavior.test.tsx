@@ -63,14 +63,25 @@ describe("Chatbox — static render", () => {
 			expect(screen.getByLabelText(strings.input.label)).toBeInTheDocument();
 		});
 
-		it("buttons without visible text have aria-label", () => {
+		it("every button has an accessible name", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" />);
 			const buttons = screen.getAllByRole("button");
-			buttons.forEach((btn) => {
-				if (!btn.textContent?.trim()) {
-					expect(btn).toHaveAttribute("aria-label");
+			expect(buttons.length).toBeGreaterThan(0);
+
+			for (const button of buttons) {
+				const visibleText = button.textContent?.trim() ?? "";
+				const ariaLabel = button.getAttribute("aria-label");
+				// Un botón con texto visible toma el nombre de ese texto; uno sin él tiene
+				// que declararlo. Un botón sin ninguna de las dos cosas solo se anuncia como
+				// «botón», y eso no le dice nada a quien lo oye.
+				expect(
+					visibleText !== "" || ariaLabel !== null,
+					`el botón «${button.outerHTML}» no tiene nombre accesible`
+				).toBe(true);
+				if (visibleText === "") {
+					expect(button).toHaveAttribute("aria-label");
 				}
-			});
+			}
 		});
 	});
 
