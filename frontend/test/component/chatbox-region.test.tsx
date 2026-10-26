@@ -2,8 +2,9 @@
  * RF-F41 — contrato de la región de estado (issue #91).
  *
  * Nivel de verificación: **estructura**, no sonido. Estos tests comprueban qué lleva la
- * región y en qué orden; que un lector de pantalla lo hable es el nivel manual (NVDA y
- * VoiceOver), que es la condición de cierre de la issue. Ver
+ * región y en qué orden. Que un lector de pantalla lo hable no lo comprueba ninguna
+ * máquina: el cierre de la RF es la pasada automática con axe
+ * (`test/browser/accessibility.spec.ts`). Ver
  * `docs/decisions/005-live-region-verification.md`.
  */
 

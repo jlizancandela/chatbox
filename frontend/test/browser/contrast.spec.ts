@@ -9,7 +9,6 @@
  */
 
 import { expect, type Page, test } from "@playwright/test";
-import axe from "axe-core";
 import { strings } from "../../src/strings.es";
 import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
 import { contrastRatio, isTransparent, parseColor } from "../contrast";
@@ -216,22 +215,6 @@ function assertContrasts(measurements: Measurement[]): void {
 	}
 }
 
-async function axeViolations(page: Page): Promise<{ id: string; target: unknown }[]> {
-	await page.addScriptTag({ content: axe.source });
-	return page.evaluate(async () => {
-		const results = await (window as unknown as Window & { axe: typeof axe }).axe.run(
-			document.querySelector(".chatbox") as HTMLElement,
-			{
-				runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] },
-			}
-		);
-		return results.violations.map((violation) => ({
-			id: violation.id,
-			target: violation.nodes.map((node) => node.target),
-		}));
-	});
-}
-
 const tokenValue = (page: Page, property: string): Promise<string> =>
 	page
 		.locator(".chatbox")
@@ -247,7 +230,6 @@ for (const colorScheme of ["light", "dark"] as const) {
 			if (state === "con error") await failTurn(page);
 
 			assertContrasts(await collectMeasurements(page));
-			expect(await axeViolations(page)).toEqual([]);
 		});
 	}
 }

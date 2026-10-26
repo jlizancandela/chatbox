@@ -212,8 +212,6 @@ const displayPath = (path: string): string => {
 
 /**
  * Los componentes del widget, en **todo** `src/`.
- *
- * `src/dev/` queda fuera: son fixtures de verificación manual que no se distribuyen.
  */
 const COMPONENT_SOURCES = Object.fromEntries(
 	Object.entries(
@@ -222,7 +220,7 @@ const COMPONENT_SOURCES = Object.fromEntries(
 			import: "default",
 			eager: true,
 		}) as Record<string, string>
-	).filter(([path]) => !path.includes("/src/dev/"))
+	)
 );
 
 const ALL_ELEMENTS = Object.entries(COMPONENT_SOURCES).flatMap(([path, source]) =>

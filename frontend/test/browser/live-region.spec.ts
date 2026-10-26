@@ -2,13 +2,13 @@
  * RF-F41 — la región de estado en un navegador real (issue #91).
  *
  * Nivel de verificación: **resolución**, no sonido. Estos tests comprueban que la región
- * lleva el texto del contrato en Chromium y que el widget no tiene violaciones de axe. Que
- * un lector de pantalla lo hable sigue siendo el nivel manual (NVDA y VoiceOver), que es la
- * condición de cierre de la issue. Ver `docs/decisions/005-live-region-verification.md`.
+ * lleva el texto del contrato en Chromium. Que un lector de pantalla lo hable no lo
+ * comprueba ninguna máquina: el cierre de la RF es la pasada automática con axe
+ * (`test/browser/accessibility.spec.ts`). Ver
+ * `docs/decisions/005-live-region-verification.md`.
  */
 
 import { expect, type Page, test } from "@playwright/test";
-import axe from "axe-core";
 import { strings } from "../../src/strings.es";
 import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
 
@@ -210,48 +210,5 @@ test.describe("RF-F41 región de estado", () => {
 		const region = page.locator(".chatbox__status");
 		await expect(region).toBeVisible();
 		await expect(region).toHaveText(strings.errors.HTTP_SERVER);
-	});
-
-	test("el widget no tiene violaciones de axe con la respuesta anunciada", async ({ page }) => {
-		await mockChatApi(page, tokenFrame("Usa Preact."));
-		await openChatbox(page);
-		await sendQuestion(page, "¿Qué usa Jorge?");
-		await expect(page.locator(".chatbox__status")).toHaveText("Usa Preact.");
-
-		await page.addScriptTag({ content: axe.source });
-		const results = await page.evaluate(async () => {
-			return (window as unknown as Window & { axe: typeof axe }).axe.run(
-				document.querySelector(".chatbox") as HTMLElement,
-				{ runOnly: { type: "tag", values: ["wcag2a", "wcag2aa"] } }
-			);
-		});
-		expect(results.violations).toEqual([]);
-	});
-});
-
-/**
- * El fixture de `?manual=<escenario>` es la vía por la que se puede hacer el checklist de
- * NVDA y VoiceOver sin levantar la API. Este test no verifica que suene nada —eso es el
- * nivel 3 de la ADR 005—, verifica que el guion sigue arrancando y announcing, que es como
- * se detecta que el fixture se ha roto.
- */
-test.describe("RF-F41 fixture de verificación manual", () => {
-	test("monta el widget con el guion y anuncia la respuesta proyectada", async ({ page }) => {
-		await page.goto("/?manual=normal");
-		await expect(page.locator(".chatbox")).toBeVisible();
-
-		await sendQuestion(page, "¿Qué usa Jorge?");
-
-		await expect(page.locator(".chatbox__status")).toHaveText(
-			"Jorge trabaja con Preact y Fastify. Tienes su GitHub."
-		);
-	});
-
-	test("un escenario desconocido cae en la página por defecto", async ({ page }) => {
-		await mockChatApi(page, tokenFrame("Respuesta del API real."));
-		await page.goto("/?manual=inexistente");
-		await sendQuestion(page, "¿Qué usa Jorge?");
-
-		await expect(page.locator(".chatbox__status")).toHaveText("Respuesta del API real.");
 	});
 });

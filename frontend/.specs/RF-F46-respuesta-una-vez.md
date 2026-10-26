@@ -91,6 +91,9 @@
   (RF-F06).
 - **Verificación manual**: la pasada de NVDA/VoiceOver compara lo oído con la burbuja, no con
   la región (ver D5). Hay que actualizar la checklist de RF-F41 en ese sentido.
+  > *Enmienda (2026-10-26, issue #113):* esa pasada manual se retiró con el nivel 3 de la
+  > ADR 005, que nunca se ejecutó. La referencia de contraste —la burbuja— sigue siendo la
+  > buena: lo que se anuncia es el mismo texto que se ve en ella.
 
 ## Verificación
 

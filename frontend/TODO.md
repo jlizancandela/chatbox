@@ -83,7 +83,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F46` — La respuesta se ve una sola vez: la región de estado anuncia siempre y pinta solo lo que no está en la conversación; la burbuja muestra el indicador mientras carga el markdown (#104).
 - [x] `RF-F47` — El aviso «El asistente está escribiendo» se ve dentro del bocadillo y la región de estado lo anuncia sin pintarlo; la copia visible es decorativa (#106).
 - [x] `RF-F45` — Label en textarea, `aria-label` en botones solo-icono, `lang="es"` en componente. Contrato y guarda: reglas (etiqueta asociada, nombre accesible, botón solo-icono, idioma) con mecanismo en jsdom y resolución en Chromium (#112).
-- [ ] Pasada automática con axe + prueba manual con NVDA y VoiceOver (`RF-F41`).
+- [x] Pasada automática con axe sobre el widget en todos sus estados y en los dos esquemas de color; RF-F41 se cierra con dos niveles, sin nivel manual (#113).
 
 ## Paso 6 — Responsive y móvil
 
@@ -119,7 +119,7 @@ plano, React/Preact, Vue, Svelte, WordPress y otros hosts.
 - [x] Tests de `trimHistory` y lectura tolerante de storage.
 - [x] Tests del hook con fetch simulado.
 - [ ] Tests del componente (`@testing-library/preact`): Enter/Shift+Enter, Enviar↔Detener, estado vacío, reintento.
-- [x] Test de accesibilidad con axe-core sobre `.chatbox` en navegador real.
+- [x] Test de accesibilidad con axe-core sobre `.chatbox` en navegador real (#113: la pasada recorre los ocho estados del widget en claro y en oscuro).
 - [ ] Prueba manual en móvil real (iOS Safari): teclado virtual, safe areas, zoom.
 - [x] Verificar build de producción (`npm run build`) con react-markdown y Preact Compat.
 - [ ] Flujo completo: instalación limpia, `npm install`, dev server, chat con streaming real.

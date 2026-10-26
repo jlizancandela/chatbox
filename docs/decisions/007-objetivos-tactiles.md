@@ -65,8 +65,8 @@ Los objetivos táctiles del widget son un **contrato**, no una lista de comproba
    que un control nuevo no pueda colarse sin medir. La identidad se declara en el markup con
    `data-chatbox-control`: es lo que permite afirmar «todo control interactivo del widget está
    inventariado» de forma mecánica, en lugar de contar botones y confiar en que el recuento no
-   miente. La guarda escanea **todo** `src/**/*.tsx` —salvo `src/dev/`, que son fixtures que no
-   se distribuyen— con `@babel/parser`, y falla si un elemento interactivo —`a`, `button`,
+   miente. La guarda escanea **todo** `src/**/*.tsx` con `@babel/parser`, y falla si un
+   elemento interactivo —`a`, `button`,
    `input`, `select`, `textarea`, o cualquiera con `role="button"`— no declara su identidad, si
    declara una que el inventario no conoce, o si **una identidad declara dos controles**. Esta
    última regla no es decorativa: el nivel de resolución busca los controles por su identidad, y

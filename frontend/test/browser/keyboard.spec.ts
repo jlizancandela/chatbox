@@ -1,5 +1,4 @@
 import { expect, type Page, test } from "@playwright/test";
-import axe from "axe-core";
 import { strings } from "../../src/strings.es";
 import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
 
@@ -175,23 +174,5 @@ test.describe("RF-F40 keyboard navigation", () => {
 			return Boolean(last.compareDocumentPosition(button) & Node.DOCUMENT_POSITION_FOLLOWING);
 		});
 		expect(followsLastMessage).toBe(true);
-	});
-
-	test("the widget has no axe violations with a conversation and confirmation open", async ({
-		page,
-	}) => {
-		await mockChatApi(page, tokenFrame("Respuesta breve."));
-		await openChatbox(page);
-		await sendByKeyboard(page, "¿Qué experiencia tiene?");
-		await page.getByRole("button", { name: strings.actions.newConversation }).click();
-
-		await page.addScriptTag({ content: axe.source });
-		const results = await page.evaluate(async () => {
-			return (window as unknown as Window & { axe: typeof axe }).axe.run(
-				document.querySelector(".chatbox") as HTMLElement,
-				{ runOnly: { type: "tag", values: ["wcag2a", "wcag2aa"] } }
-			);
-		});
-		expect(results.violations).toEqual([]);
 	});
 });

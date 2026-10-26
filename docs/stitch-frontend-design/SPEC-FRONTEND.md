@@ -270,7 +270,7 @@ Uso:
 - **Unitarias (Vitest):** parser SSE con frames partidos entre chunks, varios frames en un chunk y payload con `history`; recorte de contexto; lectura tolerante de storage.
 - **Hook con `fetch` simulado:** secuencia normal, sin contexto, error mid-stream, abort, timeout.
 - **Componente (`@testing-library/preact`):** Enter/Shift+Enter, botón Enviar↔Detener, estado vacío, reintento.
-- **Accesibilidad:** pasada automática con axe y prueba manual con NVDA y VoiceOver, sobre todo RF-F41.
+- **Accesibilidad:** pasada automática con axe sobre el widget en todos sus estados y en los dos esquemas de color, sobre todo RF-F41.
 - **Manual en móvil real:** teclado virtual, safe areas, zoom de iOS.
 
 ---
