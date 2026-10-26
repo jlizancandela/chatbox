@@ -10,7 +10,7 @@
 
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { strings } from "../../src/strings.es";
-import { WIDGET_LANGUAGE } from "../accessible-names";
+import { type NameState, WIDGET_LANGUAGE } from "../accessible-names";
 import { mockChatApi, tokenFrame } from "../chat-frames";
 
 /** Los controles del widget que necesitan nombre accesible. */
@@ -41,7 +41,7 @@ async function visibleTextOf(control: Locator): Promise<string> {
  * aparece: un botón que solo existe con la confirmación abierta también tiene que nombrarse
  * con ella abierta.
  */
-async function assertEveryControlIsNamed(page: Page, state: string): Promise<void> {
+async function assertEveryControlIsNamed(page: Page, state: NameState): Promise<void> {
 	const controls = page.locator(CONTROL_SELECTOR);
 	const count = await controls.count();
 	expect(count, `sin controles en el estado: ${state}`).toBeGreaterThan(0);
