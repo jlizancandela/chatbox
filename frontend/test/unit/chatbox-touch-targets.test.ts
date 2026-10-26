@@ -239,8 +239,7 @@ function inventoryOffences(sources: Record<string, string>): Offence[] {
  * Los componentes del widget, en **todo** `src/`, no solo en `src/components/`.
  *
  * El alcance es lo que importa: con el glob limitado a `src/components/`, un `<button>` en
- * `src/chat/components/` entraba sin vigilar y la guarda seguía en verde. `src/dev/` queda fuera
- * porque son fixtures de verificación manual que no se distributen.
+ * `src/chat/components/` entraba sin vigilar y la guarda seguía en verde.
  */
 const COMPONENT_SOURCES = Object.fromEntries(
 	Object.entries(
@@ -249,7 +248,7 @@ const COMPONENT_SOURCES = Object.fromEntries(
 			import: "default",
 			eager: true,
 		}) as Record<string, string>
-	).filter(([path]) => !path.includes("/src/dev/"))
+	)
 );
 
 describe("la guarda del inventario", () => {

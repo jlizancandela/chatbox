@@ -94,8 +94,6 @@ src/
 │   │   └── token-buffer.ts # Agrupa tokens por frame de animación
 │   └── types.ts            # Tipos compartidos del contrato frontend/API
 ├── components/             # Punto de entrada del widget (Chatbox.tsx)
-├── dev/                    # Fixtures de verificación manual (solo desarrollo)
-│   └── manual-announcements.tsx # Escenarios `?manual=<escenario>` de RF-F41
 ├── assets/
 ├── App.tsx                 # Página por defecto: el widget contra el API real
 ├── index.tsx               # Arranque de la aplicación
@@ -110,11 +108,6 @@ Ubicar cada archivo nuevo según su responsabilidad:
 - `chat/infrastructure/`: fetch, SSE, storage y adaptadores externos.
 - `chat/hooks/`: ciclo de vida del stream y estado de interacción.
 - `components/`: reservado al punto de entrada del widget (`Chatbox`).
-- `dev/`: fixtures de verificación manual (servidores falsos, escenarios por URL).
-  Solo se cargan en desarrollo y detrás de una condición explícita; la página por
-  defecto y los tests de navegador no deben notar su existencia. No es sitio para
-  copy de interfaz: un fixture que necesita rótulos los toma de `strings.es.ts` o
-  los evita (escenario por URL, como en RF-F41).
 
 Los tests deben vivir fuera de `src/`, bajo `test/`, y organizarse por tipo
 (`unit/`, `component/` y `browser/`). La fuente autoritativa del reparto es
