@@ -45,8 +45,7 @@ Los nombres accesibles del widget son un **contrato**, no una lista de comprobac
    necesita inventariar cada control porque cada uno tiene su propio estado y su propia medida,
    aquí la regla es uniforme: se aplica a todo control que aparezca. El inventario del widget
    es de *reglas*, y por eso no hay que actualizarlo cada vez que aparece un control nuevo.
-3. **La guarda mira el código.** Escanea `src/**/*.tsx` —salvo `src/dev/`, que son fixtures que
-   no se distribuyen— con `@babel/parser`, el mismo patrón que el inventario de textos de RF-F62
+3. **La guarda mira el código.** Escanea `src/**/*.tsx` con `@babel/parser`, el mismo patrón que el inventario de textos de RF-F62
    y que la guarda de objetivos táctiles de RF-F43. Cuatro reglas:
    - **R1 · Etiqueta asociada**: un campo de formulario tiene nombre por una etiqueta que lo
      asocia, o por `aria-label`/`aria-labelledby`.

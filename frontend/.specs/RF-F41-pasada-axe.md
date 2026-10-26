@@ -47,9 +47,13 @@ escaneos: el widget en cada forma en que puede encontrarse.
 ### D3 — La pasada tiene una entrada que rechaza
 
 Un escaneo que no mira, o que mira un sitio donde no puede haber nada, pasa en verde y no
-protege nada. La pasada **inyecta una imagen sin texto alternativo** dentro del widget —una
-violación de WCAG 1.1.1 que cae de lleno en el nivel auditado— y exige que la reporte. Con
-la raíz del escaneo rota a propósito, ese test se pone rojo: está verificado.
+protege nada. La pasada **inyecta dos imágenes sin texto alternativo** —una dentro del
+widget y otra fuera— y exige dos cosas: que la de dentro se reporte y que la de fuera no.
+El escaneo tiene que alcanzar el widget sin derramarse fuera de él.
+
+Con la raíz del escaneo rota a propósito —más estrecha de lo que es— ese test se pone rojo:
+está verificado. Con la raíz demasiado ancha, lo detectan los dieciséis escaneos de la
+matriz, que se encuentran con reglas de página que no son del widget.
 
 ### D4 — Sin nivel manual
 

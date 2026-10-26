@@ -100,6 +100,9 @@ none` y `visibility: hidden` la sacarían del árbol de accesibilidad y el anunc
   pasada de NVDA/VoiceOver tiene que confirmar que el aviso **se sigue oyendo** con la región
   oculta: es el único nivel que verifica que hay sonido (ADR 005). La checklist queda en la
   issue #106.
+  > *Enmienda (2026-10-26, issue #113):* ese nivel manual se retiró: nunca se ejecutó y lo
+  > que añadía era la fonética, que no es un contrato del widget. El cierre de la RF es la
+  > pasada automática con axe.
 
 ## Verificación
 

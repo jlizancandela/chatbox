@@ -40,6 +40,12 @@
   issue. `docs/stitch-frontend-design/SPEC-FRONTEND.md` **no se toca**: los IDs `RF-Fxx`
   son la referencia estable entre `TODO.md` y la spec de diseño; la ampliación de RF-F41
   vive aquí.
+  > *Enmienda (2026-10-26, issue #113):* la D10 sigue valiendo para los **identificadores**
+  > `RF-Fxx`, que son el contrato de trazabilidad con `frontend/TODO.md`. No vale para la
+  > **estrategia de verificación**: la sección de pruebas de ese documento decía que la
+  > accesibilidad se verificaba «con una pasada automática con axe y una prueba manual con
+  > NVDA y VoiceOver», y al retirarse el nivel manual esa línea mintió. Se actualizó esa
+  > línea, y solo esa.
 
 ## Problem Statement
 
@@ -191,6 +197,9 @@ turno activo): el anuncio no debe prometer un texto que ya no está en pantalla.
   se duplica texto visible y audible.
 - **Actualizar `SPEC-FRONTEND.md`**: sus IDs `RF-Fxx` son el contrato de trazabilidad con
   `frontend/TODO.md`.
+  > *Enmienda (2026-10-26, issue #113):* la alternativa se sostiene para los **IDs**; la
+  > línea de **estrategia de verificación** de ese documento sí se actualizó, porque decía
+  > una cosa que ya no era cierta (ver D10).
 
 ## Verificación
 
@@ -224,9 +233,9 @@ confirmación abierta.
 cd frontend && npm run test:browser
 ```
 
-La pasada tiene una entrada que rechaza: inyecta una imagen sin texto alternativo dentro
-del widget y exige que la violación se reporte. Un escaneo que mirara el sitio equivocado
-pasaría en verde y no protegería nada.
+La pasada tiene una entrada que rechaza: inyecta dos imágenes sin texto alternativo —una
+dentro del widget y otra fuera— y exige que la de dentro se reporte y la de fuera no. Un
+escaneo que mirara el sitio equivocado pasaría en verde y no protegería nada.
 
 > *Texto original (RF-F41, 2026-10-20; la enmienda del 2026-10-26 toca lo que sigue):* para
 > el nivel manual había un **fixture** (`src/dev/manual-announcements.tsx`) que montaba el
