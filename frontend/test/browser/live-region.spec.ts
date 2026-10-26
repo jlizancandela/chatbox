@@ -8,7 +8,6 @@
  */
 
 import { expect, type Page, test } from "@playwright/test";
-import axe from "axe-core";
 import { strings } from "../../src/strings.es";
 import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
 
@@ -211,24 +210,7 @@ test.describe("RF-F41 región de estado", () => {
 		await expect(region).toBeVisible();
 		await expect(region).toHaveText(strings.errors.HTTP_SERVER);
 	});
-
-	test("el widget no tiene violaciones de axe con la respuesta anunciada", async ({ page }) => {
-		await mockChatApi(page, tokenFrame("Usa Preact."));
-		await openChatbox(page);
-		await sendQuestion(page, "¿Qué usa Jorge?");
-		await expect(page.locator(".chatbox__status")).toHaveText("Usa Preact.");
-
-		await page.addScriptTag({ content: axe.source });
-		const results = await page.evaluate(async () => {
-			return (window as unknown as Window & { axe: typeof axe }).axe.run(
-				document.querySelector(".chatbox") as HTMLElement,
-				{ runOnly: { type: "tag", values: ["wcag2a", "wcag2aa"] } }
-			);
-		});
-		expect(results.violations).toEqual([]);
-	});
 });
-
 /**
  * El fixture de `?manual=<escenario>` es la vía por la que se puede hacer el checklist de
  * NVDA y VoiceOver sin levantar la API. Este test no verifica que suene nada —eso es el

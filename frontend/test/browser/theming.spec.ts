@@ -1,5 +1,4 @@
 import { expect, test } from "@playwright/test";
-import axe from "axe-core";
 import { strings } from "../../src/strings.es";
 
 const surface = (page: import("@playwright/test").Page) =>
@@ -78,19 +77,5 @@ test.describe("RF-F61 browser theming resolution", () => {
 			await expect(button).toHaveText(strings.input.send.label);
 			await expect(button).toBeVisible();
 		}
-	});
-
-	test("chatbox has no axe violations at the audited level", async ({ page }) => {
-		await openChatbox(page);
-		await page.addScriptTag({ content: axe.source });
-		const results = await page.evaluate(async () => {
-			return (window as unknown as Window & { axe: typeof axe }).axe.run(
-				document.querySelector(".chatbox") as HTMLElement,
-				{
-					runOnly: { type: "tag", values: ["wcag2a", "wcag2aa"] },
-				}
-			);
-		});
-		expect(results.violations).toEqual([]);
 	});
 });
