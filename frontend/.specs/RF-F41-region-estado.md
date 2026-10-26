@@ -33,7 +33,9 @@
   y turno, así que el texto final siempre es un cambio real del árbol de accesibilidad,
   incluso si es idéntico al anterior. Un test fija la secuencia.
 - **D9 — Verificación**: dos niveles etiquetados (estructura en jsdom, resolución y axe en
-  Chromium) más checklist manual de NVDA y VoiceOver como condición de cierre.
+  Chromium). Sin nivel manual: el checklist de NVDA y VoiceOver se retiró en la enmienda
+  del 2026-10-26 (issue #113), porque nunca se ejecutó y porque lo que añadía —la
+  fonética— no es un contrato del widget.
 - **D10 — Ubicaciones**: esta spec, `docs/decisions/005-…`, una sección de glosario y una
   issue. `docs/stitch-frontend-design/SPEC-FRONTEND.md` **no se toca**: los IDs `RF-Fxx`
   son la referencia estable entre `TODO.md` y la spec de diseño; la ampliación de RF-F41
@@ -200,36 +202,37 @@ Dos niveles, con el nivel declarado en cada assert (ver
   **montaje con `sessionStorage` prellenado no anuncia**; el contador no es región viva;
   proyección de texto plano.
 - **Navegador / Chromium** (resolución): la secuencia real de `.chatbox__status` con el
-  API mockeado por SSE, y una pasada de `axe` sobre el widget. Sigue sin probar que un
-  lector de pantalla hable.
-- **Manual, condición de cierre**: checklist de NVDA (Windows) y VoiceOver (macOS) sobre
-  inicio, respuesta completa, respuesta idéntica a la anterior, fallo, aborto y montaje con
-  conversación restaurada. Se adjunta a la issue.
-  > *Enmienda (RF-F47, 2026-10-23):* la referencia para contrastar lo que se oye es el
-  > **bocadillo**, no la región: la región ya no pinta ni la respuesta ni el aviso
-  > «escribiendo». La checklist tiene que comprobar además que el aviso «escribiendo» **se
-  > sigue oyendo** aunque la región esté oculta visualmente.
+  API mockeado por SSE, y una pasada de `axe` sobre el widget en todos sus estados y en
+  los dos esquemas de color. Sigue sin probar que un lector de pantalla hable.
+  > *Enmienda (2026-10-26, issue #113):* el nivel manual —el checklist de NVDA y
+  > VoiceOver— se retiró: nunca se ejecutó y lo que añadía era la fonética, que no es
+  > un contrato del widget. El cierre es el nivel 2.
 
-### Cómo se hace la pasada manual
+### Cómo se hace la pasada automática
 
-El widget habla con una API que exige PostgreSQL y claves de entorno, así que para el nivel 3
-hay un **fixture** (`src/dev/manual-announcements.tsx`) que monta el `Chatbox` real con un
-`fetch` sustituido por un guion. Solo se carga en desarrollo y solo con `?manual=<escenario>`;
-la página de desarrollo por defecto y la suite de navegador no cambian.
+El widget habla con una API que exige PostgreSQL y claves de entorno, así que el escaneo
+monta la página de desarrollo con el API mockeado por SSE. No hace falta ningún servidor
+ni ningún guion: los estados del widget se montan interceptando `POST /api/chat`.
+
+La pasada vive en `test/browser/accessibility.spec.ts` y usa un único helper
+(`test/axe.ts`), que declara el nivel auditado —WCAG 2.0, 2.1 y 2.2, A y AA— y la raíz del
+escaneo —el widget—. Los ocho estados que recorre son: vacío, turno en marcha, respuesta
+anunciada, turno sin respuesta, turno fallido, turno detenido, conversación restaurada y
+confirmación abierta.
 
 ```bash
-cd frontend && npm run dev
+cd frontend && npm run test:browser
 ```
 
-| URL | Qué comprueba |
-|---|---|
-| `/?manual=normal` | Respuesta con negrita, código, enlace y negrita: se oye el texto limpio y la lista no lee token a token |
-| `/?manual=identical` | Dos turnos con la misma respuesta: la segunda también se anuncia |
-| `/?manual=error` | Fallo HTTP: se oye el mensaje de error |
-| `/?manual=abort` | Botón Detener: se oye la parada |
-| `/?manual=empty` | Turno sin respuesta: se oye el aviso de "no lo tengo" |
-| `/?manual=restore` | Monta con conversación restaurada: no se oye nada (recargar para repetir) |
+La pasada tiene una entrada que rechaza: inyecta una imagen sin texto alternativo dentro
+del widget y exige que la violación se reporte. Un escaneo que mirara el sitio equivocado
+pasaría en verde y no protegería nada.
 
+> *Texto original (RF-F41, 2026-10-20; la enmienda del 2026-10-26 toca lo que sigue):* para
+> el nivel manual había un **fixture** (`src/dev/manual-announcements.tsx`) que montaba el
+> `Chatbox` real con un `fetch` sustituido por un guion, solo en desarrollo y solo con
+> `?manual=<escenario>`. Se retiró con el nivel que lo alimentaba.
+>
 > *Enmienda (RF-F46, 2026-10-22):* la región ya no pinta lo que está en la conversación. Un
 > turno completado se ve en la burbuja del asistente; la región lo anuncia, pero no lo pinta
 > dos veces. Lo que sí se pinta: el aviso «escribiendo», el error y el aviso de turno
@@ -246,7 +249,7 @@ cd frontend && npm run dev
 > se ve en `.chatbox__status`, que solo se oculta cuando está vacía: sirve de referencia para
 > contrastar lo que se oye. Un test de navegador verifica que el guion sigue
 arrancando y anunciando, para que el fixture no se pudra en silencio; no verifica que suene
-nada, que es exactamente lo que no se puede automatizar.
+nada, que es exactamente lo que no se puede automatizar. Ese test se retiró con el fixture.
 
 ## Fuera de alcance
 

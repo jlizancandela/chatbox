@@ -54,6 +54,11 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
 - **Turno**: ciclo completo de una pregunta y su respuesta, desde que se envía hasta que
   termina bien, mal o detenido. Un turno produce exactamente un anuncio de desenlace, y el
   aviso de "escribiendo" es lo que precede a ese anuncio en la región.
+- **Contrato de la pasada automática**: el nivel auditado de axe —WCAG 2.0, 2.1 y 2.2, niveles
+  A y AA—, la raíz del escaneo —el widget— y los ocho estados en que el widget puede
+  encontrarse: vacío, turno en marcha, respuesta anunciada, turno sin respuesta, turno
+  fallido, turno detenido, conversación restaurada y confirmación abierta. Se verifica en dos
+  niveles —estructura en jsdom y resolución en Chromium— y no tiene nivel manual.
 
 ## Contraste del widget (RF-F42)
 

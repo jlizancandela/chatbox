@@ -2,9 +2,10 @@
  * RF-F41 — la región de estado en un navegador real (issue #91).
  *
  * Nivel de verificación: **resolución**, no sonido. Estos tests comprueban que la región
- * lleva el texto del contrato en Chromium y que el widget no tiene violaciones de axe. Que
- * un lector de pantalla lo hable sigue siendo el nivel manual (NVDA y VoiceOver), que es la
- * condición de cierre de la issue. Ver `docs/decisions/005-live-region-verification.md`.
+ * lleva el texto del contrato en Chromium. Que un lector de pantalla lo hable no lo
+ * comprueba ninguna máquina: el cierre de la RF es la pasada automática con axe
+ * (`test/browser/accessibility.spec.ts`). Ver
+ * `docs/decisions/005-live-region-verification.md`.
  */
 
 import { expect, type Page, test } from "@playwright/test";

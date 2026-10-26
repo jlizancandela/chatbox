@@ -99,8 +99,9 @@ Los nombres accesibles del widget son un **contrato**, no una lista de comprobac
     componente hace lo mismo con un botón de icono. Sin ese aserto, el test negativo pasaría con
     un widget sin contrato, y un detector cuyo test nunca falla no protege nada.
 13. **No hay nivel manual.** El nombre accesible se resuelve preguntando al árbol de
-    accesibilidad. Lo que queda para la pasada manual de RF-F41 es si el texto *suena* bien, que
-    es otra cosa: el contrato no audita la fonética.
+    accesibilidad. Lo que queda es si el texto *suena* bien, que es otra cosa: el contrato no
+    audita la fonética. RF-F41 se cerró sin nivel manual (issue #113): el texto que se
+    anuncia es el mismo que se ve en la burbuja.
 
 ## Consecuencias
 

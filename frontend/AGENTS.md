@@ -227,6 +227,11 @@ npm run verify
 Equivale a `lint` + `typecheck` + `build` + `test -- --run`. Los tests de navegador
 se ejecutan aparte con `npm run test:browser` (necesitan Chromium instalado).
 
+La accesibilidad tiene su propia pasada: `test/browser/accessibility.spec.ts` escanea el
+widget con axe en los ocho estados en que puede encontrarse, en claro y en oscuro. El nivel
+auditado y la raíz del escaneo viven en un único sitio, `test/axe.ts`, y no se repiten en
+cada spec. Corre dentro de `npm run test:browser`.
+
 Desde la raíz del monorepo, el hook pre-commit ejecuta `lint-staged`, Biome, el
 typecheck, la suite completa y los tests de navegador del frontend. Si el hook falla, se arregla la
 causa: no se salta con `--no-verify`. CI (`frontend.yml`) ejecuta los mismos pasos en
