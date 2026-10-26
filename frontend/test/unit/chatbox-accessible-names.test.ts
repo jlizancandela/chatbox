@@ -78,6 +78,26 @@ const declaresAttribute = (element: AstNode, name: string): boolean =>
 	attributesOf(element).some((attribute) => (attribute.name as AstNode | undefined)?.name === name);
 
 /**
+ * ¿El elemento es `aria-hidden`?
+ *
+ * Se reconocen las dos formas que se usan: el literal (`aria-hidden="true"`) y la expresión
+ * booleana (`aria-hidden={true}`). Lo que es `aria-hidden` no se anuncia, así que un icono
+ * decorativo no puede ser el nombre de un botón.
+ */
+const isAriaHidden = (element: AstNode): boolean => {
+	for (const attribute of attributesOf(element)) {
+		if ((attribute.name as AstNode | undefined)?.name !== "aria-hidden") continue;
+		const value = attribute.value as AstNode | null;
+		if (!value || typeof value !== "object") return false;
+		if (value.type === "StringLiteral") return value.value === "true";
+		const inner =
+			value.type === "JSXExpressionContainer" ? (value.expression as AstNode | null) : null;
+		return inner?.type === "BooleanLiteral" && inner.value === true;
+	}
+	return false;
+};
+
+/**
  * ¿Pinta esta expresión texto visible?
  *
  * Un identificador, una llamada o un literal: puede pintar texto, y ante la duda se cuenta como
@@ -106,7 +126,7 @@ const expressionRendersText = (expression: unknown): boolean => {
  * Lo que es `aria-hidden` no se anuncia: un icono con un `×` dentro no es el nombre del botón.
  */
 const subtreeRendersText = (element: AstNode): boolean => {
-	if (literalAttribute(element, "aria-hidden") === "true") return false;
+	if (isAriaHidden(element)) return false;
 	return childrenOf(element).some(childRendersText);
 };
 
@@ -310,6 +330,23 @@ describe("la guarda de nombres", () => {
 		const offences = offencesOf(
 			'export const F = () => <button type="button"><span aria-hidden="true">×</span></button>;'
 		);
+		expect(offences).toHaveLength(1);
+		expect(offences[0]).toContain("botón solo-icono");
+	});
+
+	it("tampoco cuenta el texto con `aria-hidden` escrito como expresión", () => {
+		// Las dos formas de escribirlo significan lo mismo: si solo se reconociera el
+		// literal, un icono decorativo con `aria-hidden={true}` contaría como texto y el
+		// botón solo-icono passaría sin nombre.
+		const offences = offencesOf(
+			'export const F = () => <button type="button"><span aria-hidden={true}>×</span></button>;'
+		);
+		expect(offences).toHaveLength(1);
+		expect(offences[0]).toContain("botón solo-icono");
+	});
+
+	it('muerde con un `role="button"` sin nombre', () => {
+		const offences = offencesOf('export const F = () => <span role="button" />;');
 		expect(offences).toHaveLength(1);
 		expect(offences[0]).toContain("botón solo-icono");
 	});

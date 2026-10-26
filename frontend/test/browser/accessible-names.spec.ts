@@ -8,20 +8,31 @@
  * donde el nombre se puede perder sin que nadie lo note.
  */
 
-import { expect, type Locator, type Page, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { strings } from "../../src/strings.es";
-import { type NameState, WIDGET_LANGUAGE } from "../accessible-names";
+import { NAME_STATES, type NameState, ROOT_CLASS, WIDGET_LANGUAGE } from "../accessible-names";
 import { mockChatApi, tokenFrame } from "../chat-frames";
+import { CONTROL_ATTRIBUTE } from "../touch-targets";
 
-/** Los controles del widget que necesitan nombre accesible. */
-const CONTROL_SELECTOR = ".chatbox button, .chatbox textarea, .chatbox a[href]";
+/**
+ * Los controles del widget que necesitan nombre accesible.
+ *
+ * La clase del widget y la identidad de control vienen del contrato: dos definiciones que
+ * divergen son dos contratos.
+ */
+const CONTROL_SELECTOR = [
+	`.${ROOT_CLASS} button`,
+	`.${ROOT_CLASS} textarea`,
+	`.${ROOT_CLASS} a`,
+	`.${ROOT_CLASS} [role="button"]`,
+].join(", ");
 
 /**
  * El nombre accesible que el navegador le da a un control.
  *
  * Se lee del árbol de accesibilidad: `ariaSnapshot()` devuelve el nodo como lo ve el
- *Accessibility Tree, con el rol y el nombre ya computados. Un control sin nombre aparece
- * como `- button` a secas, y uno que no está en el árbol (porque es `aria-hidden`) no
+ * Accessibility Tree, con el rol y el nombre ya computados. Un control sin nombre aparece
+ * como `- button` a secas, y uno que no está en el árbol —porque es `aria-hidden`— no
  * devuelve nada: las dos formas de quedarse mudo se distinguen así.
  */
 function accessibleNameOf(snapshot: string): string | null {
@@ -29,147 +40,79 @@ function accessibleNameOf(snapshot: string): string | null {
 	return match ? match[1] : null;
 }
 
-/** El texto visible del control: lo que la persona ve, que no es lo mismo que su nombre. */
-async function visibleTextOf(control: Locator): Promise<string> {
-	return ((await control.textContent()) ?? "").trim();
+/** La identidad de cada control del widget, para saber cuál se quedó sin nombre. */
+async function identitiesOf(page: Page): Promise<string[]> {
+	return page
+		.locator(CONTROL_SELECTOR)
+		.evaluateAll((elements) =>
+			elements.map((element) => element.getAttribute("data-chatbox-control") ?? "sin identidad")
+		);
 }
 
 /**
- * Todo control del widget tiene nombre accesible.
+ * Los controles que el navegador deja sin nombre.
  *
- * El nombre se pide al navegador, control por control, y en el estado en que el control
- * aparece: un botón que solo existe con la confirmación abierta también tiene que nombrarse
- * con ella abierta.
+ * La lista vacía es el resultado bueno; el nombre de un control sin nombre es lo que dice
+ * el informe cuando algo se rompe.
  */
-async function assertEveryControlIsNamed(page: Page, state: NameState): Promise<void> {
+async function unnamedControls(page: Page): Promise<string[]> {
 	const controls = page.locator(CONTROL_SELECTOR);
 	const count = await controls.count();
-	expect(count, `sin controles en el estado: ${state}`).toBeGreaterThan(0);
+	const unnamed: string[] = [];
 
 	for (let index = 0; index < count; index += 1) {
 		const control = controls.nth(index);
-		const identity =
-			(await control.getAttribute("data-chatbox-control")) ?? "control sin identidad";
-		const tag = await control.evaluate((element) => element.tagName.toLowerCase());
 		const snapshot = (await control.ariaSnapshot()) ?? "";
-		const name = accessibleNameOf(snapshot);
-
-		expect(
-			name,
-			`${identity} (${state}) no tiene nombre accesible: ${JSON.stringify(snapshot)}`
-		).not.toBeNull();
-		expect(name, `${identity} (${state}) tiene el nombre accesible vacío`).not.toBe("");
-
-		// R3: un botón sin texto visible se nombra con `aria-label` (o con `aria-labelledby`,
-		// que nombra lo mismo por otra vía). Sin texto no hay de dónde sacar el nombre, así
-		// que tiene que declararlo. Los campos no entran aquí: los nombra su etiqueta.
-		if (tag === "button" && (await visibleTextOf(control)) === "") {
-			const declared =
-				(await control.getAttribute("aria-label")) ??
-				(await control.getAttribute("aria-labelledby"));
-			expect(
-				declared,
-				`${identity} (${state}) no tiene texto visible y necesita \`aria-label\``
-			).toBeTruthy();
-		}
+		if (accessibleNameOf(snapshot) !== null) continue;
+		unnamed.push((await control.getAttribute(CONTROL_ATTRIBUTE)) ?? `control ${index}`);
 	}
+
+	return unnamed;
 }
 
 async function openChatbox(page: Page): Promise<void> {
 	await page.goto("/");
-	await expect(page.locator(".chatbox")).toBeVisible();
+	await expect(page.locator(`.${ROOT_CLASS}`)).toBeVisible();
 }
 
-test("el widget declara el idioma del componente", async ({ page }) => {
-	await openChatbox(page);
-
-	// El idioma efectivo del widget: el `lang` que declara el propio componente, no el que
-	// hereda del sitio host. Si el widget dejara de declararlo, el nombre accesible se
-	// pronunciaría con la fonética del idioma del host.
-	const effective = await page.evaluate(() => {
-		const root = document.querySelector(".chatbox");
-		if (!root) return null;
-		return root.closest("[lang]")?.getAttribute("lang") ?? null;
-	});
-
-	expect(effective).toBe(WIDGET_LANGUAGE);
-});
-
-test("el campo de texto se nombra con su etiqueta", async ({ page }) => {
-	await openChatbox(page);
-
-	const field = page.locator("#chatbox-question");
-	const snapshot = (await field.ariaSnapshot()) ?? "";
-
-	// El nombre accesible del campo es el texto de su etiqueta: es la resolución de la
-	// asociación, no la presencia del atributo `for`.
-	expect(accessibleNameOf(snapshot)).toBe(strings.input.label);
-});
-
-test("todo control del estado vacío tiene nombre", async ({ page }) => {
-	await openChatbox(page);
-
-	await assertEveryControlIsNamed(page, "vacío");
-
-	// El estado vacío tiene los controles que no aparecen en ningún otro: sin ellos, la
-	// comprobación de arriba se conformaría con el botón de enviar.
-	const identities = await page
-		.locator(CONTROL_SELECTOR)
-		.evaluateAll((elements) =>
-			elements.map((element) => element.getAttribute("data-chatbox-control"))
-		);
-	expect(identities).toContain("suggestion");
-	expect(identities).toContain("new-conversation");
-});
-
-test("los controles con el campo lleno y durante el turno tienen nombre", async ({ page }) => {
-	// La petición se queda en el aire: el turno queda en curso sin depender de cuánto tarda
-	// el stream en terminar.
-	let release: () => void = () => {};
-	const held = new Promise<void>((resolve) => {
-		release = resolve;
-	});
+/** Deja la petición en el aire: el turno queda en curso sin depender del stream. */
+async function holdTheTurn(page: Page): Promise<void> {
+	const held = new Promise<void>(() => {});
 	await page.route("**/api/chat", async (route) => {
 		await held;
 		await route.fulfill({ status: 200, contentType: "text/event-stream", body: "" });
 	});
+}
 
-	await openChatbox(page);
-	await page.locator("#chatbox-question").fill("¿Qué usa Jorge?");
-
-	await assertEveryControlIsNamed(page, "campo lleno");
-
-	await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
-	await expect(page.locator(".chatbox__status")).toContainText(strings.messages.writing);
-
-	await assertEveryControlIsNamed(page, "turno en curso");
-
-	// Durante el turno el botón de enviar es el de detener: es otro control con otro nombre.
-	await expect(page.getByRole("button", { name: strings.input.stop.ariaLabel })).toBeVisible();
-
-	release();
-});
-
-test("los controles de la confirmación tienen nombre", async ({ page }) => {
-	await openChatbox(page);
-	await page.getByRole("button", { name: strings.actions.newConversation }).click();
-	await expect(page.locator(".chatbox__conversation-actions")).toBeVisible();
-
-	await assertEveryControlIsNamed(page, "confirmación abierta");
-
-	const identities = await page
-		.locator(CONTROL_SELECTOR)
-		.evaluateAll((elements) =>
-			elements.map((element) => element.getAttribute("data-chatbox-control"))
-		);
-	expect(identities).toContain("confirm-accept");
-	expect(identities).toContain("confirm-cancel");
-});
-
-test.describe("con una conversación larga", () => {
-	test.use({ viewport: { width: 420, height: 520 } });
-
-	test("«Ir al final» tiene nombre cuando aparece", async ({ page }) => {
+/**
+ * Cómo se deja el widget en cada estado del contrato.
+ *
+ * La clave es del tipo `NameState`: añadir un estado al contrato rompe la compilación hasta
+ * que exista su escenario. Sin esto, el contrato declararía estados que nadie comprueba.
+ */
+const SETUP: Record<NameState, (page: Page) => Promise<void>> = {
+	vacío: async (page) => {
+		await openChatbox(page);
+	},
+	"campo lleno": async (page) => {
+		await openChatbox(page);
+		await page.locator("#chatbox-question").fill("¿Qué usa Jorge?");
+	},
+	"turno en curso": async (page) => {
+		await holdTheTurn(page);
+		await openChatbox(page);
+		await page.locator("#chatbox-question").fill("¿Qué usa Jorge?");
+		await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
+		await expect(page.locator(".chatbox__status")).toContainText(strings.messages.writing);
+	},
+	"confirmación abierta": async (page) => {
+		await openChatbox(page);
+		await page.getByRole("button", { name: strings.actions.newConversation }).click();
+		await expect(page.locator(".chatbox__conversation-actions")).toBeVisible();
+	},
+	desplazado: async (page) => {
+		// Con movimiento reducido el scroll es instantáneo: el botón «Ir al final» no se
+		// mueve mientras el test lo busca.
 		await page.emulateMedia({ reducedMotion: "reduce" });
 		const answer = Array.from({ length: 120 }, (_, index) => `palabra${index} `).join("");
 		await mockChatApi(page, ...[answer].map((text) => tokenFrame(text)));
@@ -179,8 +122,8 @@ test.describe("con una conversación larga", () => {
 		await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra119");
 
-		// Precondición, no decoración: si la conversación no se desplaza, el botón no aparece
-		// y el test pasaría sin haber comprobado nada.
+		// Precondición, no decoración: si la conversación no se desplaza, el botón no
+		// aparece y el test pasaría sin haber comprobado nada.
 		const scrollable = await page.evaluate(() => {
 			const conversation = document.querySelector(".chatbox__conversation");
 			return conversation !== null && conversation.scrollHeight > conversation.clientHeight;
@@ -189,10 +132,91 @@ test.describe("con una conversación larga", () => {
 
 		await page.evaluate(() => {
 			const conversation = document.querySelector(".chatbox__conversation");
-			if (conversation) conversation.scrollTop = 0;
+			if (!conversation) return;
+			conversation.scrollTop = 0;
+			conversation.dispatchEvent(new Event("scroll"));
 		});
-		await expect(page.locator('[data-chatbox-control="scroll-to-end"]')).toBeVisible();
+		await expect(page.locator(`[${CONTROL_ATTRIBUTE}="scroll-to-end"]`)).toBeVisible();
+	},
+};
 
-		await assertEveryControlIsNamed(page, "desplazado");
+test.describe("RF-F45 — los nombres accesibles del widget", () => {
+	test.use({ viewport: { width: 420, height: 520 } });
+
+	for (const state of NAME_STATES) {
+		test(`todo control tiene nombre en el estado «${state}»`, async ({ page }) => {
+			await SETUP[state](page);
+
+			const unnamed = await unnamedControls(page);
+			expect(unnamed, `controles sin nombre accesible en el estado «${state}»`).toEqual([]);
+		});
+	}
+
+	test("el widget declara su idioma, no lo hereda", async ({ page }) => {
+		await openChatbox(page);
+
+		// El idioma efectivo del widget: el `lang` más cercano en el árbol. Tiene que ser el
+		// propio widget —si el `lang` se quitara, el más cercano sería el del sitio host— y
+		// tiene que ser el del widget, no el del host.
+		const declaration = await page.evaluate((rootClass) => {
+			const root = document.querySelector(rootClass);
+			if (!root) return null;
+			const owner = root.closest("[lang]");
+			return {
+				declaredByRoot: owner === root,
+				language: root.getAttribute("lang"),
+			};
+		}, `.${ROOT_CLASS}`);
+
+		expect(declaration).toEqual({ declaredByRoot: true, language: WIDGET_LANGUAGE });
+	});
+
+	test("el campo de texto se nombra con su etiqueta", async ({ page }) => {
+		await openChatbox(page);
+
+		const field = page.locator("#chatbox-question");
+		const snapshot = (await field.ariaSnapshot()) ?? "";
+
+		// El nombre accesible del campo es el texto de su etiqueta: es la resolución de la
+		// asociación, no la presencia del atributo `for`.
+		expect(accessibleNameOf(snapshot)).toBe(strings.input.label);
+	});
+
+	test("un botón solo-icono sin nombre se detecta", async ({ page }) => {
+		// La entrada que rechaza: sin ella, la comprobación de arriba pasaría con un widget
+		// lleno de botones mudos. El botón se inyecta en el DOM porque el widget no tiene
+		// ninguno: el caso es el que el contrato tiene que vigilar.
+		await openChatbox(page);
+		await page.evaluate((rootClass) => {
+			const root = document.querySelector(rootClass);
+			if (!root) return;
+			const button = document.createElement("button");
+			button.type = "button";
+			button.setAttribute("data-chatbox-control", "sin-nombre");
+			const icon = document.createElement("span");
+			icon.setAttribute("aria-hidden", "true");
+			icon.textContent = "×";
+			button.append(icon);
+			root.append(button);
+		}, `.${ROOT_CLASS}`);
+
+		const unnamed = await unnamedControls(page);
+		expect(unnamed).toContain("sin-nombre");
+	});
+
+	test("el estado vacío trae los controles que solo existen ahí", async ({ page }) => {
+		await SETUP["vacío"](page);
+
+		const identities = await identitiesOf(page);
+		expect(identities).toContain("suggestion");
+		expect(identities).toContain("new-conversation");
+	});
+
+	test("la confirmación abierta trae sus dos botones", async ({ page }) => {
+		await SETUP["confirmación abierta"](page);
+
+		const identities = await identitiesOf(page);
+		expect(identities).toContain("confirm-accept");
+		expect(identities).toContain("confirm-cancel");
 	});
 });

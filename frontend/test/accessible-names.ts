@@ -77,6 +77,32 @@ export type NamedElement = {
 /** Un incumplimiento del contrato, con dónde está. */
 export type NameOffence = { file: string; line: number; message: string };
 
+/**
+ * El texto que una persona ve en un control, sin lo que es `aria-hidden`.
+ *
+ * Un icono decorativo con un «×» dentro no es el nombre del botón: no se anuncia. Es la misma
+ * regla que aplica el escáner sobre el AST, expresada sobre el DOM, para que los tres niveles
+ * —mecanismo, componente y resolución— digan lo mismo.
+ */
+export const visibleTextOf = (element: Element): string => {
+	const clone = element.cloneNode(true) as Element;
+	for (const hidden of clone.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
+	return (clone.textContent ?? "").trim();
+};
+
+/**
+ * ¿El control se queda sin nombre accesible?
+ *
+ * Un control con texto visible toma el nombre de ese texto; uno sin él tiene que declararlo
+ * con `aria-label` o `aria-labelledby`. El contrato acepta las dos vías: `aria-labelledby`
+ * nombra lo mismo que `aria-label` por otra ruta.
+ */
+export const withoutAccessibleName = (element: Element): boolean => {
+	if (visibleTextOf(element) !== "") return false;
+	const declared = element.getAttribute("aria-label") ?? element.getAttribute("aria-labelledby");
+	return !declared;
+};
+
 /** Campos de formulario: necesitan además una etiqueta que los nombre. */
 const FIELDS = new Set(["input", "select", "textarea"]);
 
