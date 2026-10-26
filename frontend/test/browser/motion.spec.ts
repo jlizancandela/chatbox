@@ -142,9 +142,20 @@ test.describe("RF-F44 — el scroll de la conversación", () => {
 		}, SCROLL_BOX_SELECTOR);
 		expect(scrollable, "la conversación debería ser desplazable").toBe(true);
 
+		// El autoscroll tiene que haber terminado antes de apartarse. Con movimiento
+		// permitido es un scroll **suave**: si sigue en marcha, su destino —el final— gana
+		// sobre el apartarse del test, el widget vuelve al final y desmonta el botón que el
+		// test va a pulsar.
+		await expect.poll(() => isAtTheEnd(page)).toBe(true);
+
 		await page.evaluate((selector) => {
 			const conversation = document.querySelector(selector);
-			if (conversation) conversation.scrollTop = 0;
+			if (!conversation) return;
+			conversation.scrollTop = 0;
+			// El evento de scroll se dispara a mano, como en `scroll-follow.spec.ts`: el que
+			// dispara el navegador llega en otra tarea, y en medio el widget puede volver a
+			// seguir el hilo y desmontar el botón.
+			conversation.dispatchEvent(new Event("scroll"));
 		}, SCROLL_BOX_SELECTOR);
 		await expect(page.getByRole("button", { name: strings.actions.scrollToEnd })).toBeVisible();
 	}

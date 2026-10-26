@@ -9,6 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Chatbox } from "../../src/components/Chatbox";
 import { strings } from "../../src/strings.es";
+import { withoutAccessibleName } from "../accessible-names";
 import { mockHangingRequest, regionOf, send } from "./fixtures";
 
 // ─── Tests: static render ──────────────────────────────────────────────────────
@@ -63,14 +64,30 @@ describe("Chatbox — static render", () => {
 			expect(screen.getByLabelText(strings.input.label)).toBeInTheDocument();
 		});
 
-		it("buttons without visible text have aria-label", () => {
+		it("every button has an accessible name", () => {
 			render(<Chatbox apiUrl="http://localhost:7000" />);
 			const buttons = screen.getAllByRole("button");
-			buttons.forEach((btn) => {
-				if (!btn.textContent?.trim()) {
-					expect(btn).toHaveAttribute("aria-label");
-				}
-			});
+			expect(buttons.length).toBeGreaterThan(0);
+
+			for (const button of buttons) {
+				expect(
+					withoutAccessibleName(button),
+					`el botón «${button.outerHTML}» no tiene nombre accesible`
+				).toBe(false);
+			}
+		});
+
+		it("un botón de icono sin nombre se queda sin nombre", () => {
+			// La entrada que rechaza. Sin ella, la comprobación de arriba pasaría con un
+			// widget lleno de botones mudos: es el caso de RF-F45, un botón cuyo único
+			// contenido es decorativo y no lo nombra.
+			render(
+				<button type="button">
+					<span aria-hidden="true">×</span>
+				</button>
+			);
+
+			expect(withoutAccessibleName(screen.getByRole("button"))).toBe(true);
 		});
 	});
 

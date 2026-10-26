@@ -82,7 +82,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F44` — `prefers-reduced-motion`: el indicador de escritura son tres puntos que solo se animan con movimiento permitido, y el scroll no es suave. Contrato con inventario y guarda, verificado en dos niveles —mecanismo y resolución en Chromium— (#100).
 - [x] `RF-F46` — La respuesta se ve una sola vez: la región de estado anuncia siempre y pinta solo lo que no está en la conversación; la burbuja muestra el indicador mientras carga el markdown (#104).
 - [x] `RF-F47` — El aviso «El asistente está escribiendo» se ve dentro del bocadillo y la región de estado lo anuncia sin pintarlo; la copia visible es decorativa (#106).
-- [ ] `RF-F45` — Label en textarea, `aria-label` en botones solo-icono, `lang="es"` en componente.
+- [x] `RF-F45` — Label en textarea, `aria-label` en botones solo-icono, `lang="es"` en componente. Contrato y guarda: reglas (etiqueta asociada, nombre accesible, botón solo-icono, idioma) con mecanismo en jsdom y resolución en Chromium (#112).
 - [ ] Pasada automática con axe + prueba manual con NVDA y VoiceOver (`RF-F41`).
 
 ## Paso 6 — Responsive y móvil
