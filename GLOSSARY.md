@@ -1,8 +1,8 @@
 # Glosario
 
 Vocabulario compartido del repositorio. Definido en RF-F61 (tema), RF-F62 (textos de
-UI), RF-F41 (región de estado), RF-F42 (contraste), RF-F43 (objetivos táctiles) y RF-F44
-(movimiento reducido); cuando un término falte, se declara
+UI), RF-F41 (región de estado), RF-F42 (contraste), RF-F43 (objetivos táctiles), RF-F44
+(movimiento reducido) y RF-F45 (nombres accesibles); cuando un término falte, se declara
 aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests.
 
 ## Tema del widget (RF-F61)
@@ -133,3 +133,23 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
   de escritura y el scroll suave— más la guarda que impide que una regla nueva declare
   movimiento fuera de ese inventario. Se verifica en dos niveles —mecanismo y resolución— y no
   tiene nivel manual.
+
+## Nombres accesibles del widget (RF-F45)
+
+- **Nombre accesible**: lo que un lector de pantalla anuncia cuando llega a un control. No es
+  un atributo: es el resultado de las reglas de nombre del navegador —el contenido, el
+  `aria-label`, el `aria-labelledby` y la etiqueta asociada—. En el widget lo computa el
+  navegador, no el código: por eso se verifica en dos niveles.
+- **Etiqueta asociada**: etiqueta que nombra a un campo de formulario. Se asocia de dos
+  formas: con `for`/`id`, o envolviendo al campo. El texto de la etiqueta es el nombre
+  accesible del campo.
+- **Botón solo-icono**: botón cuyo contenido visible no es texto —un icono, un pictograma— y
+  que por tanto tiene que declarar su nombre con `aria-label` (o `aria-labelledby`). Sin
+  nombre, un lector de pantalla anuncia «botón» y nada más. Lo que es `aria-hidden` —un `×`
+  decorativo— no cuenta como texto visible.
+- **Contrato de nombres accesibles**: las reglas que obligan a que todo control del widget
+  tenga nombre y a que la raíz declare el idioma del componente, más la guarda que hace que
+  un control nuevo sin nombre rompa la compilación. Se verifica en dos niveles —mecanismo sobre
+  el código y resolución sobre el árbol de accesibilidad— y no tiene nivel manual. A
+  diferencia del contrato de objetivos táctiles, no es un inventario de controles: es un
+  inventario de reglas, y por eso no se queda viejo cuando aparece un control nuevo.
