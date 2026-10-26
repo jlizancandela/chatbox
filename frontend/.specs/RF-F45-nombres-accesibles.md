@@ -18,7 +18,7 @@ Las tres se cumplen hoy en el widget, y se cumplen **por casualidad**:
 | Los botones solo-icono tienen `aria-label` | **Vacuo** | No existe ningún botón solo-icono: los siete controles del widget tienen texto visible |
 | El componente declara `lang="es"` | Se cumple | `src/components/Chatbox.tsx`: `<section class="chatbox" lang="es">` |
 
-El problema de fondo es el mismo queresolvedieron RF-F42, RF-F43 y RF-F44: **no había
+El problema de fondo es el mismo que resolvieron RF-F42, RF-F43 y RF-F44: **no había
 contrato**. Una comprobación suelta se queda vieja en la siguiente modificación, y un RF de
 accesibilidad que no puede detectar su propia regresión se cierra con un sello falso.
 
@@ -32,7 +32,7 @@ Dos hechos concretos:
    recorria los botones con `forEach` y comprobaba `aria-label` **solo en los que no tienen
    texto visible**. Todos lo tienen, así que la rama interior no se ejecutaba nunca: el test
    pasaba con el mecanismo roto. Es exactamente el «detector cuyo test nunca falla no protege
-   nada» queForbidden `frontend/AGENTS.md`.
+   nada» que `frontend/AGENTS.md` prohíbe.
 
 Además, la cobertura se quedaba en el estado vacío: los controles que solo existen con la
 confirmación abierta o con el hilo desplazado («Ir al final») no se comprobaban nunca, y nadie
@@ -45,7 +45,7 @@ preguntaba al árbol de accesibilidad qué nombre recibe de verdad cada control.
 - **D2 — Sin cambios de producción**: ninguna línea de `src/` cambia. RF-F45 ya se cumple; lo
   que faltaba era la garantía.
 - **D3 — La guarda mira el código, no una instancia afortunada**. Escanea `src/**/*.tsx` —salvo
-  `src/dev/`, que son fixtures que no se distributen— con `@babel/parser`, el mismo patrón que
+  `src/dev/`, que son fixtures que no se distribuyen— con `@babel/parser`, el mismo patrón que
   el inventario de textos de RF-F62 y que la guarda de objetivos táctiles de RF-F43.
 - **D4 — Tres reglas, no una lista de controles**. A diferencia de RF-F43, que necesita un
   inventario porque cada control tiene su propio estado y su propia medida, aquí la regla es
@@ -64,18 +64,27 @@ preguntaba al árbol de accesibilidad qué nombre recibe de verdad cada control.
 - **D8 — La raíz del widget es la que declara el idioma**. Se comprueba sobre el elemento que
   lleva la clase del widget, no sobre cualquier elemento: un `lang` en una esquina del widget
   no declara el idioma de sus textos. El nivel de resolución comprueba el **idioma efectivo**:
-  el `lang` más cercano en el árbol, que es el del propio widget y no el del sitio host.
+  el `lang` más cercano en el árbol tiene que ser la raíz del widget, no el `html` del sitio
+  host. Comprobar solo el valor del atributo no bastaba: con un host en español, quitarle el
+  `lang` al widget habría dejado el test en verde.
 - **D9 — Dos niveles, con el nivel declarado en cada aserto**: **mecanismo** en jsdom (el
   código nombra todo lo que nombra) y **resolución** en Chromium (el árbol de accesibilidad
   real le pone nombre a todo lo que lo tiene).
 - **D10 — Los dos niveles no son redundantes**: el mecanismo ve un `aria-label` declarado con
   un valor que el navegador ignora; la resolución ve el nombre que de verdad se anuncia. Solo
   la resolución ve que un control `aria-hidden` no está en el árbol.
-- **D11 — Se comprueban los estados, no solo el estado vacío**. Un control que solo aparece con
-  la confirmación abierta o con el hilo desplazado tiene que nombrarse en ese estado.
+- **D11 — Los estados salen del contrato, no de los tests**. El contrato declara los estados
+  en los que se comprueba (`NAME_STATES`) y los escenarios del navegador son un
+  `Record<NameState, …>`: añadir un estado al contrato rompe la compilación hasta que exista
+  su escenario. La clase del widget y la identidad de control también se toman del contrato y
+  del inventario de RF-F43, no se escriben a mano en el test: dos definiciones que divergen
+  son dos contratos.
 - **D12 — Cada regla tiene una entrada que rechaza de verdad**, y se comprobó que las guardas
   muerden: quitar la etiqueta del campo, convertir «Ir al final» en un botón solo-icono sin
-  nombre, o quitar el `lang` de la raíz ponen los tests en rojo en los dos niveles.
+  nombre, o quitar el `lang` de la raíz ponen los tests en rojo en los dos niveles. El nivel
+  de resolución no tiene un sujeto en el widget real —no hay ningún botón solo-icono—, así que
+  su entrada que rechaza **inyecta** uno; el nivel de componente hace lo mismo con un botón de
+  icono.
 - **D13 — No hay nivel manual**: el nombre accesible se resuelve preguntando al árbol de
   accesibilidad. Lo que queda para la pasada manual de RF-F41 es si el texto *suena* bien, que
   es otra cosa.
@@ -89,26 +98,32 @@ preguntaba al árbol de accesibilidad qué nombre recibe de verdad cada control.
   - Comprobación: mecanismo (guarda de mecanismo) y resolución (nombre accesible del campo en
     Chromium).
 - **S2 — Todo control tiene nombre accesible.**
-  - Alcance: enlaces, botones y cualquier elemento con `role="button"`.
+  - Alcance: enlaces, botones, campos y cualquier elemento con `role="button"`.
   - Criterio: cada control tiene nombre por su texto visible, por `aria-label` o por
     `aria-labelledby`. Un control sin nombre se anuncia solo como «botón».
-  - Comprobación: mecanismo y resolución.
+  - Comprobación: mecanismo y resolución. La resolución pregunta al árbol de accesibilidad y
+    la entrada que rechaza inyecta un botón sin nombre en el widget.
 - **S3 — Un botón solo-icono declara su nombre.**
   - Alcance: los botones sin texto visible.
   - Criterio: un `button` cuyo subárbol no pinta texto visible declara `aria-label` o
-    `aria-labelledby`. El texto `aria-hidden` no cuenta como texto visible.
-  - Comprobación: mecanismo (caso sintético) y resolución (todo botón sin texto visible del
-    widget real).
+    `aria-labelledby`. El texto `aria-hidden` no cuenta como texto visible, y tampoco cuenta
+    si va escrito como expresión (`aria-hidden={true}`).
+  - Comprobación: mecanismo (caso sintético) y resolución (un botón de icono inyectado en el
+    widget: el árbol de accesibilidad lo deja sin nombre y el nivel lo detecta).
 - **S4 — El widget declara su idioma.**
   - Alcance: la raíz del componente.
   - Criterio: el elemento raíz declara `lang="es"`, y es el `lang` más cercano en el árbol: el
     widget no hereda el idioma del sitio host.
-  - Comprobación: mecanismo (guarda del idioma) y resolución (idioma efectivo).
+  - Comprobación: mecanismo (guarda del idioma) y resolución (el `lang` más cercano es la raíz
+    del widget, no el `html` del sitio).
 - **S5 — La comprobación existente deja de ser vacía.**
   - Alcance: `test/component/chatbox-behavior.test.tsx`.
   - Criterio: la comprobación de los botones es una aserción real sobre todos los botones, no
-    un `forEach` cuya rama interior no se ejecuta.
-  - Comprobación: test de componente, verificado en rojo contra un botón sin nombre.
+    un `forEach` cuya rama interior no se ejecuta. La regla que aplica es la del contrato, no
+    una copia: un botón con texto visible toma el nombre de ese texto; uno sin él tiene que
+    declararlo con `aria-label` o `aria-labelledby`.
+  - Comprobación: test de componente, con la entrada que rechaza (un botón de icono sin
+    nombre).
 
 ## Diseño
 
@@ -239,3 +254,16 @@ el hook pre-commit y CI.
   para que el widget deje de seguir el hilo en el momento. No se pudo reproducir la carrera
   de forma aislada, así que el arreglo **endurece el arranque del test** en lugar de
   fijar un fallo concreto: después del cambio, la suite completa pasó 23 veces seguidas.
+- **L4 (2026-10-26)**: revisión en dos ejes (estándares y spec). Los hallazgos se corrigieron:
+  el test de componente y el nivel de resolución **no tenían entrada que rechaza** —el
+  primero solo se ejercitaba en verde y el segundo no tenía sujeto, porque el widget no tiene
+  ningún botón solo-icono—; ahora cada uno tiene la suya: un botón de icono inyectado en el
+  DOM. El idioma se comprobaba de forma indirecta (`closest("[lang]")` solo mordía porque la
+  página de desarrollo declara `lang="en"`): ahora se comprueba que el `lang` más cercano es
+  la raíz del widget. El `aria-hidden` solo se reconocía escrito como literal: ahora también
+  como expresión. Los estados del contrato se usaban como literales sueltos en el test de
+  navegador: ahora los escenarios son un `Record<NameState, …>`, así que añadir un estado al
+  contrato rompe la compilación hasta que exista su escenario. Y la clase del widget y la
+  identidad de control se toman del contrato y del inventario de RF-F43, no se escriben a mano.
+  También se corrigió texto corrupto en esta spec («queresolvedieron», «queForbidden»,
+  «distributen»).
