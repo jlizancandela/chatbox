@@ -11,7 +11,7 @@
 
 import { expect, type Page, test } from "@playwright/test";
 import { strings } from "../../src/strings.es";
-import { doneFrame, mockChatApi, tokenFrame } from "../chat-frames";
+import { doneFrame, holdChatAnswer, mockChatApi, tokenFrame } from "../chat-frames";
 import { SCROLL_BOX_SELECTOR, TYPING_SELECTOR } from "../motion";
 
 const SCROLL_BEHAVIORS = "__rfF44ScrollBehaviors";
@@ -43,23 +43,6 @@ async function recordScrollBehaviors(page: Page): Promise<void> {
 
 const scrollBehaviors = (page: Page): Promise<string[]> =>
 	page.evaluate((key) => (window as unknown as Record<string, string[]>)[key], SCROLL_BEHAVIORS);
-
-/** Deja la petición en el aire: el turno queda en curso sin depender del stream. */
-async function holdTheTurn(page: Page): Promise<() => void> {
-	let release: () => void = () => {};
-	const held = new Promise<void>((resolve) => {
-		release = resolve;
-	});
-	await page.route("**/api/chat", async (route) => {
-		await held;
-		await route.fulfill({
-			status: 200,
-			contentType: "text/event-stream",
-			body: "event: done\ndata: {}\n\n",
-		});
-	});
-	return release;
-}
 
 async function askSomething(page: Page): Promise<void> {
 	await page.locator("#chatbox-question").fill("¿Qué usa Jorge?");
@@ -93,7 +76,7 @@ async function waitForConversationToSettle(page: Page): Promise<void> {
 test.describe("RF-F44 — el indicador de escritura", () => {
 	test("no se anima con movimiento reducido", async ({ page }) => {
 		await page.emulateMedia({ reducedMotion: "reduce" });
-		const release = await holdTheTurn(page);
+		const release = await holdChatAnswer(page);
 
 		await page.goto("/");
 		await askSomething(page);
@@ -107,7 +90,7 @@ test.describe("RF-F44 — el indicador de escritura", () => {
 		// El caso positivo: sin él, el test anterior pasaría con un widget sin animación, y
 		// un detector que nunca falla no protege nada.
 		await page.emulateMedia({ reducedMotion: "no-preference" });
-		const release = await holdTheTurn(page);
+		const release = await holdChatAnswer(page);
 
 		await page.goto("/");
 		await askSomething(page);

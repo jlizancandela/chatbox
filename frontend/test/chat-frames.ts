@@ -29,3 +29,29 @@ export async function mockChatApi(page: Page, ...frames: string[]): Promise<void
 		})
 	);
 }
+
+/**
+ * Deja la respuesta del API en el aire detrás de una puerta: el turno queda en curso sin
+ * depender del reloj. Devuelve la llave para abrirla.
+ *
+ * Un retardo fijo deja las aserciones dentro de una ventana que el test no controla: en un
+ * runner lento la respuesta llega antes de que el test mire (R3-001). La puerta no depende
+ * del reloj.
+ */
+export async function holdChatAnswer(page: Page, ...frames: string[]): Promise<() => void> {
+	let release: () => void = () => {};
+	const gate = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+
+	await page.route("**/api/chat", async (route) => {
+		await gate;
+		await route.fulfill({
+			status: 200,
+			contentType: "text/event-stream",
+			body: sourcesFrame() + frames.join("") + doneFrame,
+		});
+	});
+
+	return release;
+}

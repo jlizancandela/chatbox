@@ -16,11 +16,10 @@
  */
 
 import { expect, type Page, test } from "@playwright/test";
+import { STORAGE_KEY } from "../../src/chat/infrastructure/storage";
 import { strings } from "../../src/strings.es";
 import { axeViolations } from "../axe";
-import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
-
-const STORAGE_KEY = "chatbox:v1";
+import { holdChatAnswer, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
 
 /** Una fuente real, para que la línea de atribución exista en el DOM que se escanea. */
 const SOURCE = {
@@ -43,31 +42,6 @@ async function sendQuestion(page: Page, question = "¿Qué usa Jorge?"): Promise
 	await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
 }
 
-/**
- * Retiene la respuesta del API detrás de una puerta que abre el test.
- *
- * Un retardo fijo dejaría las aserciones dentro de una ventana que el test no controlaba:
- * en un runner lento la respuesta llegaba antes de que el test mirara (R3-001). La puerta
- * no depende del reloj.
- */
-async function holdAnswer(page: Page): Promise<() => void> {
-	let release: () => void = () => {};
-	const gate = new Promise<void>((resolve) => {
-		release = resolve;
-	});
-
-	await page.route("**/api/chat", async (route) => {
-		await gate;
-		await route.fulfill({
-			status: 200,
-			contentType: "text/event-stream",
-			body: sourcesFrame() + tokenFrame(RESPUESTA) + doneFrame,
-		});
-	});
-
-	return release;
-}
-
 /** Un estado del widget que se puede escanear. */
 type Estado = {
 	/** El nombre del estado, en la nomenclatura del glosario. */
@@ -87,7 +61,7 @@ const ESTADOS: Estado[] = [
 	{
 		nombre: "turno en marcha",
 		montar: async (page) => {
-			await holdAnswer(page);
+			await holdChatAnswer(page, tokenFrame(RESPUESTA));
 			await openChatbox(page);
 			await sendQuestion(page);
 			// El aviso de escritura vive en el bocadillo y es decorativo: lo anuncia la
@@ -130,7 +104,7 @@ const ESTADOS: Estado[] = [
 	{
 		nombre: "turno detenido",
 		montar: async (page) => {
-			await holdAnswer(page);
+			await holdChatAnswer(page, tokenFrame(RESPUESTA));
 			await openChatbox(page);
 			await sendQuestion(page);
 			await page.getByRole("button", { name: strings.input.stop.ariaLabel }).click();
@@ -180,26 +154,40 @@ for (const esquema of ["light", "dark"] as const) {
 }
 
 /**
- * La entrada que rechaza: la pasada tiene que **detectar** una violación real.
+ * La entrada que rechaza: la pasada tiene que **detectar** una violación real y no
+ * inventarse ninguna.
  *
  * Sin este test, un escaneo que no mira, o que mira un sitio donde no puede haber nada,
- * pasa en verde y no protege nada: es un detector cuyo test nunca falla. Aquí se inyecta
- * una imagen sin texto alternativo dentro del widget —una violación de WCAG 1.1.1 que cae
- * de lleno en el nivel auditado— y se exige que la pasada la reporte.
+ * pasa en verde y no protege nada: es un detector cuyo test nunca falla. Aquí se inyectan
+ * dos imágenes sin texto alternativo —una dentro del widget y otra fuera— y se exige que
+ * la de dentro se reporte y la de fuera no. El escaneo tiene que alcanzar el widget sin
+ * derramarse fuera de él.
  */
-test("RF-F41 — la pasada detecta una violación real", async ({ page }) => {
+test("RF-F41 — la pasada detecta una violación real y no se inventa otras", async ({ page }) => {
 	await openChatbox(page);
 
 	await page.evaluate(() => {
 		const widget = document.querySelector(".chatbox");
-		const image = document.createElement("img");
-		image.src = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
-		image.width = 20;
-		image.height = 20;
-		widget?.append(image);
+
+		const dentro = document.createElement("img");
+		dentro.src = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
+		dentro.width = 20;
+		dentro.height = 20;
+		dentro.id = "violacion-dentro";
+		widget?.append(dentro);
+
+		const fuera = document.createElement("img");
+		fuera.src = "data:image/gif;base64,R0lGODlhAQABAAAAACw=";
+		fuera.width = 20;
+		fuera.height = 20;
+		fuera.id = "violacion-fuera";
+		widget?.parentElement?.append(fuera);
 	});
 
 	const violations = await axeViolations(page);
+	const targets = violations.flatMap((violation) => violation.target).join(" ");
 
 	expect(violations.map((violation) => violation.id)).toContain("image-alt");
+	expect(targets).toContain("violacion-dentro");
+	expect(targets).not.toContain("violacion-fuera");
 });
