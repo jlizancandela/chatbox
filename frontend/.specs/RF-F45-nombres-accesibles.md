@@ -222,6 +222,8 @@ el hook pre-commit y CI.
 5. `test(frontend): los estados de nombres salen del contrato (RF-F45)`
 6. `test(frontend): el scroll del test de movimiento deja de depender del tiempo (RF-F45)`
 7. `docs(frontend): cerrar RF-F45 en el TODO (RF-F45)`
+8. `test(frontend): las guardas de nombres tienen entrada que rechaza (RF-F45)`
+9. `docs(frontend): la revisión deja el contrato de nombres en una sola fuente (RF-F45)`
 
 ## Referencias
 
