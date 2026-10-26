@@ -140,6 +140,9 @@ const SETUP: Record<NameState, (page: Page) => Promise<void>> = {
 	},
 };
 
+/** El escenario de un estado del contrato. */
+const setupOf = (state: NameState): ((page: Page) => Promise<void>) => SETUP[state];
+
 test.describe("RF-F45 — los nombres accesibles del widget", () => {
 	test.use({ viewport: { width: 420, height: 520 } });
 
@@ -205,7 +208,7 @@ test.describe("RF-F45 — los nombres accesibles del widget", () => {
 	});
 
 	test("el estado vacío trae los controles que solo existen ahí", async ({ page }) => {
-		await SETUP["vacío"](page);
+		await setupOf("vacío")(page);
 
 		const identities = await identitiesOf(page);
 		expect(identities).toContain("suggestion");
@@ -213,7 +216,7 @@ test.describe("RF-F45 — los nombres accesibles del widget", () => {
 	});
 
 	test("la confirmación abierta trae sus dos botones", async ({ page }) => {
-		await SETUP["confirmación abierta"](page);
+		await setupOf("confirmación abierta")(page);
 
 		const identities = await identitiesOf(page);
 		expect(identities).toContain("confirm-accept");
