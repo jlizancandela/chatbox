@@ -40,6 +40,15 @@
 	 * pie del widget por debajo de la pantalla. `dvh` acompaña a la barra. */
 	max-height: 100dvh;
 	min-height: 0;
+	/* La franja que tapa el teclado virtual se reserva abajo (RF-F51).
+	 *
+	 * No es una safe area: la safe area la publica el navegador como `env()` y va en las
+	 * regiones (RF-F50); esta franja se mide en tiempo de ejecución con
+	 * `visualViewport` —el teclado encoge el viewport visual, no el de layout— y solo
+	 * existe mientras el teclado está abierto. Va en la raíz porque es la caja entera la
+	 * que se sale de debajo: el pie, y con él el campo de texto, tienen que quedar por
+	 * encima del teclado. */
+	padding-bottom: var(--chatbox-keyboard-inset, 0px);
 	margin: 0;
 	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 	/* Stitch body-md. Inter itself is not embedded: the widget must not pull a
