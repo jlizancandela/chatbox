@@ -87,7 +87,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 ## Paso 6 — Responsive y móvil
 
-- [ ] `RF-F50` — Altura con `dvh`, `env(safe-area-inset-*)`, `font-size` ≥ 16 px en textarea (evitar zoom iOS).
+- [x] `RF-F50` — Altura con `dvh`, `env(safe-area-inset-*)`, `font-size` ≥ 16 px en textarea (evitar zoom iOS). La altura la da el host y el tope es `100dvh`; la safe area se suma al padding base en cabecera, hilo y pie; el campo declara `max(1rem, 16px)` como suelo absoluto. Contrato con guarda de mecanismo y resolución en Chromium, y sin nivel manual (`.specs/RF-F50-viewport-movil.md`).
 - [ ] `RF-F51` — Ajuste con `visualViewport` si el chat va a pantalla completa o flotante.
 
 ## Paso 7 — Distribución como widget universal
