@@ -237,8 +237,10 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		await page.goto("/");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
-		// La caja del widget deja de llegar al borde inferior de la pantalla.
-		await page.addStyleTag({ content: "#app { height: 400px; }" });
+		// La caja del widget deja de llegar al borde inferior de la pantalla, pero sigue
+		// metida bajo el teclado: si la regla se quitara, el widget reservaría franja
+		// y esta comprobación no probaría nada.
+		await page.addStyleTag({ content: "#app { height: 700px; }" });
 		await openKeyboard(page, KEYBOARD_PX);
 
 		const measured = await geometry(page);
