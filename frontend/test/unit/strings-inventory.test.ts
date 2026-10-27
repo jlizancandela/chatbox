@@ -3,6 +3,7 @@ import type { Node } from "@babel/types";
 import { describe, expect, it } from "vitest";
 import { strings } from "../../src/strings.es";
 import { KNOWN_IDS } from "../touch-targets";
+import { KEYBOARD_INSET_PROPERTY } from "../virtual-keyboard";
 
 /**
  * Test de inventario de RF-F62 (§Enforcement): ninguna redacción de interfaz vive fuera de
@@ -98,6 +99,12 @@ const TURN_END_KINDS = ["completed", "failed"];
  */
 const CONTROL_IDENTITIES = KNOWN_IDS;
 
+/**
+ * Variable CSS con la que el widget publica la franja que tapa el teclado virtual
+ * (RF-F51). No se repite aquí: viene del contrato, que es su fuente única.
+ */
+const CSS_VARIABLES = [KEYBOARD_INSET_PROPERTY];
+
 /** Roles de mensaje: conjunto cerrado de `chat/types`, indexado en `strings.messages.author`. */
 const MESSAGE_ROLES = ["user", "assistant"];
 
@@ -117,6 +124,7 @@ const ALLOWED = new Set([
 	...SCROLL_AND_CSSOM_VALUES,
 	...SCROLL_INTENTS,
 	...CONTROL_IDENTITIES,
+	...CSS_VARIABLES,
 	...TURN_STATES,
 	...TURN_END_KINDS,
 	...MESSAGE_ROLES,

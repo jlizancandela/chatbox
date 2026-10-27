@@ -35,7 +35,20 @@
 	flex-direction: column;
 	box-sizing: border-box;
 	height: 100%;
+	/* La altura la da el contenedor del host; el tope es el viewport dinámico (RF-F50).
+	 * `vh` mide el viewport con la barra del navegador desplegada, y en móvil dejaría el
+	 * pie del widget por debajo de la pantalla. `dvh` acompaña a la barra. */
+	max-height: 100dvh;
 	min-height: 0;
+	/* La franja que tapa el teclado virtual se reserva abajo (RF-F51).
+	 *
+	 * No es una safe area: la safe area la publica el navegador como `env()` y va en las
+	 * regiones (RF-F50); esta franja se mide en tiempo de ejecución con
+	 * `visualViewport` —el teclado encoge el viewport visual, no el de layout— y solo
+	 * existe mientras el teclado está abierto. Va en la raíz porque es la caja entera la
+	 * que se sale de debajo: el pie, y con él el campo de texto, tienen que quedar por
+	 * encima del teclado. */
+	padding-bottom: var(--chatbox-keyboard-inset, 0px);
 	margin: 0;
 	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 	/* Stitch body-md. Inter itself is not embedded: the widget must not pull a
@@ -182,9 +195,18 @@
 	margin: 0;
 }
 
+/* Las propiedades de la fuente se heredan una a una y no con el atajo `font`: el atajo
+ * fija también el tamaño, y en el campo de texto eso sería el tamaño del widget —14 px—,
+ * por debajo del suelo que evita el zoom de iOS Safari (RF-F50). */
 .chatbox textarea,
 .chatbox button {
-	font: inherit;
+	font-family: inherit;
+	font-style: inherit;
+	font-variant: inherit;
+	font-weight: inherit;
+	font-stretch: inherit;
+	line-height: inherit;
+	letter-spacing: inherit;
 	color: inherit;
 }
 
@@ -220,6 +242,14 @@
 	justify-content: space-between;
 	gap: 0.5rem;
 	padding: 0.75rem 1rem;
+	/* La safe area se suma al padding base, nunca lo sustituye (RF-F50): el notch y el
+	 * indicador de inicio empujan el contenido, pero el widget no pierde su espaciado.
+	 * El valor de reserva mantiene la declaración válida en un navegador que no conozca
+	 * la variable: sin él, la declaración caería en `unset` y el borde se quedaría sin
+	 * padding. */
+	padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+	padding-left: max(1rem, env(safe-area-inset-left, 0px));
+	padding-right: max(1rem, env(safe-area-inset-right, 0px));
 	border-bottom: 1px solid var(--chatbox-color-border);
 }
 
@@ -286,6 +316,8 @@
 	gap: 0.75rem;
 	min-height: 0;
 	padding: 1rem;
+	padding-left: max(1rem, env(safe-area-inset-left, 0px));
+	padding-right: max(1rem, env(safe-area-inset-right, 0px));
 	overflow-y: auto;
 }
 
@@ -421,6 +453,9 @@
 	flex-direction: column;
 	gap: 0.5rem;
 	padding: 0.75rem 1rem;
+	padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+	padding-left: max(1rem, env(safe-area-inset-left, 0px));
+	padding-right: max(1rem, env(safe-area-inset-right, 0px));
 	border-top: 1px solid var(--chatbox-color-border);
 }
 
@@ -444,8 +479,15 @@
 	padding: 0.5rem 0.75rem;
 	border: 1px solid var(--chatbox-color-border);
 	border-radius: 0.75rem;
-	/* 16px avoids the automatic zoom on iOS Safari when the field is focused. */
-	font-size: 1rem;
+	/* 16 px evita el zoom automático de iOS Safari al enfocar el campo. El suelo es
+	 * absoluto: `1rem` a secas vale 16 px solo si la raíz del sitio host mide 16 px, y con
+	 * una raíz de 14 px el campo quedaría en 14 px y el navegador ampliaría la página
+	 * (RF-F50). El `rem` se queda dentro del `max()` para no ignorar el tamaño de fuente
+	 * que la persona eligió en su navegador. */
+	font-size: max(1rem, 16px);
+	/* Stitch leading del campo de texto. Sin unidad, para que acompañe al tamaño de
+	 * fuente en vez de contradecirlo. */
+	line-height: 1.375;
 	background-color: var(--chatbox-color-surface);
 	resize: vertical;
 }

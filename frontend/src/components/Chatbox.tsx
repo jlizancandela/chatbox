@@ -1,5 +1,5 @@
 import "./Chatbox.css";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { ExternalLink } from "../chat/components/ExternalLink";
 import { toAnnouncementText } from "../chat/domain/announcement";
 import { trimHistory } from "../chat/domain/conversation";
@@ -9,6 +9,7 @@ import { sourceTitles } from "../chat/domain/sources";
 import { useChat } from "../chat/hooks/useChat";
 import { type TurnEnd, useChatStream } from "../chat/hooks/useChatStream";
 import { useFocusOnMount } from "../chat/hooks/useFocusOnMount";
+import { useKeyboardInset } from "../chat/hooks/useKeyboardInset";
 import { loadFromSessionStorage, saveToSessionStorage } from "../chat/infrastructure/storage";
 import { strings } from "../strings.es";
 import { ChatHeader } from "./ChatHeader";
@@ -67,6 +68,20 @@ const currentScrollBehavior = (intent: ScrollIntent): ScrollBehavior =>
 	scrollBehavior(window.matchMedia(REDUCED_MOTION_QUERY).matches, intent);
 
 /**
+ * Desplaza el hilo al final.
+ *
+ * La forma —ir al `scrollHeight` con el comportamiento que manda la regla de movimiento— la
+ * comparten el seguimiento y el recolocamiento del teclado (RF-F51): solo cambia cuándo se
+ * llama.
+ */
+const scrollThreadToEnd = (element: HTMLElement): void => {
+	element.scrollTo({
+		top: element.scrollHeight,
+		behavior: currentScrollBehavior("seguimiento"),
+	});
+};
+
+/**
  * Un turno cerrado sin respuesta es un desenlace, no un silencio: se anuncia **y** se pinta en
  * la conversación. La regla vive aquí para que región y aviso no se separen en el futuro.
  */
@@ -115,6 +130,16 @@ export function Chatbox({
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const conversationRef = useRef<HTMLElement>(null);
 	const messagesListRef = useRef<HTMLOListElement | null>(null);
+	const rootRef = useRef<HTMLElement>(null);
+	/**
+	 * La franja que el teclado virtual tapa, medida con `visualViewport` (RF-F51).
+	 *
+	 * La publica el CSS como una variable en la raíz, y el componente solo la necesita
+	 * para enterarse de que la zona visible se ha encogido.
+	 */
+	const keyboardInset = useKeyboardInset(rootRef);
+	/** El inset anterior: el hilo solo se recoloca cuando la zona visible cambia de alto. */
+	const previousKeyboardInset = useRef(keyboardInset);
 	/**
 	 * Si la persona sigue el hilo. Fuera de un salto animado, la distancia al final decide:
 	 * a más de 16 px se ha apartado; durante el salto las posiciones intermedias son del
@@ -162,10 +187,7 @@ export function Chatbox({
 	useEffect(() => {
 		const element = conversationRef.current;
 		if (!element || !following.current) return;
-		element.scrollTo({
-			top: element.scrollHeight,
-			behavior: currentScrollBehavior("seguimiento"),
-		});
+		scrollThreadToEnd(element);
 	}, [chat.state.messages, chat.state.currentResponse, localNotice]);
 
 	const handleConversationScroll = (): void => {
@@ -193,6 +215,22 @@ export function Chatbox({
 		handleConversationScroll();
 	}, [chat.state.messages, chat.state.currentResponse, localNotice]);
 
+	// El teclado virtual encoge la zona visible y el hilo pierde su final (RF-F51): el
+	// último mensaje se sale de la vista justo cuando la persona está escribiendo. Si la
+	// persona seguía el hilo, el hilo vuelve al final; si se apartó, no se la arrastra.
+	//
+	// Es un efecto de layout y no uno normal a propósito: al encogerse el hilo, el
+	// navegador avisa con un `scroll` que parece que la persona se ha apartado —el final
+	// está más lejos— y ese aviso puede llegar antes que el efecto. Con un efecto normal,
+	// el hilo se quedaría a medias y la persona vería el botón «Ir al final» sin motivo.
+	useLayoutEffect(() => {
+		if (previousKeyboardInset.current === keyboardInset) return;
+		previousKeyboardInset.current = keyboardInset;
+		const element = conversationRef.current;
+		if (!element || !following.current) return;
+		scrollThreadToEnd(element);
+	}, [keyboardInset]);
+
 	// El contenido crece después del último cambio de estado: el markdown del asistente se
 	// carga diferido (RF-F30) y la burbuja crece cuando llega. El desplazamiento sigue al
 	// tamaño del hilo, no al estado: si no, quien seguía la respuesta se queda a mitad.
@@ -203,10 +241,7 @@ export function Chatbox({
 			const element = conversationRef.current;
 			if (!element) return;
 			if (following.current) {
-				element.scrollTo({
-					top: element.scrollHeight,
-					behavior: currentScrollBehavior("seguimiento"),
-				});
+				scrollThreadToEnd(element);
 				return;
 			}
 			handleConversationScroll();
@@ -246,7 +281,13 @@ export function Chatbox({
 	};
 
 	return (
-		<section class="chatbox" lang="es" aria-labelledby="chatbox-title">
+		<section
+			class="chatbox"
+			lang="es"
+			aria-labelledby="chatbox-title"
+			ref={rootRef}
+			style={{ "--chatbox-keyboard-inset": `${keyboardInset}px` }}
+		>
 			<ChatHeader title={title} notice={strings.header.scopeNotice} />
 
 			<div

@@ -87,8 +87,8 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 ## Paso 6 — Responsive y móvil
 
-- [ ] `RF-F50` — Altura con `dvh`, `env(safe-area-inset-*)`, `font-size` ≥ 16 px en textarea (evitar zoom iOS).
-- [ ] `RF-F51` — Ajuste con `visualViewport` si el chat va a pantalla completa o flotante.
+- [x] `RF-F50` — Altura con `dvh`, `env(safe-area-inset-*)`, `font-size` ≥ 16 px en textarea (evitar zoom iOS). La altura la da el host y el tope es `100dvh`; la safe area se suma al padding base en cabecera, hilo y pie; el campo declara `max(1rem, 16px)` como suelo absoluto. Contrato con guarda de mecanismo y resolución en Chromium, y sin nivel manual (`.specs/RF-F50-viewport-movil.md`).
+- [x] `RF-F51` — Ajuste con `visualViewport` si el chat va a pantalla completa o flotante: el widget reserva en su raíz la franja que tapa el teclado —y solo si está anclado al borde inferior de la pantalla—; el pie con el campo de texto queda por encima del teclado y el hilo no pierde su final. Contrato con guarda de mecanismo y resolución en Chromium, y sin nivel manual (`.specs/RF-F51-teclado-virtual.md`, #119).
 
 ## Paso 7 — Distribución como widget universal
 
