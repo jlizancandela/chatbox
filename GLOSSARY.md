@@ -2,8 +2,9 @@
 
 Vocabulario compartido del repositorio. Definido en RF-F61 (tema), RF-F62 (textos de
 UI), RF-F41 (región de estado), RF-F42 (contraste), RF-F43 (objetivos táctiles), RF-F44
-(movimiento reducido) y RF-F45 (nombres accesibles); cuando un término falte, se declara
-aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests.
+(movimiento reducido), RF-F45 (nombres accesibles) y RF-F50 (viewport móvil); cuando un
+término falte, se declara aquí como decisión de modelado en lugar de inventarlo en issues,
+specs o tests.
 
 ## Tema del widget (RF-F61)
 
@@ -159,3 +160,24 @@ aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests
   el código y resolución sobre el árbol de accesibilidad— y no tiene nivel manual. A
   diferencia del contrato de objetivos táctiles, no es un inventario de controles: es un
   inventario de reglas, y por eso no se queda viejo cuando aparece un control nuevo.
+
+## Viewport móvil del widget (RF-F50)
+
+- **Viewport dinámico**: la altura de la ventana que acompaña a la barra del navegador móvil
+  cuando esta se recoge o se despliega. Se expresa en `dvh` y es la unidad con la que el
+  widget topa su altura: `vh` mide el viewport con la barra desplegada —el más alto de los
+  tres— y `svh` el más bajo, con el que el widget no llenaría la pantalla.
+- **Safe area**: la franja que el sistema reserva para el notch y para el indicador de inicio.
+  El navegador la publica como `env(safe-area-inset-*)` y vale cero en un escritorio. El
+  widget la **suma** a su padding base, nunca la sustituye: el contenido se separa del borde
+  de la pantalla y el widget no pierde su propio espaciado.
+- **Suelo de tamaño de fuente**: los 16 px absolutos que el campo de texto no puede bajar.
+  iOS Safari amplía la página al enfocar un campo de menos de 16 px, y el desplazamiento que
+  provoca deja la conversación fuera de la vista. El suelo es del widget, no del tema: la
+  raíz del documento —y con ella el tamaño de fuente del sitio host— no es una variable del
+  contrato.
+- **Contrato de viewport móvil**: las tres reglas —altura topada por el viewport dinámico,
+  safe areas sumadas al padding base y suelo de tamaño de fuente en el campo— más la guarda
+  que impide que una regla nueva rompa cualquiera de ellas. Se verifica en dos niveles
+  —mecanismo y resolución— y no tiene nivel manual. Como en el contrato de objetivos táctiles,
+  el inset es del entorno y no un token: el sitio host no puede anularlo en silencio.

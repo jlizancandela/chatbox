@@ -8,16 +8,14 @@
 
 import postcss, { type AtRule, type Rule } from "postcss";
 import css from "../src/components/Chatbox.css?raw";
+import { declarationsOf } from "./css-declarations";
 import { normalizeMediaParams } from "./media-params";
 
 export const cssSource = css;
 
 export const styles = postcss.parse(css);
 
-export const declarationsOf = (rule: Rule): Record<string, string> =>
-	Object.fromEntries(
-		rule.nodes.filter((node) => node.type === "decl").map((node) => [node.prop, node.value])
-	);
+export { declarationsOf };
 
 export const tokensOf = (rule: Rule): Record<string, string> =>
 	Object.fromEntries(
