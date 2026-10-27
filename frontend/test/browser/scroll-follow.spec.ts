@@ -142,6 +142,17 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra2");
 		await expect.poll(async () => (await threadState(page)).atBottom).toBe(true);
 
+		// Precondición: el hilo tiene que desbordar lo suficiente para que apartarse sea
+		// un gesto de verdad. Si todavía no desborda, el desplazamiento se queda en el
+		// tope del hilo, la distancia al final es cero y parece que la persona no se ha
+		// apartado: el botón no aparecería y la comprobación no probaría nada.
+		await expect
+			.poll(async () => {
+				const state = await threadState(page);
+				return state.scrollHeight - state.clientHeight;
+			})
+			.toBeGreaterThan(APARTE_UN_POCO_PX);
+
 		// 30 px del final: más que el umbral (16 px) y menos que lo que el widget
 		// toltaba antes (80 px). Un gesto pequeño de verdad es un apartarse de verdad.
 		const away = await page.evaluate((distance) => {
