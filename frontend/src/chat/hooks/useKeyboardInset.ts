@@ -25,16 +25,25 @@ export function useKeyboardInset(root: { current: HTMLElement | null }): number 
 		const view = window;
 		const viewport = view.visualViewport;
 
+		/**
+		 * La altura del viewport de layout: la de su bloque contenedor inicial.
+		 *
+		 * No es `innerHeight`: esa incluye la barra de desplazamiento horizontal, y el
+		 * `visualViewport` no. Con una barra horizontal, `innerHeight` daría una franja
+		 * de teclado fantasma y el widget reservaría sitio sin que haya teclado.
+		 */
+		const layoutHeight = (): number => document.documentElement.clientHeight;
+
 		const measure = (): void => {
 			if (!viewport) return;
 			const area = visibleArea(viewport.height, viewport.offsetTop);
 			// Sin teclado no hay nada que reservar, y el widget no se ha movido: no hace
 			// falta ni medir la caja.
-			if (keyboardStrip(view.innerHeight, area) === 0) {
+			if (keyboardStrip(layoutHeight(), area) === 0) {
 				setInset(0);
 				return;
 			}
-			setInset(reservedInset(element.getBoundingClientRect().bottom, view.innerHeight, area));
+			setInset(reservedInset(element.getBoundingClientRect().bottom, layoutHeight(), area));
 		};
 
 		measure();

@@ -21,7 +21,10 @@
   su borde superior.
 - **D3 — La zona visible**: la banda del viewport de layout que está en la pantalla, de
   `visualViewport.offsetTop` a `visualViewport.offsetTop + visualViewport.height`. Por debajo
-  está el teclado.
+  está el teclado. La altura del viewport de layout es la de su bloque contenedor inicial
+  (`documentElement.clientHeight`), no `innerHeight`: esa incluye la barra de
+  desplazamiento horizontal y el `visualViewport` no, así que con barra horizontal
+  `innerHeight` daría una franja de teclado fantasma.
 - **D4 — La franja reservada**: el widget reserva en su raíz el espacio que el teclado le
   tapa a su borde inferior, de modo que su pie —donde vive el campo de texto— quede por
   encima del teclado. Se reserva **debajo** del contenido, no moviendo la caja: el sitio

@@ -48,7 +48,11 @@ El teclado virtual del widget es un **contrato**, no una lista de comprobaciones
    en la pantalla va de `visualViewport.offsetTop` a
    `visualViewport.offsetTop + visualViewport.height`. Todo lo que queda por debajo está bajo
    el teclado. Medirlo con `innerHeight` —el viewport de layout— daría siempre una franja
-   de cero, que es exactamente el bug.
+   de cero, que es exactamente el bug. Y la altura del viewport de layout es la de su bloque
+   contenedor inicial (`documentElement.clientHeight`), no `innerHeight`: esa incluye la barra
+   de desplazamiento horizontal y el `visualViewport` no, así que con barra horizontal
+   `innerHeight` daría una franja de teclado fantasma y el widget reservaría sitio sin que
+   haya teclado.
 2. **El widget reserva la franja en su raíz.** La raíz declara
    `padding-bottom: var(--chatbox-keyboard-inset, 0px)`, con `box-sizing: border-box`: el
    `padding` recorta la caja de contenido, así que el pie —el último hijo— queda por encima
