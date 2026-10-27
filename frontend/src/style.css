@@ -1,6 +1,12 @@
 /* Estilos de la página demo. El widget no depende de este archivo: todo lo que
  * afecta al chat vive en components/Chatbox.css bajo `.chatbox`. */
 #app {
+	/* La demo presenta el chat como lo presenta un sitio host que lo ocupa entero: un
+	 * cajón a pantalla completa. `position: fixed` con `inset: 0` lo pega a la pantalla
+	 * sin que el margen por defecto del `body` lo empuje hacia abajo: el widget tiene
+	 * que medir justo lo que se ve, o su pie quedaría fuera de la zona visible (RF-F51). */
+	position: fixed;
+	inset: 0;
 	height: 100vh;
 	height: 100dvh;
 }

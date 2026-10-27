@@ -4,7 +4,8 @@
  * Nivel de verificación: **resolución**. Mide dónde queda el pie del widget —y con él el
  * campo de texto— cuando el teclado virtual tapa la parte de abajo de la pantalla, y que el
  * hilo no pierda su final al encogerse la zona visible. El nivel de mecanismo
- * (`test/unit/chatbox-keyboard.test.ts`) afirma las declaraciones; este afirma la geometría.
+ * (`test/unit/chatbox-virtual-keyboard.test.ts`) afirma las declaraciones; este afirma la
+ * geometría.
  *
  * Límite declarado: Chromium no emula un teclado virtual. El escenario sustituye el
  * `visualViewport` por uno cuya altura mengua como lo haría el teclado y dispara su
@@ -29,9 +30,13 @@ const SCREEN = { width: 390, height: 800 };
  * el sustituto solo altera `height`, y `window.innerHeight` sigue siendo el de antes. Al
  * cambiar la altura se dispara el `resize` del viewport visual, que es el aviso que el
  * widget escucha.
+ *
+ * `offset` desplaza el viewport visual dentro del de layout: es lo que pasa cuando el
+ * navegador mueve la página al enfocar el campo. El teclado sigue tapando lo mismo, así que
+ * el alto encoge un poco más.
  */
-async function withVirtualKeyboard(page: Page): Promise<void> {
-	await page.addInitScript(() => {
+async function withVirtualKeyboard(page: Page, offset = 0): Promise<void> {
+	await page.addInitScript((shift) => {
 		const real = window.visualViewport;
 		if (!real) return;
 
@@ -42,13 +47,13 @@ async function withVirtualKeyboard(page: Page): Promise<void> {
 				return real.width;
 			},
 			get height() {
-				return real.height - keyboard;
+				return real.height - keyboard - shift;
 			},
 			get offsetLeft() {
 				return real.offsetLeft;
 			},
 			get offsetTop() {
-				return real.offsetTop;
+				return real.offsetTop + shift;
 			},
 			get pageLeft() {
 				return real.pageLeft;
@@ -70,7 +75,7 @@ async function withVirtualKeyboard(page: Page): Promise<void> {
 			keyboard = pixels;
 			fake.dispatchEvent(new Event("resize"));
 		};
-	});
+	}, offset);
 }
 
 /** Abre (o cierra) el teclado simulado. */
@@ -89,8 +94,6 @@ type Geometry = {
 	reserved: number;
 	/** El borde inferior del último mensaje. */
 	lastMessageBottom: number;
-	/** El borde inferior de la caja del hilo. */
-	conversationBottom: number;
 	/** Si el hilo está en su final. */
 	atBottom: boolean;
 };
@@ -108,7 +111,6 @@ const geometry = (page: Page): Promise<Geometry> =>
 			footerBottom: footer ? footer.getBoundingClientRect().bottom : Number.NaN,
 			reserved: widget ? Number.parseFloat(getComputedStyle(widget).paddingBottom) : Number.NaN,
 			lastMessageBottom: last ? last.getBoundingClientRect().bottom : Number.NaN,
-			conversationBottom: conversation ? conversation.getBoundingClientRect().bottom : Number.NaN,
 			atBottom: conversation
 				? conversation.scrollTop + conversation.clientHeight >= conversation.scrollHeight - 1
 				: true,
@@ -208,8 +210,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		// Ni un píxel de más ni de menos: el pie del widget queda justo en el borde de la
 		// zona visible, que es donde empieza el teclado.
 		expect(measured.footerBottom).toBeCloseTo(top, 0);
-		// Y la franja reservada cubre, como mínimo, lo que tapa el teclado.
-		expect(measured.reserved).toBeGreaterThanOrEqual(KEYBOARD_PX);
+		expect(measured.reserved).toBeCloseTo(KEYBOARD_PX, 0);
 	});
 
 	test("la comprobación de la franja muerde: reservar de más deja un hueco", async ({ page }) => {
@@ -228,19 +229,78 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		expect(measured.footerBottom).toBeLessThan(top - 1);
 	});
 
-	test("un widget que no está anclado abajo no reserva franja", async ({ page }) => {
-		// El widget embebido en una página no está anclado al borde inferior: el
-		// navegador ya lo desplaza al enfocar el campo, y reservar franja de más solo
-		// encogería el hilo. Las dos ramas de la regla se comprueban aquí: la de arriba
-		// reserva, esta no.
+	test("el widget no se queda sin reserva al desplazar la página", async ({ page }) => {
+		// La página se desplaza al enfocar el campo, y el widget baja con ella: la reserva
+		// tiene que ajustarse, no desaparecer.
 		await withVirtualKeyboard(page);
 		await page.goto("/");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
-		// La caja del widget deja de llegar al borde inferior de la pantalla, pero sigue
-		// metida bajo el teclado: si la regla se quitara, el widget reservaría franja
-		// y esta comprobación no probaría nada.
-		await page.addStyleTag({ content: "#app { height: 700px; }" });
+		await openKeyboard(page, KEYBOARD_PX);
+		await page.evaluate(() => window.scrollTo(0, 40));
+		await page.waitForTimeout(100);
+
+		const top = await keyboardTop(page);
+		const measured = await geometry(page);
+
+		expect(measured.reserved).toBeGreaterThan(0);
+		expect(measured.footerBottom).toBeLessThanOrEqual(top);
+	});
+
+	test("el viewport visual desplazado deja el pie en el borde de la zona visible", async ({
+		page,
+	}) => {
+		// El navegador puede desplazar el viewport visual dentro del de layout: el borde
+		// inferior de la zona visible también lo está, y el pie tiene que quedar por
+		// encima de ese borde.
+		await withVirtualKeyboard(page, 120);
+		await page.goto("/");
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		await openKeyboard(page, KEYBOARD_PX);
+
+		const top = await keyboardTop(page);
+		const measured = await geometry(page);
+
+		expect(measured.footerBottom).toBeCloseTo(top, 0);
+		expect(measured.fieldBottom).toBeLessThanOrEqual(top);
+	});
+
+	test("un widget con altura automática no ve crecer la reserva", async ({ page }) => {
+		// Un sitio host que le da una altura automática en vez de una altura: la caja
+		// crece con cada medida, y sin tope la reserva crecería con ella hasta dejar al
+		// widget sin contenido.
+		await withVirtualKeyboard(page);
+		await page.goto("/");
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		await page.addStyleTag({ content: "#app { height: auto; } .chatbox { height: auto; }" });
+		await openKeyboard(page, KEYBOARD_PX);
+
+		const reserved = [];
+		for (let round = 0; round < 3; round++) {
+			await page.evaluate(() => {
+				window.visualViewport?.dispatchEvent(new Event("resize"));
+			});
+			await page.waitForTimeout(60);
+			reserved.push((await geometry(page)).reserved);
+		}
+
+		// La reserva no crece: se queda en lo que tapa el teclado.
+		expect(reserved[reserved.length - 1]).toBeLessThanOrEqual(KEYBOARD_PX);
+		expect(reserved[reserved.length - 1]).toBe(reserved[0]);
+	});
+
+	test("un widget cuyo pie queda por encima del teclado no reserva franja", async ({ page }) => {
+		// Un widget embebido en una página no está anclado al borde inferior: el navegador
+		// ya lo desplaza al enfocar el campo, y reservar franja de más solo encogería el
+		// hilo.
+		await withVirtualKeyboard(page);
+		await page.goto("/");
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		// La caja del widget deja de llegar al borde inferior de la pantalla.
+		await page.addStyleTag({ content: "#app { height: 400px; }" });
 		await openKeyboard(page, KEYBOARD_PX);
 
 		const measured = await geometry(page);

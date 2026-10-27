@@ -11,7 +11,7 @@
  * en `src/chat/domain/visual-viewport.ts`, porque el widget también las necesita.
  */
 
-import type { Root, Rule } from "postcss";
+import type { Declaration, Root, Rule } from "postcss";
 import { ROOT_SELECTOR } from "./viewport";
 
 /**
@@ -77,6 +77,22 @@ export type Violation = { reason: string };
 const VIEWPORT_UNITS = /(?<![a-z])(vh|svh|lvh|dvh)(?![a-z])/i;
 
 /**
+ * Las propiedades que declaran el padding inferior de la raíz.
+ *
+ * La física y la lógica: `padding-block-end` es el padding inferior en un modo de escritura
+ * horizontal, y una regla que lo declarara dejaría la franja del teclado a cero sin que
+ * ninguna regla física la tocara.
+ */
+const BOTTOM_PADDING_PROPERTIES = ["padding-bottom", "padding-block-end"];
+
+/**
+ * Los atajos que tocan el padding inferior de la raíz.
+ *
+ * Los dos se comen la franja reservada: `padding` la pone a cero y `padding-block` también.
+ */
+const PADDING_SHORTHANDS = ["padding", "padding-block"];
+
+/**
  * Las violaciones del contrato de teclado virtual en una hoja de estilos.
  *
  * Función pura sobre el árbol ya parseado: la guarda la usa contra la hoja real del widget
@@ -94,8 +110,14 @@ export function findKeyboardViolations(root: Root): Violation[] {
 
 	const paddings = rules.flatMap((rule) =>
 		rule.nodes
-			.filter((node) => node.type === "decl" && node.prop.toLowerCase() === "padding-bottom")
-			.map((node) => ({ value: (node as { value: string }).value.trim() }))
+			.filter(
+				(node): node is Declaration =>
+					node.type === "decl" && BOTTOM_PADDING_PROPERTIES.includes(node.prop.toLowerCase())
+			)
+			.map((node) => ({
+				property: node.prop.toLowerCase(),
+				value: node.value.trim(),
+			}))
 	);
 
 	if (paddings.length === 0) {
@@ -114,7 +136,7 @@ export function findKeyboardViolations(root: Root): Violation[] {
 		if (paddings.length > 1) {
 			violations.push({
 				reason: `el padding inferior de «${ROOT_SELECTOR}» lo declara más de una regla: ${paddings
-					.map((padding) => `«${padding.value}»`)
+					.map((padding) => `«${padding.property}: ${padding.value}»`)
 					.join(", ")}`,
 			});
 		}
@@ -132,14 +154,14 @@ export function findKeyboardViolations(root: Root): Violation[] {
 		}
 	}
 
-	// El atajo `padding` volvería a poner el padding inferior a cero y se comería la
-	// franja reservada.
+	// Los atajos volverían a poner el padding inferior a cero y se comerían la franja
+	// reservada.
 	for (const rule of rules) {
 		for (const node of rule.nodes) {
 			if (node.type !== "decl") continue;
-			if (node.prop.toLowerCase() !== "padding") continue;
+			if (!PADDING_SHORTHANDS.includes(node.prop.toLowerCase())) continue;
 			violations.push({
-				reason: `«${rule.selector}» declara el atajo «padding»: se comería la franja que reserva el teclado`,
+				reason: `«${rule.selector}» declara el atajo «${node.prop.toLowerCase()}»: se comería la franja que reserva el teclado`,
 			});
 		}
 	}
