@@ -37,6 +37,7 @@ docs/.atl/
 frontend/.atl/
 .atl/.skill-registry.cache.json
 api/.atl/.skill-registry.cache.json
+**/.atl/skill-registry.md
 
 # Operating system and editor files
 .DS_Store

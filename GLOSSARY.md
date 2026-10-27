@@ -2,9 +2,9 @@
 
 Vocabulario compartido del repositorio. Definido en RF-F61 (tema), RF-F62 (textos de
 UI), RF-F41 (región de estado), RF-F42 (contraste), RF-F43 (objetivos táctiles), RF-F44
-(movimiento reducido), RF-F45 (nombres accesibles) y RF-F50 (viewport móvil); cuando un
-término falte, se declara aquí como decisión de modelado en lugar de inventarlo en issues,
-specs o tests.
+(movimiento reducido), RF-F45 (nombres accesibles), RF-F50 (viewport móvil) y RF-F51
+(teclado virtual); cuando un término falte, se declara aquí como decisión de modelado en
+lugar de inventarlo en issues, specs o tests.
 
 ## Tema del widget (RF-F61)
 
@@ -181,3 +181,23 @@ specs o tests.
   que impide que una regla nueva rompa cualquiera de ellas. Se verifica en dos niveles
   —mecanismo y resolución— y no tiene nivel manual. Como en el contrato de objetivos táctiles,
   el inset es del entorno y no un token: el sitio host no puede anularlo en silencio.
+
+## Teclado virtual del widget (RF-F51)
+
+- **Zona visible**: la banda del viewport de layout que está de verdad en la pantalla, del
+  borde superior visible al inferior. La publica `window.visualViewport`: su `height`
+  mengua cuando aparece el teclado virtual y su `offsetTop` dice dónde está su borde
+  superior. No es lo mismo que el viewport de layout, que el teclado no encoge —por eso
+  `dvh` no baja cuando se abre el teclado—.
+- **Franja del teclado**: la parte de la zona visible que el teclado virtual tapa. Todo lo
+  que queda por debajo de la zona visible está bajo el teclado.
+- **Anclaje inferior**: que el borde inferior de la caja del widget llegue al borde inferior
+  de la pantalla. Es la condición que decide si el teclado es problema del widget: un
+  cajón a pantalla completa o un panel flotante están anclados abajo y el navegador no los
+  puede desplazar al enfocar el campo; un widget embebido en una página no lo está, y el
+  navegador lo desplaza por su cuenta.
+- **Contrato de teclado virtual**: la regla de que el widget reserva, en su raíz, la parte
+  de su borde inferior que queda bajo el teclado, y solo si está anclado abajo; más la
+  guarda que impide que una regla nueva rompa el CSS que la aplica. Se verifica en dos
+  niveles —mecanismo y resolución— y no tiene nivel manual. La franja se mide en tiempo de
+  ejecución, así que no es un token que el sitio host pueda anular en silencio.
