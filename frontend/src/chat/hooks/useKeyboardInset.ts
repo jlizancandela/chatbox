@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { keyboardStrip, reservedInset, visibleArea } from "../domain/visual-viewport";
 
 /**
@@ -9,12 +9,20 @@ import { keyboardStrip, reservedInset, visibleArea } from "../domain/visual-view
  * `visualViewport` sí: su `height` mengua y su `offsetTop` dice dónde está el borde
  * superior de lo que se ve.
  *
+ * Lo que se mide es el borde inferior de la caja del widget, menos lo que ya se ha
+ * reservado: así sale el borde inferior de su caja de contenido, que es donde acaba el pie
+ * —donde vive el campo de texto—. Sin restar la reserva, la medida incluiría el efecto de
+ * la propia reserva y no se estabilizaría: la caja crecería en cada medida, y la reserva
+ * con ella.
+ *
  * El hook devuelve el inset en píxeles para que el componente pueda reaccionar a él —el
  * hilo vuelve al final cuando el hilo pierde su final—, y el CSS lo aplica como una
  * variable en la raíz del widget.
  */
 export function useKeyboardInset(root: { current: HTMLElement | null }): number {
 	const [inset, setInset] = useState(0);
+	/** Lo último publicado: la medida siguiente tiene que descontarlo. */
+	const applied = useRef(0);
 
 	useEffect(() => {
 		const element = root.current;
@@ -40,10 +48,18 @@ export function useKeyboardInset(root: { current: HTMLElement | null }): number 
 			// Sin teclado no hay nada que reservar, y el widget no se ha movido: no hace
 			// falta ni medir la caja.
 			if (keyboardStrip(layoutHeight(), area) === 0) {
+				applied.current = 0;
 				setInset(0);
 				return;
 			}
-			setInset(reservedInset(element.getBoundingClientRect().bottom, layoutHeight(), area));
+			const next = reservedInset(
+				element.getBoundingClientRect().bottom,
+				applied.current,
+				layoutHeight(),
+				area
+			);
+			applied.current = next;
+			setInset(next);
 		};
 
 		measure();

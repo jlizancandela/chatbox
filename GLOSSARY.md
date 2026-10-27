@@ -190,12 +190,12 @@ lugar de inventarlo en issues, specs o tests.
   superior. No es lo mismo que el viewport de layout, que el teclado no encoge —por eso
   `dvh` no baja cuando se abre el teclado—.
 - **Franja del teclado**: la parte de la zona visible que el teclado virtual tapa. Todo lo
-  que queda por debajo de la zona visible está bajo el teclado.
-- **Anclaje inferior**: que el borde inferior de la caja del widget llegue al borde inferior
-  de la pantalla. Es la condición que decide si el teclado es problema del widget: un
-  cajón a pantalla completa o un panel flotante están anclados abajo y el navegador no los
-  puede desplazar al enfocar el campo; un widget embebido en una página no lo está, y el
-  navegador lo desplaza por su cuenta.
+  que queda por debajo de la zona visible está bajo el teclado. Es también lo que el widget
+  reserva en su raíz para que su pie quede por encima del teclado.
+- **Borde inferior del contenido**: el borde inferior de la caja de contenido de la raíz del
+  widget —donde acaba el pie, y con él el campo de texto—. No es lo mismo que el borde
+  inferior de la caja: la reserva vive en el padding de la raíz, así que uno es el otro
+  menos lo reservado. Medir el correcto es lo que hace que la reserva se estabilice.
 - **Contrato de teclado virtual**: la regla de que el widget reserva, en su raíz, la parte
   de su borde inferior que queda bajo el teclado, y solo si está anclado abajo; más la
   guarda que impide que una regla nueva rompa el CSS que la aplica. Se verifica en dos

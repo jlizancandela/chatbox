@@ -155,4 +155,28 @@ describe("la guarda del contrato", () => {
 		expect(reasons.length).toBeGreaterThan(0);
 		expect(reasons.join(" | ")).toContain("atajo «padding»");
 	});
+
+	it("rechaza el atajo `padding-block`, que se comería la franja", () => {
+		const reasons = reasonsOf(
+			COMPLIANT.replace(
+				`padding-bottom: var(${KEYBOARD_INSET_PROPERTY}, ${KEYBOARD_INSET_FALLBACK});`,
+				"padding-block: 0;"
+			)
+		);
+		expect(reasons.length).toBeGreaterThan(0);
+		expect(reasons.join(" | ")).toContain("atajo «padding-block»");
+	});
+
+	it("rechaza el padding inferior lógico", () => {
+		// `padding-block-end` es el padding inferior en un modo de escritura horizontal: una
+		// regla que lo declarara dejaría la franja a cero sin tocar ningún `padding-bottom`.
+		const reasons = reasonsOf(
+			COMPLIANT.replace(
+				`padding-bottom: var(${KEYBOARD_INSET_PROPERTY}, ${KEYBOARD_INSET_FALLBACK});`,
+				"padding-block-end: 0;"
+			)
+		);
+		expect(reasons.length).toBeGreaterThan(0);
+		expect(reasons.join(" | ")).toContain("no reserva la franja del teclado");
+	});
 });

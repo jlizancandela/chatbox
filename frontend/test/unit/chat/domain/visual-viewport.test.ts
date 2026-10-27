@@ -9,9 +9,7 @@
 
 import { describe, expect, it } from "vitest";
 import {
-	ANCHOR_TOLERANCE_PX,
 	coveredByKeyboard,
-	isBottomAnchored,
 	keyboardStrip,
 	reservedInset,
 	visibleArea,
@@ -53,51 +51,57 @@ describe("RF-F51 — la franja que tapa el teclado", () => {
 	});
 });
 
-describe("RF-F51 — el anclaje inferior", () => {
-	it("reconoce una caja que llega al borde inferior de la pantalla", () => {
-		expect(isBottomAnchored(LAYOUT_HEIGHT, LAYOUT_HEIGHT)).toBe(true);
-	});
-
-	it("tolera el redondeo del navegador", () => {
-		expect(isBottomAnchored(LAYOUT_HEIGHT - ANCHOR_TOLERANCE_PX, LAYOUT_HEIGHT)).toBe(true);
-	});
-
-	it("no confunde una caja que está por encima con una anclada", () => {
-		// Un widget embebido en una página no está anclado: el navegador lo desplaza al
-		// enfocar el campo, y reservar franja de más solo encogería el hilo.
-		expect(isBottomAnchored(LAYOUT_HEIGHT - 200, LAYOUT_HEIGHT)).toBe(false);
-	});
-});
-
 describe("RF-F51 — lo que tapa el teclado", () => {
 	it("es la parte del borde inferior que queda bajo el teclado", () => {
 		expect(coveredByKeyboard(LAYOUT_HEIGHT, visibleArea(500, 0))).toBe(KEYBOARD);
 	});
 
-	it("es cero si el widget no llega al teclado", () => {
+	it("es cero si el pie no llega al teclado", () => {
 		expect(coveredByKeyboard(400, visibleArea(500, 0))).toBe(0);
 	});
 });
 
 describe("RF-F51 — la franja que el widget reserva", () => {
-	it("reserva lo que tapa el teclado cuando está anclado abajo", () => {
-		expect(reservedInset(LAYOUT_HEIGHT, LAYOUT_HEIGHT, visibleArea(500, 0))).toBe(KEYBOARD);
-	});
-
-	it("no reserva nada si el widget no está anclado abajo", () => {
-		expect(reservedInset(LAYOUT_HEIGHT - 200, LAYOUT_HEIGHT, visibleArea(500, 0))).toBe(0);
+	it("reserva lo que tapa el teclado", () => {
+		expect(reservedInset(LAYOUT_HEIGHT, 0, LAYOUT_HEIGHT, visibleArea(500, 0))).toBe(KEYBOARD);
 	});
 
 	it("no reserva nada sin teclado", () => {
-		expect(reservedInset(LAYOUT_HEIGHT, LAYOUT_HEIGHT, visibleArea(LAYOUT_HEIGHT, 0))).toBe(0);
+		expect(reservedInset(LAYOUT_HEIGHT, 0, LAYOUT_HEIGHT, visibleArea(LAYOUT_HEIGHT, 0))).toBe(0);
 	});
 
-	it("reserva exactamente lo que queda bajo el teclado", () => {
-		// Una caja que se sale de debajo de la pantalla reserva también lo que sobra: el
-		// pie tiene que quedar en el borde de la zona visible, ni un píxel más abajo.
-		expect(reservedInset(LAYOUT_HEIGHT + 40, LAYOUT_HEIGHT, visibleArea(500, 0))).toBe(
+	it("no reserva nada si el pie queda por encima del teclado", () => {
+		// Un widget embebido en una página: el navegador lo desplaza al enfocar el
+		// campo y su pie queda arriba del teclado. Reservar de más solo encogería el hilo.
+		expect(reservedInset(400, 0, LAYOUT_HEIGHT, visibleArea(500, 0))).toBe(0);
+	});
+
+	it("descuenta lo que ya ha reservado", () => {
+		// La reserva vive en el padding de la raíz, así que el borde inferior de su caja
+		// de contenido —donde acaba el pie— es el de la caja menos lo reservado. Sin
+		// restarlo, la medida incluiría el efecto de la propia reserva y la caja crecería
+		// en cada medida.
+		expect(reservedInset(LAYOUT_HEIGHT, 0, LAYOUT_HEIGHT, visibleArea(500, 0))).toBe(KEYBOARD);
+		// Con la reserva ya aplicada, el pie está donde tocaría sin ella: no hay que
+		// reservar más.
+		expect(reservedInset(LAYOUT_HEIGHT, KEYBOARD, LAYOUT_HEIGHT, visibleArea(500, 0))).toBe(0);
+	});
+
+	it("reserva lo que la caja se sale de debajo de la pantalla", () => {
+		// Una caja que se sale de la pantalla reserva también lo que sobra: el pie tiene
+		// que quedar en el borde de la zona visible, ni un píxel más abajo.
+		expect(reservedInset(LAYOUT_HEIGHT + 40, 0, LAYOUT_HEIGHT, visibleArea(500, 0))).toBe(
 			KEYBOARD + 40
 		);
+	});
+
+	it("no crece con la reserva: la medida ya la descuenta", () => {
+		// Un sitio host que le da una altura automática hace crecer la caja con cada
+		// medida. Como la medida descuenta lo reservado, la reserva no crece.
+		const area = visibleArea(500, 0);
+		const first = reservedInset(LAYOUT_HEIGHT + 400, 0, LAYOUT_HEIGHT, area);
+		const second = reservedInset(LAYOUT_HEIGHT + 400 + first, first, LAYOUT_HEIGHT, area);
+		expect(second).toBe(first);
 	});
 
 	it("mide el teclado contra el viewport visual, no contra el de layout", () => {
@@ -105,6 +109,16 @@ describe("RF-F51 — la franja que el widget reserva", () => {
 		// si se midiera contra `innerHeight`, la franja saldría cero y el teclado taparía
 		// el campo de texto.
 		const area = visibleArea(LAYOUT_HEIGHT - KEYBOARD, 0);
-		expect(reservedInset(LAYOUT_HEIGHT, LAYOUT_HEIGHT, area)).toBe(KEYBOARD);
+		expect(reservedInset(LAYOUT_HEIGHT, 0, LAYOUT_HEIGHT, area)).toBe(KEYBOARD);
+	});
+
+	it("cuenta el desplazamiento del viewport visual", () => {
+		// Con el viewport visual desplazado, el borde inferior de la zona visible también
+		// lo está: el pie tiene que quedar por encima de ese borde, no del de arriba. El
+		// teclado sigue tapando 300 px, así que el viewport visual encoge 300 px más
+		// abajo de donde estaba.
+		const area = visibleArea(LAYOUT_HEIGHT - 120 - KEYBOARD, 120);
+		expect(area.bottom).toBe(LAYOUT_HEIGHT - KEYBOARD);
+		expect(reservedInset(LAYOUT_HEIGHT, 0, LAYOUT_HEIGHT, area)).toBe(KEYBOARD);
 	});
 });

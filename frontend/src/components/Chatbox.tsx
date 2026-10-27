@@ -130,13 +130,13 @@ export function Chatbox({
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const conversationRef = useRef<HTMLElement>(null);
 	const messagesListRef = useRef<HTMLOListElement | null>(null);
-	const rootRef = useRef<HTMLElement>(null);
 	/**
 	 * La franja que el teclado virtual tapa, medida con `visualViewport` (RF-F51).
 	 *
 	 * La publica el CSS como una variable en la raíz, y el componente solo la necesita
 	 * para enterarse de que la zona visible se ha encogido.
 	 */
+	const rootRef = useRef<HTMLElement>(null);
 	const keyboardInset = useKeyboardInset(rootRef);
 	/** El inset anterior: el hilo solo se recoloca cuando la zona visible cambia de alto. */
 	const previousKeyboardInset = useRef(keyboardInset);

@@ -33,55 +33,43 @@ export const visibleArea = (visualHeight: number, visualOffsetTop: number): Visi
 /**
  * La franja del viewport de layout que el teclado virtual tapa.
  *
- * Todo lo que queda por debajo de la zona visible está bajo el teclado.
+ * Todo lo que queda por debajo de la zona visible está bajo el teclado. Es también el tope
+ * de lo que se puede reservar: por mucho que el widget se salga de debajo de la pantalla, el
+ * teclado no tapa más que eso.
  */
 export const keyboardStrip = (layoutHeight: number, area: VisibleArea): number =>
 	Math.max(0, layoutHeight - area.bottom);
 
 /**
- * La tolerancia con la que se acepta que el borde inferior del widget está en el borde
- * inferior de la pantalla.
- *
- * Un píxel: lo que separa a «toca el borde» de «lo que el navegador ha redondeado».
- */
-export const ANCHOR_TOLERANCE_PX = 1;
-
-/**
- * ¿Está la caja del widget anclada al borde inferior de la pantalla?
- *
- * Es la condición de la regla: un widget anclado abajo —un cajón a pantalla completa o un
- * panel flotante— es el que el teclado tapa, porque el navegador no lo puede desplazar al
- * enfocar el campo. Un widget embebido en una página no lo está, y el navegador lo
- * desplaza por su cuenta.
- */
-export const isBottomAnchored = (widgetBottom: number, layoutHeight: number): boolean =>
-	widgetBottom >= layoutHeight - ANCHOR_TOLERANCE_PX;
-
-/**
  * La parte del borde inferior del widget que el teclado tapa.
  */
-export const coveredByKeyboard = (widgetBottom: number, area: VisibleArea): number =>
-	Math.max(0, widgetBottom - area.bottom);
+export const coveredByKeyboard = (bottom: number, area: VisibleArea): number =>
+	Math.max(0, bottom - area.bottom);
 
 /**
  * La franja que el widget tiene que reservar para que su pie —donde vive el campo de
  * texto— quede por encima del teclado.
  *
- * Es exactamente la parte del widget que queda bajo el teclado, y solo si el widget está
- * anclado abajo: en ese caso es el navegador el que no lo puede desplazar al enfocar el
- * campo. Un widget embebido en una página no reserva nada: el navegador ya lo desplaza, y
- * reservar franja de más solo encogería el hilo.
+ * Tres cosas entran aquí, y las tres importan:
  *
- * Límite declarado: el widget reserva espacio **debajo** de su contenido, así que su caja
- * tiene que medir lo que el sitio host le da (RF-F50). Un host que le dé una altura
- * automática hace que la caja crezca al abrir el teclado —con el tope de `100dvh` como
- * límite—; el campo tampoco se libra, pero la conversación se sigue debajo de la caja.
+ * - **`bottom` es el borde inferior de la caja del widget**, y `applied` lo que ya se ha
+ *   reservado. La reserva vive en el padding de la raíz, así que el borde inferior de su
+ *   caja de contenido —donde acaba el pie— es `bottom - applied`. Sin restarlo, la medida
+ *   incluiría el efecto de la propia reserva y no se estabilizaría: la caja crecería en
+ *   cada medida y la reserva con ella.
+ * - **La zona visible es la del viewport visual**, con su desplazamiento: el borde
+ *   inferior de lo que se ve no es el de la caja, sino el que publica el `visualViewport`.
+ * - **No hay tope.** La reserva es la que hace falta para que el pie quede en el borde de
+ *   la zona visible, ni más ni menos: un tope dejaría un hueco entre el pie y el teclado.
+ *   Lo que evita que la reserva crezca sin control es la medida, que ya descuenta lo
+ *   reservado.
  */
 export const reservedInset = (
-	widgetBottom: number,
-	layoutHeight: number,
+	bottom: number,
+	applied: number,
+	_layoutHeight: number,
 	area: VisibleArea
 ): number => {
-	if (!isBottomAnchored(widgetBottom, layoutHeight)) return 0;
-	return coveredByKeyboard(widgetBottom, area);
+	const contentBottom = bottom - applied;
+	return coveredByKeyboard(contentBottom, area);
 };
