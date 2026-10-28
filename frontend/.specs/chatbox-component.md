@@ -178,8 +178,8 @@ npm run build
 
 - Renderizado Markdown seguro y carga dinámica de `react-markdown` (Paso 4).
 - Estilos completos, contraste y responsive final (Pasos 4–6).
-- Integración Astro y prueba real de CORS (Paso 7).
-- axe, NVDA, VoiceOver y prueba en dispositivo móvil real (Pasos 5–6).
+- Integración Astro (Paso 7).
+- axe sobre el widget (Paso 5).
   > *Enmienda (2026-10-26, issue #113):* la verificación con NVDA y VoiceOver se retiró con
   > el nivel 3 de la ADR 005, que nunca se ejecutó. La de axe sí está, como pasada
   > automática sobre el widget.

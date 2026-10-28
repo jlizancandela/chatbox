@@ -15,6 +15,7 @@ const createChat = (): HookChatController => {
 			return state;
 		},
 		startTurn: (question) => dispatch({ type: "turn-started", question }),
+		retryTurn: () => dispatch({ type: "turn-retried" }),
 		receiveSources: (sources, history) => dispatch({ type: "sources-received", sources, history }),
 		receiveToken: (token) => dispatch({ type: "token-received", token }),
 		completeTurn: () => dispatch({ type: "turn-completed" }),

@@ -140,6 +140,22 @@ test("el botón de enviar mide el suelo con el campo lleno y durante el turno", 
 	await expect(page.locator(".chatbox__message--assistant")).toBeVisible();
 });
 
+test("el botón de reintentar mide el suelo tras un fallo", async ({ page }) => {
+	await page.route("**/api/chat", async (route) => {
+		await route.fulfill({ status: 500 });
+	});
+
+	await page.goto("/");
+	await page.locator("#chatbox-question").fill("¿Qué usa Jorge?");
+	await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
+	await expect(page.locator(".chatbox__status")).toContainText(strings.errors.HTTP_SERVER);
+
+	const measured = contractControls(await measureControls(page));
+	const ids = activeControls(measured).map((control) => control.id);
+	expect(ids).toContain("retry");
+	assertFloor(measured, "turno fallido");
+});
+
 test("la confirmación de nueva conversación mide el suelo", async ({ page }) => {
 	await page.goto("/");
 	await page.getByRole("button", { name: strings.actions.newConversation }).click();

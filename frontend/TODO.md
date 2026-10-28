@@ -103,8 +103,6 @@ plano, React/Preact, Vue, Svelte, WordPress y otros hosts.
 - [ ] Generar bundles ESM y browser/CDN, además de declaraciones TypeScript y CSS.
 - [ ] Recibir `apiUrl` y opciones mediante props/atributos; no hardcodear URLs de producción.
 - [ ] Documentar instalación y uso vía NPM, CDN, HTML plano, Astro y Preact.
-- [ ] Verificar CORS para integraciones desde dominios externos.
-- [ ] Añadir pruebas de integración en HTML plano, Astro y Preact.
 - [ ] Configurar versionado, releases y publicación en NPM.
 
 ### Decisiones pendientes
@@ -118,9 +116,8 @@ plano, React/Preact, Vue, Svelte, WordPress y otros hosts.
 - [x] Tests unitarios de `sse.ts` (frames partidos, varios en un chunk, payloads con `history`).
 - [x] Tests de `trimHistory` y lectura tolerante de storage.
 - [x] Tests del hook con fetch simulado.
-- [ ] Tests del componente (`@testing-library/preact`): Enter/Shift+Enter, Enviar↔Detener, estado vacío, reintento.
+- [x] Tests del componente (`@testing-library/preact`): Enter/Shift+Enter, Enviar↔Detener, estado vacío, reintento.
 - [x] Test de accesibilidad con axe-core sobre `.chatbox` en navegador real (#113: la pasada recorre los ocho estados del widget en claro y en oscuro).
-- [ ] Prueba manual en móvil real (iOS Safari): teclado virtual, safe areas, zoom.
 - [x] Verificar build de producción (`npm run build`) con react-markdown y Preact Compat.
 - [ ] Flujo completo: instalación limpia, `npm install`, dev server, chat con streaming real.
 

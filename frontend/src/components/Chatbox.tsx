@@ -150,7 +150,7 @@ export function Chatbox({
 	const jumping = useRef(false);
 	const sentContextLength = useRef(0);
 
-	const { sendQuestion, abort } = useChatStream({
+	const { sendQuestion, retryQuestion, abort } = useChatStream({
 		apiUrl,
 		chat,
 		onSources: (historyLength) => setContextWasTrimmed(historyLength < sentContextLength.current),
@@ -169,6 +169,9 @@ export function Chatbox({
 	});
 
 	const isBusy = ["connecting", "generating", "streaming"].includes(chat.state.turnState);
+	const isAborted = chat.state.turnState === "aborted";
+	const hasFailedResponse =
+		chat.state.turnState === "error" && chat.state.currentResponse.length > 0;
 	// ¿Lo que la región dice ya está en la conversación? El desenlace de un turno
 	// completado se ve en la burbuja (RF-F46) y el aviso de escritura se ve en el
 	// bocadillo (RF-F47). Cuando es así, la región lo anuncia igual, pero no lo pinta
@@ -280,6 +283,12 @@ export function Chatbox({
 		textareaRef.current?.focus();
 	};
 
+	const handleRetry = (): void => {
+		if (!chat.state.currentQuestion) return;
+		setAnnouncement(NO_ANNOUNCEMENT);
+		void retryQuestion(chat.state.currentQuestion);
+	};
+
 	return (
 		<section
 			class="chatbox"
@@ -318,13 +327,16 @@ export function Chatbox({
 					<ChatMessages
 						messages={chat.state.messages}
 						currentResponse={chat.state.currentResponse}
-						isBusy={
-							isBusy || chat.state.turnState === "error" || chat.state.turnState === "aborted"
-						}
+						isBusy={isBusy || isAborted || hasFailedResponse}
 						listRef={messagesListRef}
 					/>
 				) : (
 					<EmptyState suggestions={suggestions} isBusy={isBusy} onSuggestion={submit} />
+				)}
+				{chat.state.turnState === "error" && chat.state.currentQuestion && (
+					<button type="button" data-chatbox-control="retry" onClick={handleRetry}>
+						{strings.actions.retry}
+					</button>
 				)}
 
 				{showScrollToEnd && (

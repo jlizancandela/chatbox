@@ -271,7 +271,6 @@ Uso:
 - **Hook con `fetch` simulado:** secuencia normal, sin contexto, error mid-stream, abort, timeout.
 - **Componente (`@testing-library/preact`):** Enter/Shift+Enter, botón Enviar↔Detener, estado vacío, reintento.
 - **Accesibilidad:** pasada automática con axe sobre el widget en todos sus estados y en los dos esquemas de color, sobre todo RF-F41.
-- **Manual en móvil real:** teclado virtual, safe areas, zoom de iOS.
 
 ---
 
