@@ -11,7 +11,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Chatbox } from "../../src/components/Chatbox";
 import { strings } from "../../src/strings.es";
-import { answerTurn, mockHangingRequest, mockStream, send } from "./fixtures";
+import { answerTurn, mockHangingRequest, mockStream, regionOf, send } from "./fixtures";
 
 /** El lanzador: el único control que existe en el estado contraído. */
 const launcher = (): HTMLElement =>
@@ -94,7 +94,7 @@ describe("RF-F64 — la variante flotante contraída", () => {
 			// Para recoger el widget está el botón de la cabecera.
 			const user = userEvent.setup();
 			mockHangingRequest();
-			render(
+			const { container } = render(
 				<Chatbox apiUrl="http://localhost:7000" variant="floating" initiallyCollapsed={false} />
 			);
 
@@ -102,6 +102,9 @@ describe("RF-F64 — la variante flotante contraída", () => {
 			await user.click(questionField());
 			await user.keyboard("{Escape}");
 
+			// El turno se detiene: si `Esc` no lo abortara, la región seguiría diciendo que
+			// el asistente escribe.
+			await waitFor(() => expect(regionOf(container)).toHaveTextContent(strings.messages.stopped));
 			expect(questionField()).toBeInTheDocument();
 			expect(screen.queryByRole("button", { name: strings.launcher.open.ariaLabel })).toBeNull();
 		});
@@ -158,6 +161,35 @@ describe("RF-F64 — la variante flotante contraída", () => {
 			await user.click(launcher());
 
 			expect(screen.getByText("Jorge trabaja con TypeScript.")).toBeInTheDocument();
+		});
+
+		it("contraer no interrumpe el turno", async () => {
+			// Contradir no es detener: el stream sigue y el aviso de escritura se conserva.
+			const user = userEvent.setup();
+			mockHangingRequest();
+			const { container } = render(
+				<Chatbox apiUrl="http://localhost:7000" variant="floating" initiallyCollapsed={false} />
+			);
+
+			await send("Una pregunta");
+			await waitFor(() =>
+				expect(
+					screen.getByRole("button", { name: strings.input.stop.ariaLabel })
+				).toBeInTheDocument()
+			);
+
+			await user.click(collapse());
+
+			// La región de estado sigue montada y sigue anunciando: contraída no se pinta,
+			// pero no sale del árbol de accesibilidad. Si el turno se hubiera interrumpido,
+			// diría «Respuesta detenida».
+			expect(regionOf(container)).toHaveTextContent(strings.messages.writing);
+
+			// Y el turno sigue vivo: al abrir el panel, el botón de detener está.
+			await user.click(launcher());
+			expect(
+				screen.getByRole("button", { name: strings.input.stop.ariaLabel })
+			).toBeInTheDocument();
 		});
 	});
 });

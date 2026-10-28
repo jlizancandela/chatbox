@@ -18,13 +18,23 @@ import { keyboardStrip, reservedInset, visibleArea } from "../domain/visual-view
  * El hook devuelve el inset en píxeles para que el componente pueda reaccionar a él —el
  * hilo vuelve al final cuando el hilo pierde su final—, y el CSS lo aplica como una
  * variable en la raíz del widget.
+ *
+ * Con `enabled` a falso no se mide nada: contraído el widget no tiene panel, así que no
+ * hay campo que tapar y la reserva solo estorbaría —el círculo se quedaría sin caja de
+ * contenido— (RF-F64).
  */
-export function useKeyboardInset(root: { current: HTMLElement | null }): number {
+export function useKeyboardInset(root: { current: HTMLElement | null }, enabled = true): number {
 	const [inset, setInset] = useState(0);
 	/** Lo último publicado: la medida siguiente tiene que descontarlo. */
 	const applied = useRef(0);
 
 	useEffect(() => {
+		if (!enabled) {
+			applied.current = 0;
+			setInset(0);
+			return;
+		}
+
 		const element = root.current;
 		if (!element) return;
 
@@ -78,7 +88,7 @@ export function useKeyboardInset(root: { current: HTMLElement | null }): number 
 			view.removeEventListener?.("resize", measure);
 			view.removeEventListener?.("scroll", measure);
 		};
-	}, [root]);
+	}, [root, enabled]);
 
 	return inset;
 }

@@ -6,9 +6,9 @@ import { trimHistory } from "../chat/domain/conversation";
 import { REDUCED_MOTION_QUERY, type ScrollIntent, scrollBehavior } from "../chat/domain/motion";
 import { isAwayFromEnd } from "../chat/domain/scroll";
 import { sourceTitles } from "../chat/domain/sources";
+import { useAutoFocus } from "../chat/hooks/useAutoFocus";
 import { useChat } from "../chat/hooks/useChat";
 import { type TurnEnd, useChatStream } from "../chat/hooks/useChatStream";
-import { useFocusOnMount } from "../chat/hooks/useFocusOnMount";
 import { useKeyboardInset } from "../chat/hooks/useKeyboardInset";
 import { loadFromSessionStorage, saveToSessionStorage } from "../chat/infrastructure/storage";
 import { strings } from "../strings.es";
@@ -177,7 +177,8 @@ export function Chatbox({
 	 * para enterarse de que la zona visible se ha encogido.
 	 */
 	const rootRef = useRef<HTMLElement>(null);
-	const keyboardInset = useKeyboardInset(rootRef);
+	// Contraído no hay panel: la franja del teclado no tiene nada que reservar (RF-F64).
+	const keyboardInset = useKeyboardInset(rootRef, !collapsed);
 	/** El inset anterior: el hilo solo se recoloca cuando la zona visible cambia de alto. */
 	const previousKeyboardInset = useRef(keyboardInset);
 	/**
@@ -254,13 +255,16 @@ export function Chatbox({
 	 * Van en atributos de datos y no en clases: la raíz tiene que conservar su clase como
 	 * literal —`class="chatbox"`—, porque el contrato de nombres accesibles (RF-F45)
 	 * identifica la raíz por esa clase y no por un valor compuesto.
+	 *
+	 * Los atributos solo se escriben cuando apartan del caso por defecto, así que el
+	 * widget embebido entrega exactamente el mismo DOM que antes de RF-F64.
 	 */
-	const rootVariant = floating ? "floating" : "embedded";
-	const rootState = collapsed ? "collapsed" : "expanded";
+	const rootVariant = floating ? "floating" : undefined;
+	const rootState = collapsed ? "collapsed" : undefined;
 
 	// El campo de texto no está en el DOM mientras el widget está contraído: el foco tiene
 	// que volver a él cada vez que el panel se abre, y no solo al montar el componente.
-	useFocusOnMount(textareaRef, !collapsed);
+	useAutoFocus(textareaRef, !collapsed);
 
 	// Keep each effect responsible for one external concern.
 	useEffect(() => {

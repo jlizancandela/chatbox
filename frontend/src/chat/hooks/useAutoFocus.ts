@@ -7,7 +7,7 @@ import { useEffect } from "preact/hooks";
  * texto no está en el DOM mientras el widget está contraído, así que al abrirse el panel
  * el foco tiene que volver a él, y no solo cuando se monta el componente entero.
  */
-export function useFocusOnMount(ref: { current: HTMLElement | null }, enabled = true): void {
+export function useAutoFocus(ref: { current: HTMLElement | null }, enabled = true): void {
 	useEffect(() => {
 		if (!enabled) return;
 		ref.current?.focus();

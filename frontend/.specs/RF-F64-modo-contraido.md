@@ -56,6 +56,10 @@ Stitch describe en `prd_widget_asistente_de_jorge.md:42-53`.
   **sobreviven a la contracción**. Contraer no es detener: el stream sigue, el hilo sigue y
   el anuncio del turno se conserva. Extraer el panel a un componente propio movería ~250
   líneas y rompería el patrón de foco al montar del repositorio.
+- **D10b — El render se parte en tres condicionales**: la cabecera, la conversación y el pie
+  se montan por separado porque la región de estado vive **entre** la cabecera y la
+  conversación, y tiene que quedarse montada en los dos estados (D9). Juntarlos en un
+  fragmento único obligaría a mover la región de estado, que es donde la sitúa el diseño.
 - **D11 — La geometría del panel es una sola regla**: `width: min(100% - 2rem, 380px)` y
   `height: min(100dvh - 2rem, 640px)`. En el teléfono sale casi a pantalla completa; en el
   escritorio, una tarjeta. Sin media query: dos declaraciones y cada contexto sale como le
@@ -79,6 +83,10 @@ Stitch describe en `prd_widget_asistente_de_jorge.md:42-53`.
   panel. **Pero `Esc` hace lo más urgente**: mientras hay un turno en marcha aborta la
   respuesta (RF-F05) y no contrae nada; para recoger el widget está el botón de la
   cabecera, que está siempre.
+- **D16b — `Esc` solo actúa con el foco dentro del widget**: el manejador vive en la raíz, no
+  en el documento. El panel no es modal —la persona puede seguir usando la página— y un
+  `Esc` que lo cerrara desde fuera cerraría cosas que no son del widget. Quien use el
+  teclado llega al panel con `Tab` y llega con el foco dentro.
 - **D17 — El foco va al campo al abrir y vuelve al lanzador al cerrar**: el lanzador se
   desmonta al expandirse, así que sin devolver el foco, este se perdería en el `body`. El
   foco se mueve con un **ref callback**, no con un efecto: un efecto pendiente podría
@@ -114,7 +122,11 @@ Stitch describe en `prd_widget_asistente_de_jorge.md:42-53`.
 - **D25 — Identificadores**: RF-F64. `RF-F63` ya se usa como etiqueta interna de estilos en
   `test/unit/chatbox-scoped-styles.test.ts:21` **sin existir en el spec**: reutilizarlo
   crearía dos cosas distintas con el mismo nombre.
-- **D26 — Los paquetes que renderizan con React se empaquetan en las pruebas**: en vitest,
+- **D26 — Contraído no se reserva la franja del teclado**: el hook que la mide
+  (`useKeyboardInset`) deja de medir cuando no hay panel. Con la franja activa, la raíz
+  contraída —56×56, con `box-sizing: border-box`— se quedaría sin caja de contenido y el
+  lanzador se deformaría.
+- **D27 — Los paquetes que renderizan con React se empaquetan en las pruebas**: en vitest,
   `react-markdown` se externalizaba, y sus imports de `react/jsx-runtime` esquivaban el
   alias de `vitest.config.ts` y llegaban al **React real** (19.3, instalado como *peer* de
   `react-markdown`). Sus elementos vienen congelados y Preact no puede diffearlos: montar
@@ -181,6 +193,7 @@ La región de estado se monta en los dos estados; en el contraído la oculta el 
 	width: min(100% - 2rem, 380px);
 	height: min(100dvh - 2rem, 640px);
 	border-radius: 1rem;
+	box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
 	z-index: 50;
 }
 

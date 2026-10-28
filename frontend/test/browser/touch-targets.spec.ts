@@ -237,4 +237,18 @@ test.describe("con el widget contraído", () => {
 		const ids = activeControls(contractControls(measured)).map((control) => control.id);
 		expect(ids).toContain("launcher");
 	});
+
+	test("el botón de contraer alcanza el suelo con el panel abierto", async ({ page }) => {
+		// El botón de contraer solo existe en la variante flotante: sin este escenario, el
+		// inventario declararía un control que ningún escenario mide.
+		await page.goto("/?widget=floating");
+		await page.getByRole("button", { name: strings.launcher.open.ariaLabel }).click();
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		const measured = await measureControls(page);
+		assertFloor(measured, "vacío");
+
+		const ids = activeControls(contractControls(measured)).map((control) => control.id);
+		expect(ids).toContain("collapse");
+	});
 });

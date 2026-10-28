@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { strings } from "../strings.es";
+import { Icon } from "./Icon";
 
 type ChatHeaderProps = {
 	title: string;
@@ -34,9 +35,7 @@ export function ChatHeader({
 					aria-label={strings.actions.collapse.ariaLabel}
 					onClick={onCollapse}
 				>
-					<svg class="chatbox__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-						<path d="M6 19h12v-2H6v2z" />
-					</svg>
+					<Icon path="M6 19h12v-2H6v2z" />
 				</button>
 			)}
 			<p>{notice}</p>

@@ -85,7 +85,7 @@ src/
 │   ├── hooks/
 │   │   ├── useChat.ts      # Estado reactivo local
 │   │   ├── useChatStream.ts # Fetch, SSE, abort, timeout y fin de turno
-│   │   └── useFocusOnMount.ts # Foco inicial del textarea
+│   │   └── useAutoFocus.ts   # Foco del campo de texto, al montar y al abrirse
 │   ├── infrastructure/
 │   │   ├── chat-errors.ts  # Códigos de error y su texto
 │   │   ├── sse.ts          # Adaptador de frames SSE y payloads del API

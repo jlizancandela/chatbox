@@ -81,7 +81,7 @@ const ATTRIBUTE_VALUES = ["es", "true", "false", "polite", "off", "status", "sub
  * `data-variant` y `data-state`, y los de la prop `variant`. Son valores técnicos del
  * atributo, no redacción de interfaz.
  */
-const VARIANT_AND_STATE_VALUES = ["embedded", "floating", "collapsed", "expanded"];
+const VARIANT_AND_STATE_VALUES = ["embedded", "floating", "collapsed"];
 
 /**
  * Valores técnicos del SVG en línea de los controles solo-icono (RF-F64): el `viewBox` y la
