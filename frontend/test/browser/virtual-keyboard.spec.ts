@@ -367,3 +367,49 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		expect(away).toBe(0);
 	});
 });
+
+test.describe("RF-F64 — la variante flotante", () => {
+	test.use({ viewport: SCREEN });
+
+	/** La separación del panel con el borde inferior de la pantalla (RF-F64). */
+	const ANCHOR_PX = 16;
+
+	test("el pie del panel flotante queda en el borde de la zona visible", async ({ page }) => {
+		// El panel flotante está anclado por encima del borde inferior de la pantalla, así
+		// que la franja que reserva es la del teclado menos esa separación: lo que se
+		// aparta del teclado es la franja, no el widget entero.
+		await withVirtualKeyboard(page);
+		await page.goto("/?widget=floating");
+		await page.getByRole("button", { name: strings.launcher.open.ariaLabel }).click();
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		await openKeyboard(page, KEYBOARD_PX);
+
+		const top = await keyboardTop(page);
+		const measured = await geometry(page);
+
+		expect(
+			measured.footerBottom,
+			"el pie del panel flotante no puede quedar bajo el teclado"
+		).toBeLessThanOrEqual(top);
+		expect(measured.reserved).toBeCloseTo(KEYBOARD_PX - ANCHOR_PX, 0);
+	});
+
+	test("la comprobación de la franja flotante muerde: sin la franja, el campo queda bajo el teclado", async ({
+		page,
+	}) => {
+		// La entrada que rechaza: el mismo escenario con la franja reservada anulada.
+		await withVirtualKeyboard(page);
+		await page.goto("/?widget=floating");
+		await page.getByRole("button", { name: strings.launcher.open.ariaLabel }).click();
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		await page.addStyleTag({ content: ".chatbox { padding-bottom: 0 !important; }" });
+		await openKeyboard(page, KEYBOARD_PX);
+
+		const top = await keyboardTop(page);
+		const measured = await geometry(page);
+
+		expect(measured.footerBottom).toBeGreaterThan(top);
+	});
+});

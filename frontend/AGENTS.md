@@ -228,7 +228,7 @@ Equivale a `lint` + `typecheck` + `build` + `test -- --run`. Los tests de navega
 se ejecutan aparte con `npm run test:browser` (necesitan Chromium instalado).
 
 La accesibilidad tiene su propia pasada: `test/browser/accessibility.spec.ts` escanea el
-widget con axe en los ocho estados en que puede encontrarse, en claro y en oscuro. El nivel
+widget con axe en los nueve estados en que puede encontrarse, en claro y en oscuro. El nivel
 auditado y la raíz del escaneo viven en un único sitio, `test/axe.ts`, y no se repiten en
 cada spec. Corre dentro de `npm run test:browser`.
 

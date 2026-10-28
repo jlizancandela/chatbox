@@ -138,6 +138,11 @@ const SETUP: Record<NameState, (page: Page) => Promise<void>> = {
 		});
 		await expect(page.locator(`[${CONTROL_ATTRIBUTE}="scroll-to-end"]`)).toBeVisible();
 	},
+	contraído: async (page) => {
+		// La variante flotante nace contraída: el único control es el lanzador (RF-F64).
+		await page.goto("/?widget=floating");
+		await expect(page.locator(".chatbox__launcher")).toBeVisible();
+	},
 };
 
 /** El escenario de un estado del contrato. */
