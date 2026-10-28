@@ -119,6 +119,8 @@ plano, React/Preact, Vue, Svelte, WordPress y otros hosts.
 - [x] Tests del hook con fetch simulado.
 - [x] Tests del componente (`@testing-library/preact`): Enter/Shift+Enter, Enviar↔Detener, estado vacío, reintento.
 - [x] Test de accesibilidad con axe-core sobre `.chatbox` en navegador real (#113: la pasada recorre los nueve estados del widget en claro y en oscuro).
+- [ ] **Galería de estados** del widget en la página de desarrollo: una URL por estado (`?state=answered|error|aborted|restored|confirm|collapsed`), con datos falsos y sin API, para poder mirar cada estado sin tener que romper algo a propósito. La lista de estados está duplicada hoy —la de la pasada de axe vive en `test/browser/accessibility.spec.ts`—: extraerla a un módulo compartido y que la usen la galería y los contratos, para no inventar un vocabulario nuevo.
+- [ ] **Regresión visual** con Playwright (`toHaveScreenshot`) sobre el widget en los estados clave: el baseline es un fichero que se commitea y el CI de Ubuntu genera el suyo.
 - [x] Verificar build de producción (`npm run build`) con react-markdown y Preact Compat.
 - [ ] Flujo completo: instalación limpia, `npm install`, dev server, chat con streaming real.
 
@@ -127,3 +129,4 @@ plano, React/Preact, Vue, Svelte, WordPress y otros hosts.
 - **Integración Astro**: el widget tiene las dos variantes (embebida y flotante, RF-F64); queda elegir cuál monta el sitio y si la flotante va con `client:idle`.
 - **Persistencia**: decidido `sessionStorage`; queda pendiente integrarla en el componente `Chatbox`.
 - **Timeout de 30 s y límites del cliente**: valores iniciales; ajustar tras medir latencia real.
+- **Galería de estados y Storybook**: con la galería propia de la página de desarrollo alcanza. **No** se mete Storybook mientras el widget tenga un solo consumidor: su infraestructura aportaría más que el catálogo. Cuando el Paso 7 lo convierta en paquete distribuible, la galería pasa a ser la documentación del paquete, y ahí Storybook —o su build estático publicado junto al paquete— sí se justifica.
