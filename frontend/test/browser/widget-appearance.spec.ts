@@ -24,7 +24,7 @@ test.describe("Selectores de Chatbox.css ↔ markup", () => {
 	test("the empty state renders its suggestions without bullets or list indent", async ({
 		page,
 	}) => {
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator(".chatbox__empty ul")).toBeVisible();
 
 		await expect
@@ -53,7 +53,7 @@ test.describe("Selectores de Chatbox.css ↔ markup", () => {
 	test("the new-conversation confirmation lays the question and its buttons out in a row", async ({
 		page,
 	}) => {
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await page.getByRole("button", { name: strings.actions.newConversation }).click();
 		await expect(page.locator(".chatbox__conversation-actions")).toBeVisible();
 

@@ -19,19 +19,25 @@ describe("Chatbox — static render", () => {
 
 	describe("RF-F01 — header", () => {
 		it("renders the header with the title", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" title={strings.header.defaultTitle} />);
+			render(
+				<Chatbox
+					variant="embedded"
+					apiUrl="http://localhost:7000"
+					title={strings.header.defaultTitle}
+				/>
+			);
 			expect(
 				screen.getByRole("heading", { name: strings.header.defaultTitle })
 			).toBeInTheDocument();
 		});
 
 		it("renders the IA badge", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" />);
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 			expect(screen.getByText(strings.header.badge)).toBeInTheDocument();
 		});
 
 		it("renders the scope notice only inside the header", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" />);
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 			const header = screen.getByRole("banner");
 			expect(within(header).getByText(strings.header.scopeNotice)).toBeInTheDocument();
 		});
@@ -39,13 +45,15 @@ describe("Chatbox — static render", () => {
 
 	describe("RF-F02 — empty state with suggestions", () => {
 		it("shows the empty state when there are no messages", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" />);
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 			expect(screen.getByText(strings.emptyState.prompt)).toBeInTheDocument();
 		});
 
 		it("renders the suggestion buttons", () => {
 			const suggestions = ["¿Qué experiencia?", "¿Qué stack?"];
-			render(<Chatbox apiUrl="http://localhost:7000" suggestions={suggestions} />);
+			render(
+				<Chatbox variant="embedded" apiUrl="http://localhost:7000" suggestions={suggestions} />
+			);
 			const nav = screen.getByRole("navigation", { name: strings.a11y.emptyStateNavLabel });
 			const buttons = within(nav).getAllByRole("button");
 			expect(buttons.map((b) => b.textContent?.trim())).toEqual(suggestions);
@@ -54,18 +62,18 @@ describe("Chatbox — static render", () => {
 
 	describe("RF-F45 — accessibility labels", () => {
 		it("root element has lang='es'", () => {
-			const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+			const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 			const root = container.querySelector(".chatbox");
 			expect(root).toHaveAttribute("lang", "es");
 		});
 
 		it("textarea has an associated label", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" />);
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 			expect(screen.getByLabelText(strings.input.label)).toBeInTheDocument();
 		});
 
 		it("every button has an accessible name", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" />);
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 			const buttons = screen.getAllByRole("button");
 			expect(buttons.length).toBeGreaterThan(0);
 
@@ -93,13 +101,25 @@ describe("Chatbox — static render", () => {
 
 	describe("RF-F31 — external links", () => {
 		it("contact link is present when contactUrl is provided", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" contactUrl="mailto:jorge@example.com" />);
+			render(
+				<Chatbox
+					variant="embedded"
+					apiUrl="http://localhost:7000"
+					contactUrl="mailto:jorge@example.com"
+				/>
+			);
 			const contactLinks = screen.getAllByRole("link", { name: strings.input.contactLink });
 			expect(contactLinks.length).toBeGreaterThan(0);
 		});
 
 		it("contact link opens in a new tab with safe attributes", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" contactUrl="mailto:jorge@example.com" />);
+			render(
+				<Chatbox
+					variant="embedded"
+					apiUrl="http://localhost:7000"
+					contactUrl="mailto:jorge@example.com"
+				/>
+			);
 			const contactLink = screen.getByRole("link", { name: strings.input.contactLink });
 			expect(contactLink).toHaveAttribute("target", "_blank");
 			expect(contactLink).toHaveAttribute("rel", "noopener noreferrer");
@@ -108,12 +128,12 @@ describe("Chatbox — static render", () => {
 
 	describe("RF-F03 — textarea", () => {
 		it("send button is disabled when the textarea is empty", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" />);
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 			expect(screen.getByRole("button", { name: strings.input.send.ariaLabel })).toBeDisabled();
 		});
 
 		it("send button has the correct aria-label", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" />);
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 			expect(
 				screen.getByRole("button", { name: strings.input.send.ariaLabel })
 			).toBeInTheDocument();
@@ -125,7 +145,7 @@ describe("Chatbox — static render", () => {
 
 describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
 	it("focuses the rendered textarea on mount", () => {
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		expect(document.activeElement).toBe(screen.getByLabelText(strings.input.label));
 	});
 	afterEach(cleanup);
@@ -133,14 +153,14 @@ describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
 
 	it("enables the send button once the user types", async () => {
 		const user = userEvent.setup();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await user.type(screen.getByLabelText(strings.input.label), "¿Qué sabes de Jorge?");
 		expect(screen.getByRole("button", { name: strings.input.send.ariaLabel })).toBeEnabled();
 	});
 
 	it("inserts a newline when Shift+Enter is pressed", async () => {
 		const user = userEvent.setup();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const textarea = screen.getByLabelText(strings.input.label);
 		await user.type(textarea, "Línea uno{Shift>}{Enter}{/Shift}Línea dos");
 		expect(textarea).toHaveValue("Línea uno\nLínea dos");
@@ -151,7 +171,7 @@ describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
 		const submitSpy = vi
 			.spyOn(HTMLFormElement.prototype, "requestSubmit")
 			.mockImplementation(vi.fn());
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const textarea = screen.getByLabelText(strings.input.label);
 		textarea.dispatchEvent(new InputEvent("compositionstart", { bubbles: true }));
 		await user.type(textarea, "¿Qué{Enter}");
@@ -161,7 +181,7 @@ describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
 
 	it("shows character counter near the 80% threshold", async () => {
 		const user = userEvent.setup();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const textarea = screen.getByLabelText(strings.input.label);
 		await user.type(textarea, "x".repeat(801));
 		expect(screen.getByText(strings.input.chars(801, 1000))).toBeInTheDocument();
@@ -169,7 +189,7 @@ describe("Chatbox — keyboard and textarea (RF-F03 / RF-F04)", () => {
 
 	it("typing in the textarea updates its value", async () => {
 		const user = userEvent.setup();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const textarea = screen.getByLabelText(strings.input.label) as HTMLTextAreaElement;
 		await user.type(textarea, "¿Qué sabes?");
 		expect(textarea.value).toBe("¿Qué sabes?");
@@ -187,7 +207,7 @@ describe("Chatbox — new conversation (RF-F24 / RF-F25)", () => {
 		const submitSpy = vi
 			.spyOn(HTMLFormElement.prototype, "requestSubmit")
 			.mockImplementation(vi.fn());
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await user.type(screen.getByLabelText(strings.input.label), "¿Qué sabes?");
 		await user.click(screen.getByRole("button", { name: strings.input.send.ariaLabel }));
 		await user.keyboard("{Enter}");
@@ -198,7 +218,7 @@ describe("Chatbox — new conversation (RF-F24 / RF-F25)", () => {
 	});
 
 	it("asks for inline confirmation before resetting", async () => {
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await userEvent
 			.setup()
 			.click(screen.getByRole("button", { name: strings.actions.newConversation }));
@@ -207,7 +227,7 @@ describe("Chatbox — new conversation (RF-F24 / RF-F25)", () => {
 
 	it("confirm button resets the conversation", async () => {
 		const user = userEvent.setup();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await user.click(screen.getByRole("button", { name: strings.actions.newConversation }));
 		await user.click(screen.getByRole("button", { name: strings.actions.confirm.accept }));
 		expect(screen.getByText(strings.emptyState.prompt)).toBeInTheDocument();
@@ -216,7 +236,7 @@ describe("Chatbox — new conversation (RF-F24 / RF-F25)", () => {
 
 	it("cancel button preserves the conversation", async () => {
 		const user = userEvent.setup();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await user.click(screen.getByRole("button", { name: strings.actions.newConversation }));
 		await user.click(screen.getByRole("button", { name: strings.actions.confirm.cancel }));
 		expect(screen.getByText(strings.actions.newConversation)).toBeInTheDocument();
@@ -236,7 +256,7 @@ describe("Chatbox — indicador de escritura (RF-F44)", () => {
 		// La petición se queda en el aire: el turno queda en curso y existe la burbuja
 		// vacía del asistente.
 		mockHangingRequest();
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 		await send("¿Qué usa Jorge?");
 
@@ -248,7 +268,7 @@ describe("Chatbox — indicador de escritura (RF-F44)", () => {
 	it("shows the writing notice inside the assistant bubble, decoratively", async () => {
 		// RF-F47: el aviso se ve dentro del bocadillo y la región solo lo anuncia.
 		mockHangingRequest();
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 		await send("¿Qué usa Jorge?");
 
@@ -321,7 +341,7 @@ describe("Chatbox — retry after an error", () => {
 					})
 			);
 		vi.stubGlobal("fetch", fetchMock);
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 		await send("¿Qué sabe?");
 		await waitFor(() => expect(screen.getByText(strings.errors.HTTP_SERVER)).toBeInTheDocument());

@@ -23,7 +23,7 @@ const REGION_SEEN = "__rfF41RegionSeen";
 const ANCHO_REGION_OCULTA_PX = 1;
 
 async function openChatbox(page: Page) {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 	await expect(page.locator("#chatbox-question")).toBeFocused();
 }
