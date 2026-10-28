@@ -2,9 +2,9 @@
 
 Vocabulario compartido del repositorio. Definido en RF-F61 (tema), RF-F62 (textos de
 UI), RF-F41 (región de estado), RF-F42 (contraste), RF-F43 (objetivos táctiles), RF-F44
-(movimiento reducido), RF-F45 (nombres accesibles), RF-F50 (viewport móvil) y RF-F51
-(teclado virtual); cuando un término falte, se declara aquí como decisión de modelado en
-lugar de inventarlo en issues, specs o tests.
+(movimiento reducido), RF-F45 (nombres accesibles), RF-F50 (viewport móvil), RF-F51
+(teclado virtual) y RF-F64 (variantes y estados del widget); cuando un término falte, se
+declara aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests.
 
 ## Tema del widget (RF-F61)
 
@@ -201,3 +201,22 @@ lugar de inventarlo en issues, specs o tests.
   guarda que impide que una regla nueva rompa el CSS que la aplica. Se verifica en dos
   niveles —mecanismo y resolución— y no tiene nivel manual. La franja se mide en tiempo de
   ejecución, así que no es un token que el sitio host pueda anular en silencio.
+
+## Variantes y estados del widget (RF-F64)
+
+- **Variante del widget**: forma en que el widget se coloca en el sitio host. Es
+  **embebida** —dentro del flujo del host, que le da la altura— o **flotante** —anclada a la
+  esquina inferior derecha de la pantalla, con su propio tamaño—. No es un estado: describe
+  dónde está el widget, no qué se ve.
+- **Estado contraído**: el widget reducido a su lanzador, sin panel. Es el estado en que
+  nace la variante flotante.
+- **Estado expandido**: el widget con el panel completo. Es el estado en que estaba el
+  widget antes de RF-F64.
+- **Lanzador**: el control circular de 56×56 que, en el estado contraído, abre el widget.
+  No es una «burbuja»: en este repositorio la burbuja es el bocadillo del mensaje del
+  asistente.
+- **Contraer**: llevar el widget al estado contraído. No es detener: el turno sigue vivo y
+  la conversación se conserva. El botón que lo hace se nombra «Contraer el chat», con el
+  mismo verbo del estado.
+- **Anclaje del panel**: la esquina de la pantalla a la que se ancla la variante flotante —
+  abajo a la derecha—, con la safe area sumada al margen y nunca sustituida (RF-F50).

@@ -140,6 +140,15 @@ const ESTADOS: Estado[] = [
 			).toBeVisible();
 		},
 	},
+	{
+		nombre: "estado contraído",
+		montar: async (page) => {
+			// La variante flotante nace contraída (RF-F64): el lanzador es lo único que
+			// hay, y es lo que axe tiene que auditar.
+			await page.goto("/?widget=floating");
+			await expect(page.locator(".chatbox__launcher")).toBeVisible();
+		},
+	},
 ];
 
 for (const esquema of ["light", "dark"] as const) {

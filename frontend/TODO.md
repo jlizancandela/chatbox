@@ -96,6 +96,7 @@ La integración con Astro será un caso de consumo, no el objetivo principal. El
 widget debe poder instalarse desde NPM o cargarse desde un CDN en Astro, HTML
 plano, React/Preact, Vue, Svelte, WordPress y otros hosts.
 
+- [x] `RF-F64` — Variante flotante con estado contraído: el widget se ancla a la esquina inferior derecha y nace reducido a un lanzador circular de 56×56 que abre el panel. Contraer no interrumpe el turno ni borra la conversación. Cierra el formato del widget (embebido o flotante) que SPEC-FRONTEND §12.2 dejó abierto (#127, `.specs/RF-F64-modo-contraido.md`).
 - [ ] Separar la app/demo Vite del paquete distribuible.
 - [ ] Crear un paquete publicable con API y configuración estables.
 - [ ] Exponer `Chatbox` como componente Preact para consumidores con framework.
@@ -117,12 +118,12 @@ plano, React/Preact, Vue, Svelte, WordPress y otros hosts.
 - [x] Tests de `trimHistory` y lectura tolerante de storage.
 - [x] Tests del hook con fetch simulado.
 - [x] Tests del componente (`@testing-library/preact`): Enter/Shift+Enter, Enviar↔Detener, estado vacío, reintento.
-- [x] Test de accesibilidad con axe-core sobre `.chatbox` en navegador real (#113: la pasada recorre los ocho estados del widget en claro y en oscuro).
+- [x] Test de accesibilidad con axe-core sobre `.chatbox` en navegador real (#113: la pasada recorre los nueve estados del widget en claro y en oscuro).
 - [x] Verificar build de producción (`npm run build`) con react-markdown y Preact Compat.
 - [ ] Flujo completo: instalación limpia, `npm install`, dev server, chat con streaming real.
 
 ## Pendiente de decisión (no bloqueante)
 
-- **Integración Astro**: embebido en sección (`client:visible`) o botón flotante (`client:idle`), cuando se implemente el adaptador.
+- **Integración Astro**: el widget tiene las dos variantes (embebida y flotante, RF-F64); queda elegir cuál monta el sitio y si la flotante va con `client:idle`.
 - **Persistencia**: decidido `sessionStorage`; queda pendiente integrarla en el componente `Chatbox`.
 - **Timeout de 30 s y límites del cliente**: valores iniciales; ajustar tras medir latencia real.

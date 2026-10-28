@@ -47,11 +47,23 @@ export const strings = {
 		scrollToEnd: "Ir al final",
 		retry: "Reintentar",
 		newConversation: "Nueva conversación",
+		/**
+		 * El botón de contraer el chat (RF-F64). Es un botón solo-icono: su nombre visible no
+		 * existe, así que el nombre accesible va declarado (RF-F45).
+		 */
+		collapse: { ariaLabel: "Contraer el chat" },
 		confirm: {
 			question: "¿Borrar la conversación?",
 			accept: "Sí, borrar",
 			cancel: "Cancelar",
 		},
+	},
+	/**
+	 * El lanzador: el control circular que abre el widget en su estado contraído (RF-F64).
+	 * Como el botón de contraer, es solo-icono y declara su nombre accesible.
+	 */
+	launcher: {
+		open: { ariaLabel: "Abrir el asistente de Jorge" },
 	},
 	notices: {
 		noContext:

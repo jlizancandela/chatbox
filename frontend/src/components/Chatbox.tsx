@@ -1,19 +1,20 @@
 import "./Chatbox.css";
-import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { ExternalLink } from "../chat/components/ExternalLink";
 import { toAnnouncementText } from "../chat/domain/announcement";
 import { trimHistory } from "../chat/domain/conversation";
 import { REDUCED_MOTION_QUERY, type ScrollIntent, scrollBehavior } from "../chat/domain/motion";
 import { isAwayFromEnd } from "../chat/domain/scroll";
 import { sourceTitles } from "../chat/domain/sources";
+import { useAutoFocus } from "../chat/hooks/useAutoFocus";
 import { useChat } from "../chat/hooks/useChat";
 import { type TurnEnd, useChatStream } from "../chat/hooks/useChatStream";
-import { useFocusOnMount } from "../chat/hooks/useFocusOnMount";
 import { useKeyboardInset } from "../chat/hooks/useKeyboardInset";
 import { loadFromSessionStorage, saveToSessionStorage } from "../chat/infrastructure/storage";
 import { strings } from "../strings.es";
 import { ChatHeader } from "./ChatHeader";
 import { ChatInput } from "./ChatInput";
+import { ChatLauncher } from "./ChatLauncher";
 import { ChatMessages } from "./ChatMessages";
 import { EmptyState } from "./EmptyState";
 import { NewConversation } from "./NewConversation";
@@ -23,6 +24,19 @@ export type ChatboxProps = {
 	suggestions?: string[];
 	contactUrl?: string;
 	title?: string;
+	/**
+	 * Variante del widget (RF-F64): embebida en el flujo del sitio host, o flotante
+	 * anclada a la esquina inferior derecha de la pantalla.
+	 */
+	variant?: "embedded" | "floating";
+	/**
+	 * Si el widget arranca contraído (RF-F64).
+	 *
+	 * Solo aplica a la variante flotante —la embebida vive en el flujo del host y no tiene
+	 * dónde recogerse— y por defecto vale `true`: un widget flotante que naciera abierto
+	 * taparía la página sin motivo.
+	 */
+	initiallyCollapsed?: boolean;
 };
 
 // El módulo de textos es `as const`: la copia de las sugerencias por defecto se copia a
@@ -119,6 +133,8 @@ export function Chatbox({
 	suggestions = DEFAULT_SUGGESTIONS,
 	contactUrl,
 	title = strings.header.defaultTitle,
+	variant = "embedded",
+	initiallyCollapsed,
 }: ChatboxProps) {
 	const chat = useChat(loadFromSessionStorage() ?? undefined);
 	const [question, setQuestion] = useState("");
@@ -126,6 +142,30 @@ export function Chatbox({
 	const [announcement, setAnnouncement] = useState(NO_ANNOUNCEMENT);
 	const [showScrollToEnd, setShowScrollToEnd] = useState(false);
 	const [contextWasTrimmed, setContextWasTrimmed] = useState(false);
+
+	/**
+	 * El estado contraído (RF-F64).
+	 *
+	 * Solo la variante flotante lo tiene: la embebida vive en el flujo del sitio host y no
+	 * tiene dónde recogerse. El estado es interno —el sitio host decide con
+	 * `initiallyCollapsed`— y no se persiste: es presentación, no dato.
+	 */
+	const floating = variant === "floating";
+	const [collapsed, setCollapsed] = useState(floating && initiallyCollapsed !== false);
+
+	/**
+	 * El foco vuelve al lanzador cuando se monta: se desmonta al expandirse el panel y, sin
+	 * devolverle el foco, este se perdería en el `body` (RF-F64, D17).
+	 *
+	 * La bandera distingue el montaje inicial —que no le roba el foco a nadie— del montaje
+	 * que sigue a una contracción.
+	 */
+	const returnFocusToLauncher = useRef(false);
+	const focusLauncherOnMount = useCallback((element: HTMLButtonElement | null) => {
+		if (!element || !returnFocusToLauncher.current) return;
+		returnFocusToLauncher.current = false;
+		element.focus();
+	}, []);
 
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const conversationRef = useRef<HTMLElement>(null);
@@ -137,7 +177,8 @@ export function Chatbox({
 	 * para enterarse de que la zona visible se ha encogido.
 	 */
 	const rootRef = useRef<HTMLElement>(null);
-	const keyboardInset = useKeyboardInset(rootRef);
+	// Contraído no hay panel: la franja del teclado no tiene nada que reservar (RF-F64).
+	const keyboardInset = useKeyboardInset(rootRef, !collapsed);
 	/** El inset anterior: el hilo solo se recoloca cuando la zona visible cambia de alto. */
 	const previousKeyboardInset = useRef(keyboardInset);
 	/**
@@ -180,7 +221,50 @@ export function Chatbox({
 	const statusIsInConversation = announcement.inConversation || (isBusy && !announcement.text);
 	const showMessages = chat.state.messages.length > 0;
 
-	useFocusOnMount(textareaRef);
+	/**
+	 * Recoger el panel (RF-F64).
+	 *
+	 * Contraer no es detener: el turno sigue vivo, la conversación y el borrador se
+	 * conservan, y el anuncio del turno se conserva —la región de estado sigue montada—.
+	 */
+	const collapse = (): void => {
+		returnFocusToLauncher.current = true;
+		setCollapsed(true);
+	};
+
+	const expand = (): void => {
+		setCollapsed(false);
+	};
+
+	/**
+	 * `Esc` contrae el panel (RF-F64, D16).
+	 *
+	 * Pero mientras hay un turno en marcha, `Esc` aborta la respuesta (RF-F05) y no contrae
+	 * nada: el atajo hace lo más urgente, y el botón de la cabecera sigue estando para
+	 * recoger el panel en cualquier momento.
+	 */
+	const handleKeyDown = (event: KeyboardEvent): void => {
+		if (event.key !== "Escape") return;
+		if (!floating || collapsed || isBusy) return;
+		collapse();
+	};
+
+	/**
+	 * La variante y el estado del widget (RF-F64).
+	 *
+	 * Van en atributos de datos y no en clases: la raíz tiene que conservar su clase como
+	 * literal —`class="chatbox"`—, porque el contrato de nombres accesibles (RF-F45)
+	 * identifica la raíz por esa clase y no por un valor compuesto.
+	 *
+	 * Los atributos solo se escriben cuando apartan del caso por defecto, así que el
+	 * widget embebido entrega exactamente el mismo DOM que antes de RF-F64.
+	 */
+	const rootVariant = floating ? "floating" : undefined;
+	const rootState = collapsed ? "collapsed" : undefined;
+
+	// El campo de texto no está en el DOM mientras el widget está contraído: el foco tiene
+	// que volver a él cada vez que el panel se abre, y no solo al montar el componente.
+	useAutoFocus(textareaRef, !collapsed);
 
 	// Keep each effect responsible for one external concern.
 	useEffect(() => {
@@ -237,6 +321,8 @@ export function Chatbox({
 	// El contenido crece después del último cambio de estado: el markdown del asistente se
 	// carga diferido (RF-F30) y la burbuja crece cuando llega. El desplazamiento sigue al
 	// tamaño del hilo, no al estado: si no, quien seguía la respuesta se queda a mitad.
+	// El estado contraído también cuenta: contraído el hilo no está en el DOM, y al abrirse
+	// otra vez el observador tiene que mirar la lista nueva, no la que se desmontó.
 	useEffect(() => {
 		const list = messagesListRef.current;
 		if (!list || typeof ResizeObserver === "undefined") return;
@@ -251,7 +337,7 @@ export function Chatbox({
 		});
 		observer.observe(list);
 		return () => observer.disconnect();
-	}, [showMessages]);
+	}, [showMessages, collapsed]);
 
 	const scrollToEnd = (behavior: ScrollBehavior): void => {
 		jumping.current = behavior !== "auto";
@@ -292,13 +378,28 @@ export function Chatbox({
 	return (
 		<section
 			class="chatbox"
+			data-variant={rootVariant}
+			data-state={rootState}
 			lang="es"
-			aria-labelledby="chatbox-title"
+			aria-labelledby={collapsed ? undefined : "chatbox-title"}
 			ref={rootRef}
 			style={{ "--chatbox-keyboard-inset": `${keyboardInset}px` }}
+			onKeyDown={handleKeyDown}
 		>
-			<ChatHeader title={title} notice={strings.header.scopeNotice} />
+			{collapsed ? null : (
+				<ChatHeader
+					title={title}
+					notice={strings.header.scopeNotice}
+					onCollapse={floating ? collapse : undefined}
+				/>
+			)}
 
+			{/*
+			 * La región de estado se monta también contraída: es el único elemento con
+			 * `role="status"`, y si se desmontara, el anuncio de un turno que termina
+			 * mientras el widget está contraído se perdería. Contraída no se pinta —el CSS
+			 * la oculta visualmente sin sacarla del árbol de accesibilidad— (RF-F64, D9).
+			 */}
 			<div
 				class={statusClass(announcement, statusIsInConversation)}
 				role="status"
@@ -308,62 +409,68 @@ export function Chatbox({
 				{announcement.text || (isBusy ? strings.messages.writing : "")}
 			</div>
 
-			<main
-				class="chatbox__conversation"
-				aria-label={strings.a11y.conversationLabel}
-				ref={conversationRef}
-				onScroll={handleConversationScroll}
-			>
-				{contextWasTrimmed && <p class="chatbox__notice">{strings.notices.contextTrimmed}</p>}
-				{localNotice && (
-					<p class="chatbox__notice">
-						{localNotice}{" "}
-						{contactUrl && (
-							<ExternalLink href={contactUrl}>{strings.input.contactLink}</ExternalLink>
-						)}
-					</p>
-				)}
-				{showMessages ? (
-					<ChatMessages
-						messages={chat.state.messages}
-						currentResponse={chat.state.currentResponse}
-						isBusy={isBusy || isAborted || hasFailedResponse}
-						listRef={messagesListRef}
+			{collapsed ? (
+				<ChatLauncher onOpen={expand} launcherRef={focusLauncherOnMount} />
+			) : (
+				<main
+					class="chatbox__conversation"
+					aria-label={strings.a11y.conversationLabel}
+					ref={conversationRef}
+					onScroll={handleConversationScroll}
+				>
+					{contextWasTrimmed && <p class="chatbox__notice">{strings.notices.contextTrimmed}</p>}
+					{localNotice && (
+						<p class="chatbox__notice">
+							{localNotice}{" "}
+							{contactUrl && (
+								<ExternalLink href={contactUrl}>{strings.input.contactLink}</ExternalLink>
+							)}
+						</p>
+					)}
+					{showMessages ? (
+						<ChatMessages
+							messages={chat.state.messages}
+							currentResponse={chat.state.currentResponse}
+							isBusy={isBusy || isAborted || hasFailedResponse}
+							listRef={messagesListRef}
+						/>
+					) : (
+						<EmptyState suggestions={suggestions} isBusy={isBusy} onSuggestion={submit} />
+					)}
+					{chat.state.turnState === "error" && chat.state.currentQuestion && (
+						<button type="button" data-chatbox-control="retry" onClick={handleRetry}>
+							{strings.actions.retry}
+						</button>
+					)}
+
+					{showScrollToEnd && (
+						<button
+							type="button"
+							data-chatbox-control="scroll-to-end"
+							onClick={() => scrollToEnd(currentScrollBehavior("salto"))}
+						>
+							{strings.actions.scrollToEnd}
+						</button>
+					)}
+				</main>
+			)}
+
+			{collapsed ? null : (
+				<footer class="chatbox__footer">
+					<ChatInput
+						value={question}
+						onChange={setQuestion}
+						onSubmit={() => submit(question)}
+						onAbort={abort}
+						isBusy={isBusy}
+						contactUrl={contactUrl}
+						maxLength={MAX_QUESTION_LENGTH}
+						textareaRef={textareaRef}
 					/>
-				) : (
-					<EmptyState suggestions={suggestions} isBusy={isBusy} onSuggestion={submit} />
-				)}
-				{chat.state.turnState === "error" && chat.state.currentQuestion && (
-					<button type="button" data-chatbox-control="retry" onClick={handleRetry}>
-						{strings.actions.retry}
-					</button>
-				)}
 
-				{showScrollToEnd && (
-					<button
-						type="button"
-						data-chatbox-control="scroll-to-end"
-						onClick={() => scrollToEnd(currentScrollBehavior("salto"))}
-					>
-						{strings.actions.scrollToEnd}
-					</button>
-				)}
-			</main>
-
-			<footer class="chatbox__footer">
-				<ChatInput
-					value={question}
-					onChange={setQuestion}
-					onSubmit={() => submit(question)}
-					onAbort={abort}
-					isBusy={isBusy}
-					contactUrl={contactUrl}
-					maxLength={MAX_QUESTION_LENGTH}
-					textareaRef={textareaRef}
-				/>
-
-				<NewConversation onReset={handleReset} />
-			</footer>
+					<NewConversation onReset={handleReset} />
+				</footer>
+			)}
 		</section>
 	);
 }

@@ -223,3 +223,32 @@ test.describe("con una conversación larga", () => {
 		assertFloor(await measureControls(page), "desplazado");
 	});
 });
+
+test.describe("con el widget contraído", () => {
+	test("el lanzador alcanza el suelo", async ({ page }) => {
+		// La variante flotante nace contraída (RF-F64): el lanzador es el único control
+		// que hay, y es un botón de 56×56.
+		await page.goto("/?widget=floating");
+		await expect(page.locator(".chatbox__launcher")).toBeVisible();
+
+		const measured = await measureControls(page);
+		assertFloor(measured, "contraído");
+
+		const ids = activeControls(contractControls(measured)).map((control) => control.id);
+		expect(ids).toContain("launcher");
+	});
+
+	test("el botón de contraer alcanza el suelo con el panel abierto", async ({ page }) => {
+		// El botón de contraer solo existe en la variante flotante: sin este escenario, el
+		// inventario declararía un control que ningún escenario mide.
+		await page.goto("/?widget=floating");
+		await page.getByRole("button", { name: strings.launcher.open.ariaLabel }).click();
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		const measured = await measureControls(page);
+		assertFloor(measured, "vacío");
+
+		const ids = activeControls(contractControls(measured)).map((control) => control.id);
+		expect(ids).toContain("collapse");
+	});
+});

@@ -138,6 +138,11 @@ const SETUP: Record<NameState, (page: Page) => Promise<void>> = {
 		});
 		await expect(page.locator(`[${CONTROL_ATTRIBUTE}="scroll-to-end"]`)).toBeVisible();
 	},
+	contraído: async (page) => {
+		// La variante flotante nace contraída: el único control es el lanzador (RF-F64).
+		await page.goto("/?widget=floating");
+		await expect(page.locator(".chatbox__launcher")).toBeVisible();
+	},
 };
 
 /** El escenario de un estado del contrato. */
@@ -187,8 +192,9 @@ test.describe("RF-F45 — los nombres accesibles del widget", () => {
 
 	test("un botón solo-icono sin nombre se detecta", async ({ page }) => {
 		// La entrada que rechaza: sin ella, la comprobación de arriba pasaría con un widget
-		// lleno de botones mudos. El botón se inyecta en el DOM porque el widget no tiene
-		// ninguno: el caso es el que el contrato tiene que vigilar.
+		// lleno de botones mudos. El botón se inyecta en el DOM sin nombre: los controles
+		// solo-icono del widget lo declaran, y el caso es el que el contrato tiene que
+		// vigilar.
 		await openChatbox(page);
 		await page.evaluate((rootClass) => {
 			const root = document.querySelector(rootClass);

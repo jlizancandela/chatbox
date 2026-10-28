@@ -34,6 +34,7 @@ export const NAME_STATES = [
 	"turno en curso",
 	"confirmación abierta",
 	"desplazado",
+	"contraído",
 ] as const;
 
 export type NameState = (typeof NAME_STATES)[number];

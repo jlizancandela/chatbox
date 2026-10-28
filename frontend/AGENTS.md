@@ -85,7 +85,7 @@ src/
 │   ├── hooks/
 │   │   ├── useChat.ts      # Estado reactivo local
 │   │   ├── useChatStream.ts # Fetch, SSE, abort, timeout y fin de turno
-│   │   └── useFocusOnMount.ts # Foco inicial del textarea
+│   │   └── useAutoFocus.ts   # Foco del campo de texto, al montar y al abrirse
 │   ├── infrastructure/
 │   │   ├── chat-errors.ts  # Códigos de error y su texto
 │   │   ├── sse.ts          # Adaptador de frames SSE y payloads del API
@@ -228,7 +228,7 @@ Equivale a `lint` + `typecheck` + `build` + `test -- --run`. Los tests de navega
 se ejecutan aparte con `npm run test:browser` (necesitan Chromium instalado).
 
 La accesibilidad tiene su propia pasada: `test/browser/accessibility.spec.ts` escanea el
-widget con axe en los ocho estados en que puede encontrarse, en claro y en oscuro. El nivel
+widget con axe en los nueve estados en que puede encontrarse, en claro y en oscuro. El nivel
 auditado y la raíz del escaneo viven en un único sitio, `test/axe.ts`, y no se repiten en
 cada spec. Corre dentro de `npm run test:browser`.
 
