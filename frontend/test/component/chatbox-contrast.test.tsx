@@ -43,7 +43,7 @@ afterEach(() => {
 describe("RF-F42 — la variante de error de la región de estado", () => {
 	it("marks the region as an error when the turn fails", async () => {
 		mockFailure(500);
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 		await send("¿Qué usa Jorge?");
 
@@ -52,7 +52,7 @@ describe("RF-F42 — la variante de error de la región de estado", () => {
 
 	it("announces the same text it announced before the variant existed", async () => {
 		mockFailure(500);
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 		await send("¿Qué usa Jorge?");
 
@@ -62,7 +62,7 @@ describe("RF-F42 — la variante de error de la región de estado", () => {
 
 	it("does not mark the region as an error when the answer arrives", async () => {
 		mockStream(answerTurn("Usa Preact."));
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 		await send("¿Qué usa Jorge?");
 
@@ -72,7 +72,7 @@ describe("RF-F42 — la variante de error de la región de estado", () => {
 
 	it("does not mark the region as an error when the user stops the turn", async () => {
 		mockHangingRequest();
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 		await send("¿Qué usa Jorge?");
 		await userEvent.click(
@@ -85,7 +85,7 @@ describe("RF-F42 — la variante de error de la región de estado", () => {
 
 	it("clears the error variant when a new turn starts", async () => {
 		mockFailure(500);
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await send("¿Qué usa Jorge?");
 		await waitFor(() => expect(regionOf(container)).toHaveClass(ERROR_CLASS));
 

@@ -45,7 +45,7 @@ afterEach(() => {
 
 describe("RF-F41 — una única región de estado", () => {
 	it("declares the status role and the polite live region", () => {
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 
 		expect(region).toHaveAttribute("role", "status");
@@ -55,7 +55,7 @@ describe("RF-F41 — una única región de estado", () => {
 
 	it("keeps the message list out of the live regions", async () => {
 		mockStream(streamedAnswer(sourcesFrame(), tokenFrame("Usa Preact."), doneFrame));
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await send("¿Qué usa Jorge?");
 
 		await waitFor(() => expect(container.querySelector("ol")).toBeInTheDocument());
@@ -64,7 +64,7 @@ describe("RF-F41 — una única región de estado", () => {
 	});
 
 	it("is empty until the user writes something", () => {
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 		expect(regionOf(container)).toHaveTextContent("");
 	});
@@ -73,7 +73,7 @@ describe("RF-F41 — una única región de estado", () => {
 describe("RF-F41 — secuencia de un turno completo", () => {
 	it("goes from empty to writing to the full answer", async () => {
 		mockStream(streamedAnswer(sourcesFrame(), tokenFrame("Usa Preact."), doneFrame));
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 		const seen = observeRegion(region);
 
@@ -87,7 +87,7 @@ describe("RF-F41 — secuencia de un turno completo", () => {
 		mockStream(
 			streamedAnswer(sourcesFrame(), tokenFrame("Usa **Preact** y `Fastify`."), doneFrame)
 		);
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 
 		await send("¿Qué usa Jorge?");
@@ -97,7 +97,7 @@ describe("RF-F41 — secuencia de un turno completo", () => {
 
 	it("announces that the assistant has nothing when the answer is empty", async () => {
 		mockStream(streamedAnswer(sourcesFrame(), doneFrame));
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 
 		await send("¿Dónde vive el gato de Jorge?");
@@ -110,7 +110,7 @@ describe("RF-F41 — secuencia de un turno completo", () => {
 
 	it("announces the error when the turn fails", async () => {
 		mockFailure(500);
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 
 		await send("¿Qué usa Jorge?");
@@ -120,7 +120,7 @@ describe("RF-F41 — secuencia de un turno completo", () => {
 
 	it("announces the stop when the user stops the turn", async () => {
 		mockHangingRequest();
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 
 		await send("¿Qué usa Jorge?");
@@ -134,7 +134,7 @@ describe("RF-F41 — secuencia de un turno completo", () => {
 	it("announces an identical answer again on the next turn", async () => {
 		const answer = "Usa Preact.";
 		mockStream(streamedAnswer(sourcesFrame(), tokenFrame(answer), doneFrame));
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 
 		await send("¿Qué usa Jorge?");
@@ -160,7 +160,7 @@ describe("RF-F41 — lo que no se anuncia", () => {
 				context: [],
 			})
 		);
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 		// La conversación se restaura (hay lista de mensajes) y aun así la región no dice nada:
 		// nadie acaba de escribir ese mensaje en esta sesión.
@@ -176,7 +176,7 @@ describe("RF-F41 — lo que no se anuncia", () => {
 				context: [],
 			})
 		);
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		const region = regionOf(container);
 		const seen = observeRegion(region);
 
@@ -187,7 +187,7 @@ describe("RF-F41 — lo que no se anuncia", () => {
 
 describe("RF-F41 — el contador de caracteres no es una región viva", () => {
 	it("keeps the counter visible but silent", async () => {
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await userEvent.type(screen.getByLabelText(strings.input.label), "x".repeat(801));
 
 		const counter = screen.getByText(strings.input.chars(801, 1000));

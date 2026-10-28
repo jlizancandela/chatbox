@@ -71,7 +71,7 @@ async function unnamedControls(page: Page): Promise<string[]> {
 }
 
 async function openChatbox(page: Page): Promise<void> {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(`.${ROOT_CLASS}`)).toBeVisible();
 }
 

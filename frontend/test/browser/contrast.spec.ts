@@ -17,7 +17,7 @@ import { contrastRatio, isTransparent, parseColor } from "../contrast";
 const ANSWER = "Usa **Preact** y [Fastify](https://example.com/docs) sobre PostgreSQL.";
 
 async function openChatbox(page: Page, theme?: "light" | "dark"): Promise<void> {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await page.evaluate((value) => {
 		document.documentElement.dataset.theme = value ?? "";
 	}, theme);

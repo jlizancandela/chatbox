@@ -54,7 +54,7 @@ describe("Chatbox — sources of the answer", () => {
 			)
 		);
 
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await send("¿Qué usa Jorge?");
 
 		const conversation = await screen.findByRole("list", {
@@ -70,7 +70,7 @@ describe("Chatbox — sources of the answer", () => {
 			streamedAnswer(sourcesFrame([], [source("Currículum")]), tokenFrame("Usa Preact."), doneFrame)
 		);
 
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await send("¿Qué usa Jorge?");
 
 		await waitFor(() => {
@@ -81,7 +81,7 @@ describe("Chatbox — sources of the answer", () => {
 	it("does not show a sources line when the answer has no sources", async () => {
 		mockStream(streamedAnswer(sourcesFrame(), tokenFrame("Hola."), doneFrame));
 
-		const { container } = render(<Chatbox apiUrl="http://localhost:7000" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await send("¿Qué usa Jorge?");
 
 		await waitFor(() => {

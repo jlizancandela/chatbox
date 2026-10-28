@@ -65,7 +65,7 @@ describe("Chatbox — keyboard during a streamed answer (RF-F40 / #87)", () => {
 	it("Enter does not abort the answer in progress", async () => {
 		const user = userEvent.setup();
 		const { requestSignal } = stubOpenStream();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await startStreamingTurn(user);
 
 		const textarea = screen.getByLabelText(strings.input.label) as HTMLTextAreaElement;
@@ -79,7 +79,7 @@ describe("Chatbox — keyboard during a streamed answer (RF-F40 / #87)", () => {
 	it("Escape aborts the answer in progress", async () => {
 		const user = userEvent.setup();
 		const { requestSignal } = stubOpenStream();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await startStreamingTurn(user);
 
 		await user.keyboard("{Escape}");
@@ -90,7 +90,7 @@ describe("Chatbox — keyboard during a streamed answer (RF-F40 / #87)", () => {
 	it("the stop button aborts the answer in progress", async () => {
 		const user = userEvent.setup();
 		const { requestSignal } = stubOpenStream();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await startStreamingTurn(user);
 
 		await user.click(screen.getByRole("button", { name: strings.input.stop.ariaLabel }));
@@ -104,7 +104,7 @@ describe("Chatbox — focus in the new conversation confirmation (RF-F40 / #88)"
 
 	it("moves focus to 'Cancelar' when the confirmation opens", async () => {
 		const user = userEvent.setup();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await user.click(screen.getByRole("button", { name: strings.actions.newConversation }));
 
 		await waitFor(() =>
@@ -116,7 +116,7 @@ describe("Chatbox — focus in the new conversation confirmation (RF-F40 / #88)"
 
 	it("returns focus to 'Nueva conversación' when the confirmation is cancelled", async () => {
 		const user = userEvent.setup();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await user.click(screen.getByRole("button", { name: strings.actions.newConversation }));
 		await user.click(screen.getByRole("button", { name: strings.actions.confirm.cancel }));
 
@@ -129,7 +129,7 @@ describe("Chatbox — focus in the new conversation confirmation (RF-F40 / #88)"
 
 	it("moves focus to the textarea when the confirmation is accepted", async () => {
 		const user = userEvent.setup();
-		render(<Chatbox apiUrl="http://localhost:7000" />);
+		render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 		await user.click(screen.getByRole("button", { name: strings.actions.newConversation }));
 		await user.click(screen.getByRole("button", { name: strings.actions.confirm.accept }));
 

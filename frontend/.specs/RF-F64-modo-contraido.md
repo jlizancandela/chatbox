@@ -23,7 +23,10 @@ Stitch describe en `prd_widget_asistente_de_jorge.md:42-53`.
   lo que entrega el sitio host hoy, y el círculo en la esquina solo tiene esquina si el
   widget está anclado a la ventana.
 - **D2 — La variante se elige con una prop**: `variant="embedded" | "floating"`, por defecto
-  `"embedded"`. El nombre es el del glosario: el widget tiene *variantes*, no *modos*.
+  **`"floating"`**. El sitio monta el chat como un lanzador en la esquina sin tener que
+  pedirlo, y la variante embebida —una sección que el sitio coloca donde quiere— es la que
+  se pide explícitamente. El nombre es el del glosario: el widget tiene *variantes*, no
+  *modos*.
 - **D3 — El estado inicial es otra prop**: `initiallyCollapsed`, por defecto `true` en la
   variante flotante e ignorada en la embebida —que no tiene estado contraído—. Dos props en
   lugar de una: una variante flotante que nace abierta taparía la página sin motivo, y una
@@ -242,6 +245,7 @@ de desplazamiento, y con `100vw` la tarjeta se saldría por debajo de ella.
 ## Criterios de aceptación
 
 1. La variante embebida no cambia: mismas props, mismo comportamiento, mismos tests.
+1b. Sin prop de variante, el widget se monta **flotante y contraído**: ese es el defecto.
 2. `variant="floating"` monta el widget anclado abajo a la derecha, con el panel de
    `min(100% - 2rem, 380px)` × `min(100dvh - 2rem, 640px)`.
 3. El widget nace contraído en la variante flotante, y `initiallyCollapsed={false}` lo
