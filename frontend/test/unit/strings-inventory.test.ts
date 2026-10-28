@@ -50,11 +50,14 @@ const CSS_CLASSES_AND_IDS = [
 	"chatbox-title",
 	"chatbox-question",
 	"chatbox__badge",
+	"chatbox__collapse",
 	"chatbox__conversation",
 	"chatbox__conversation-actions",
 	"chatbox__empty",
 	"chatbox__footer",
 	"chatbox__header",
+	"chatbox__icon",
+	"chatbox__launcher",
 	"chatbox__message-author",
 	"chatbox__messages",
 	"chatbox__notice",
@@ -69,8 +72,26 @@ const CSS_CLASSES_AND_IDS = [
  * Valores técnicos de atributo y ARIA: `lang`, `role`, `aria-live`, `aria-atomic` y `type`.
  * `off` es el valor con el que el contador de caracteres se declara presente pero mudo
  * (RF-F41): sigue siendo texto visible y no interrumpe el anuncio de la región de estado.
+ * `false` es el valor de `focusable` en el SVG en línea de los controles solo-icono (RF-F64).
  */
-const ATTRIBUTE_VALUES = ["es", "true", "polite", "off", "status", "submit", "button"];
+const ATTRIBUTE_VALUES = ["es", "true", "false", "polite", "off", "status", "submit", "button"];
+
+/**
+ * Los nombres de la variante y del estado del widget (RF-F64): los valores de
+ * `data-variant` y `data-state`, y los de la prop `variant`. Son valores técnicos del
+ * atributo, no redacción de interfaz.
+ */
+const VARIANT_AND_STATE_VALUES = ["embedded", "floating", "collapsed", "expanded"];
+
+/**
+ * Valores técnicos del SVG en línea de los controles solo-icono (RF-F64): el `viewBox` y la
+ * geometría de cada trazo. No son texto de interfaz: los dibuja el navegador.
+ */
+const SVG_VALUES = [
+	"0 0 24 24",
+	"M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z",
+	"M6 19h12v-2H6v2z",
+];
 
 /** Teclado: nombres de tecla de `KeyboardEvent.key`. */
 const KEYBOARD_KEYS = ["Enter", "Escape"];
@@ -120,6 +141,8 @@ const ERROR_CODES = Object.keys(strings.errors);
 const ALLOWED = new Set([
 	...CSS_CLASSES_AND_IDS,
 	...ATTRIBUTE_VALUES,
+	...VARIANT_AND_STATE_VALUES,
+	...SVG_VALUES,
 	...KEYBOARD_KEYS,
 	...SCROLL_AND_CSSOM_VALUES,
 	...SCROLL_INTENTS,

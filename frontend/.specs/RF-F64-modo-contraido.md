@@ -76,7 +76,9 @@ Stitch describe en `prd_widget_asistente_de_jorge.md:42-53`.
 - **D16 — Se contrae con un botón o con `Esc`**: el botón de la cabecera es un control
   visible —no se depende de adivinar un gesto— y `Esc` es el atajo estándar de un cajón.
   **No** se cierra con click fuera: durante la lectura o al seleccionar texto cerraría el
-  panel.
+  panel. **Pero `Esc` hace lo más urgente**: mientras hay un turno en marcha aborta la
+  respuesta (RF-F05) y no contrae nada; para recoger el widget está el botón de la
+  cabecera, que está siempre.
 - **D17 — El foco va al campo al abrir y vuelve al lanzador al cerrar**: el lanzador se
   desmonta al expandirse, así que sin devolver el foco, este se perdería en el `body`. El
   foco se mueve con un **ref callback**, no con un efecto: un efecto pendiente podría
@@ -92,10 +94,14 @@ Stitch describe en `prd_widget_asistente_de_jorge.md:42-53`.
   existente (`test/browser/virtual-keyboard.spec.ts`) asume el widget embebido a pantalla
   completa, donde la franja es la del teclado entero. En la variante flotante la reserva es
   el teclado menos los 16 px de separación.
-- **D21 — El modificador de clase es el compuesto**: `.chatbox.chatbox--flotante`. La
-  guarda de estilos acotados (RF-F63) solo acepta selectores que empiezan por `.chatbox`
-  seguidos de un identificador de bloque o de `.`, `:` o un combinador: `.chatbox--flotante`
-  a secas no matchea. El selector compuesto es, además, el que ADR 011 ya anticipaba.
+- **D21 — La variante y el estado van en atributos de datos**: `data-variant` y
+  `data-state` en la raíz, no clases modificadoras. La raíz tiene que conservar su clase
+  como **literal** —`class="chatbox"`— porque el contrato de nombres accesibles (RF-F45)
+  identifica la raíz por esa clase (`test/accessible-names.ts:202-228`): una clase
+  compuesta o dinámica rompe la guarda. Los selectores siguen empezando por `.chatbox`,
+  que es lo que exige la guarda de estilos acotados (RF-F63), y la guarda de RF-F51 sigue
+  reconociendo las reglas que alcanzan la raíz —su último compuesto vuelve a ser
+  `.chatbox`—.
 - **D22 — La regla flotante no redeclara el padding inferior**: la franja del teclado la
   declara solo la raíz (`.chatbox { padding-bottom: var(--chatbox-keyboard-inset, 0px) }`) y
   la guarda de RF-F51 vigila que ninguna regla que alcance la raíz la redeclare, ni con
@@ -108,6 +114,16 @@ Stitch describe en `prd_widget_asistente_de_jorge.md:42-53`.
 - **D25 — Identificadores**: RF-F64. `RF-F63` ya se usa como etiqueta interna de estilos en
   `test/unit/chatbox-scoped-styles.test.ts:21` **sin existir en el spec**: reutilizarlo
   crearía dos cosas distintas con el mismo nombre.
+- **D26 — Los paquetes que renderizan con React se empaquetan en las pruebas**: en vitest,
+  `react-markdown` se externalizaba, y sus imports de `react/jsx-runtime` esquivaban el
+  alias de `vitest.config.ts` y llegaban al **React real** (19.3, instalado como *peer* de
+  `react-markdown`). Sus elementos vienen congelados y Preact no puede diffearlos: montar
+  de nuevo el subárbol del markdown —que hace RF-F64 cada vez que el panel se abre— falla
+  con «Cannot add property __, object is not extensible». El fallo era **preexistente**:
+  «Nueva conversación» y volver a preguntar montaba el markdown otra vez y ya lo
+  provocaba. La corrección es `test.server.deps.inline` para `react-markdown` y
+  `hast-util-to-jsx-runtime`, para que pasen por Vite y el alias se aplique. En el
+  navegador no pasa: allí los empaqueta el mismo Vite.
 
 ## Auditoría (por qué no es un retoque de CSS)
 
@@ -116,7 +132,8 @@ Stitch describe en `prd_widget_asistente_de_jorge.md:42-53`.
 | `.chatbox` es `height: 100%`: la altura la da el host | Un círculo dentro del flujo del host quedaría en medio de la página, y el host seguiría reservando su espacio |
 | La raíz del escaneo de axe es fija (`test/axe.ts:47`) | Un lanzador fuera de `.chatbox` hace que el test de accesibilidad pase en falso |
 | RF-F45 exige una única raíz `class="chatbox"` | La variante no puede tener una raíz propia |
-| La guarda de estilos acotados acepta solo el selector compuesto | El modificador tiene que ser `.chatbox.chatbox--flotante`, no `.chatbox--flotante` |
+| La guarda de estilos acotados acepta solo selectores que empiezan por `.chatbox` | La variante y el estado tienen que ir en atributos de datos o en clases compuestas, no en una clase suelta |
+| RF-F45 identifica la raíz por la clase literal `chatbox` | La raíz no puede llevar una clase compuesta ni dinámica: la variante y el estado van en atributos de datos |
 | La guarda de RF-F51 vigila el padding de la raíz | La regla flotante no puede declarar `padding-bottom` |
 | La guarda de movimiento rechaza toda `transition` fuera del bloque `no-preference` | Abrir y cerrar no se animan, o el inventario de RF-F44 cambia |
 | `useFocusOnMount` enfoca con deps `[]` | No vuelve a dispararse cuando el textarea aparece más tarde: el foco al abrir necesita su propio mecanismo |
@@ -144,7 +161,7 @@ El nombre público del componente no cambia: sigue siendo `<Chatbox>`.
 
 ```text
 estado contraído                             estado expandido
-<section class="chatbox chatbox--flotante chatbox--contraido">
+<section class="chatbox" data-state="collapsed" data-variant="floating">
                                             <header class="chatbox__header"> … </header>
   <div role="status" …>                      <div role="status" …>
   <button class="chatbox__launcher">…</button>  <main class="chatbox__conversation"> … </main>
@@ -157,7 +174,7 @@ La región de estado se monta en los dos estados; en el contraído la oculta el 
 ### CSS
 
 ```css
-.chatbox.chatbox--flotante {
+.chatbox[data-variant="floating"] {
 	position: fixed;
 	right: max(1rem, env(safe-area-inset-right, 0px));
 	bottom: max(1rem, env(safe-area-inset-bottom, 0px));
@@ -167,7 +184,7 @@ La región de estado se monta en los dos estados; en el contraído la oculta el 
 	z-index: 50;
 }
 
-.chatbox.chatbox--contraido {
+.chatbox[data-state="collapsed"] {
 	width: 56px;
 	height: 56px;
 	border-radius: 9999px;
@@ -199,6 +216,7 @@ de desplazamiento, y con `100vw` la tarjeta se saldría por debajo de ella.
 | `src/components/Chatbox.css` | Reglas de la variante flotante y del estado contraído |
 | `src/chat/hooks/useFocusOnMount.ts` | Segundo parámetro `enabled`: el foco al expandirse |
 | `src/strings.es.ts` | `launcher.open.ariaLabel` y `actions.collapse.ariaLabel` |
+| `vitest.config.ts` | `server.deps.inline` para los paquetes que renderizan con React (D26) |
 | `src/App.tsx` | `?widget=floating` |
 | `test/component/chatbox-collapsed.test.tsx` | Nuevo: el comportamiento en jsdom |
 | `test/browser/floating-launcher.spec.ts` | Nuevo: la resolución en Chromium |

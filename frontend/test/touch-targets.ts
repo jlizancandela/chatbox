@@ -27,6 +27,7 @@ export const WIDGET_STATES = [
 	"confirmación abierta",
 	"desplazado",
 	"viewport estrecho",
+	"contraído",
 ] as const;
 
 export type WidgetState = (typeof WIDGET_STATES)[number];
@@ -70,6 +71,20 @@ export const CONTROLS: Control[] = [
 	},
 	{ id: "scroll-to-end", name: "Ir al final", states: ["desplazado"] },
 	{ id: "retry", name: "Reintentar", states: ["turno fallido"] },
+	{ id: "launcher", name: "Lanzador", states: ["contraído"] },
+	{
+		id: "collapse",
+		name: "Contraer el chat",
+		states: [
+			"vacío",
+			"campo lleno",
+			"turno en curso",
+			"turno fallido",
+			"confirmación abierta",
+			"desplazado",
+			"viewport estrecho",
+		],
+	},
 ];
 
 export const CONTROL_IDS: ReadonlySet<string> = new Set(CONTROLS.map((control) => control.id));
