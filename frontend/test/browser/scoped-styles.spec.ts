@@ -34,7 +34,7 @@ const disableHostSheet = (page: import("@playwright/test").Page) =>
 
 test.describe("RF-F63 scoped styles", () => {
 	test("the widget renders the same without the host stylesheet", async ({ page }) => {
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator(".chatbox")).toBeVisible();
 
 		const withHostStyles = await snapshot(page);

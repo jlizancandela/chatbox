@@ -33,7 +33,7 @@ const SOURCE = {
 const RESPUESTA = "Usa **Preact** y `Fastify`.";
 
 async function openChatbox(page: Page): Promise<void> {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 }
 

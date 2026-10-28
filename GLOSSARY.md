@@ -207,7 +207,9 @@ declara aquí como decisión de modelado en lugar de inventarlo en issues, specs
 - **Variante del widget**: forma en que el widget se coloca en el sitio host. Es
   **embebida** —dentro del flujo del host, que le da la altura— o **flotante** —anclada a la
   esquina inferior derecha de la pantalla, con su propio tamaño—. No es un estado: describe
-  dónde está el widget, no qué se ve.
+  dónde está el widget, no qué se ve. La flotante es la que se monta **por defecto**: el
+  sitio aloja el chat como un lanzador en la esquina, y la embebida es la que se pide
+  explícitamente.
 - **Estado contraído**: el widget reducido a su lanzador, sin panel. Es el estado en que
   nace la variante flotante.
 - **Estado expandido**: el widget con el panel completo. Es el estado en que estaba el

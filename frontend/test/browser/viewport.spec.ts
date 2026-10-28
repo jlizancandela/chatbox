@@ -18,7 +18,7 @@ import { FONT_SIZE_FLOOR_PX, LINE_HEIGHT_RATIO, SAFE_AREAS } from "../viewport";
 const HOST_ROOT_FONT_SIZE = 14;
 
 test("el widget no crece más allá del viewport dinámico", async ({ page }) => {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 
 	// Un contenedor mucho más alto que la pantalla: el widget se topa con el viewport.
@@ -39,7 +39,7 @@ test("el widget no crece más allá del viewport dinámico", async ({ page }) =>
 test("la comprobación del tope muerde: sin `max-height`, el widget crece", async ({ page }) => {
 	// La entrada que rechaza: el mismo escenario con el tope anulado. Sin esta entrada, la
 	// comprobación de arriba no protegería nada.
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 	await page.addStyleTag({ content: "#app { height: 300vh; } .chatbox { max-height: none; }" });
 
@@ -55,7 +55,7 @@ test("la comprobación del tope muerde: sin `max-height`, el widget crece", asyn
 });
 
 test("el widget llena el contenedor que le da el sitio host", async ({ page }) => {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 
 	const measured = await page.evaluate(() => {
@@ -74,7 +74,7 @@ test("la comprobación del llenado muerde: sin `height`, el widget no llena el h
 	page,
 }) => {
 	// La entrada que rechaza: el mismo escenario con la altura del widget anulada.
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 	await page.addStyleTag({ content: ".chatbox { height: auto; }" });
 
@@ -91,7 +91,7 @@ test("la comprobación del llenado muerde: sin `height`, el widget no llena el h
 });
 
 test("el campo de texto mide al menos 16 px con la raíz del host a 14 px", async ({ page }) => {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator("#chatbox-question")).toBeVisible();
 
 	// El sitio de prueba tiene la raíz a 16 px, y ahí `1rem` ya vale 16 px: el navegador
@@ -109,7 +109,7 @@ test("el campo de texto mide al menos 16 px con la raíz del host a 14 px", asyn
 test("la comprobación del suelo muerde: con `1rem`, el campo baja del suelo", async ({ page }) => {
 	// La entrada que rechaza: el mismo escenario con la declaración que el contrato
 	// rechaza. Con la raíz del host a 14 px, `1rem` deja el campo en 14 px.
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator("#chatbox-question")).toBeVisible();
 	await page.addStyleTag({
 		content: `html { font-size: ${HOST_ROOT_FONT_SIZE}px; } .chatbox textarea { font-size: 1rem; }`,
@@ -123,7 +123,7 @@ test("la comprobación del suelo muerde: con `1rem`, el campo baja del suelo", a
 });
 
 test("el interlineado del campo acompaña a su tamaño de fuente", async ({ page }) => {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator("#chatbox-question")).toBeVisible();
 
 	// El interlineado es un múltiplo del tamaño de fuente, no un valor en px: con el
@@ -144,7 +144,7 @@ test("la comprobación del interlineado muerde: en px absolutos deja de acompañ
 }) => {
 	// La entrada que rechaza: el mismo campo con el interlineado del widget —20 px, que
 	// no es múltiplo del tamaño del campo.
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator("#chatbox-question")).toBeVisible();
 	await page.addStyleTag({ content: ".chatbox textarea { line-height: 20px; }" });
 
@@ -160,7 +160,7 @@ test("la comprobación del interlineado muerde: en px absolutos deja de acompañ
 });
 
 test("cada borde conserva su padding base", async ({ page }) => {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 
 	const measured = await page.evaluate((areas) => {
@@ -188,7 +188,7 @@ test("la comprobación del padding muerde: sin padding base, el borde queda a ce
 	page,
 }) => {
 	// La entrada que rechaza: el mismo borde con el padding base anulado.
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 	await page.addStyleTag({ content: ".chatbox__footer { padding-bottom: 0; }" });
 
@@ -224,7 +224,7 @@ test.describe("en un viewport con sitio de sobra", () => {
 
 	test("el widget no desborda su propia caja", async ({ page }) => {
 		// Con altura de sobra, el hilo crece hasta llenar el widget y nada se sale.
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		const measured = await geometry(page);
@@ -237,7 +237,7 @@ test.describe("en un viewport con sitio de sobra", () => {
 		page,
 	}) => {
 		// La entrada que rechaza: el mismo widget con un contenido que no cabe en su caja.
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 		await page.addStyleTag({ content: ".chatbox__header { padding-bottom: 300px; }" });
 
@@ -253,7 +253,7 @@ test.describe("en un viewport estrecho", () => {
 
 	test("el widget no se desborda horizontalmente", async ({ page }) => {
 		// El diseño es fluido: el widget se adapta al ancho que le da el contenedor.
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		const measured = await page.evaluate(() => {
@@ -271,7 +271,7 @@ test.describe("en un viewport estrecho", () => {
 		page,
 	}) => {
 		// La entrada que rechaza: el mismo widget con un ancho que no cabe en la pantalla.
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 		await page.addStyleTag({ content: ".chatbox { width: 500px; }" });
 
@@ -294,7 +294,7 @@ test.describe("en un viewport más bajo que el mínimo del widget", () => {
 		// recortarlo. Lo que no puede pasar es que la cabecera o el pie se encogieran: el
 		// aviso de alcance no puede quedar cortado a media frase, y el campo de texto —lo
 		// que la persona tiene que poder usar— no puede salirse de su región.
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		const measured = await geometry(page);
@@ -313,7 +313,7 @@ test.describe("en un viewport más bajo que el mínimo del widget", () => {
 		// La entrada que rechaza: el mismo escenario con el CSS roto. Con `min-height: 0`
 		// la cabecera y el pie pueden encogerse, y entonces el hilo deja de ser lo único
 		// que cede. Sin esta entrada, la comprobación de arriba no protegería nada.
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await page.addStyleTag({
 			content: ".chatbox__header, .chatbox__footer { min-height: 0; }",
 		});

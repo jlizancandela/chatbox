@@ -101,7 +101,7 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 
 	test("llega al final mientras se transmite", async ({ page }) => {
 		await slowStream(page, TOKENS);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await ask(page);
 
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra0");
@@ -122,7 +122,7 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 		// Una sola respuesta, pero larga: el hilo tiene que desbordar para que el crecimiento
 		// del markdown tenga a dónde empujar.
 		await slowStream(page, 1, 40, 800);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await ask(page);
 
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra0");
@@ -136,7 +136,7 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 
 	test("apartarse un poco tampoco es «seguir»", async ({ page }) => {
 		await slowStream(page, TOKENS);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await ask(page);
 
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra2");
@@ -172,7 +172,7 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 
 	test("no arrastra a quien se aparta del hilo", async ({ page }) => {
 		await slowStream(page, TOKENS);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await ask(page);
 
 		// La respuesta tiene que haber llegado: el hilo que se aparta es el que ya tiene

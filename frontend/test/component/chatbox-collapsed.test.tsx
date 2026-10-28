@@ -36,6 +36,15 @@ describe("RF-F64 — la variante flotante contraída", () => {
 			expect(screen.queryByLabelText(strings.input.label)).not.toBeInTheDocument();
 		});
 
+		it("sin prop de variante, el widget nace flotante y contraído", () => {
+			// El defecto del widget es la variante flotante: el sitio lo monta como un
+			// lanzador en la esquina sin tener que pedirlo (RF-F64).
+			render(<Chatbox apiUrl="http://localhost:7000" />);
+
+			expect(launcher()).toBeInTheDocument();
+			expect(screen.queryByLabelText(strings.input.label)).not.toBeInTheDocument();
+		});
+
 		it("con initiallyCollapsed={false} nace expandido", () => {
 			render(
 				<Chatbox apiUrl="http://localhost:7000" variant="floating" initiallyCollapsed={false} />
@@ -46,7 +55,7 @@ describe("RF-F64 — la variante flotante contraída", () => {
 		});
 
 		it("la variante embebida no tiene lanzador: nace con el panel", () => {
-			render(<Chatbox apiUrl="http://localhost:7000" />);
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 
 			expect(questionField()).toBeInTheDocument();
 			expect(screen.queryByRole("button", { name: strings.launcher.open.ariaLabel })).toBeNull();

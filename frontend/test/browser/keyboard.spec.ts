@@ -3,7 +3,7 @@ import { strings } from "../../src/strings.es";
 import { doneFrame, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
 
 async function openChatbox(page: Page) {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 	await expect(page.locator("#chatbox-question")).toBeFocused();
 }

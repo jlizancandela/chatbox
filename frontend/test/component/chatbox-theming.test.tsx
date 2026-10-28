@@ -27,7 +27,7 @@ const darkMediaRule = (): CSSMediaRule | undefined =>
 
 describe("Chatbox theming (RF-F61/T1)", () => {
 	it("renders with .chatbox as the root class", () => {
-		const { container } = render(<Chatbox apiUrl="http://example.com" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://example.com" />);
 		const root = container.querySelector(".chatbox");
 		expect(root).not.toBeNull();
 	});
@@ -37,7 +37,7 @@ describe("Chatbox theming (RF-F61/T1)", () => {
 		wrapper.style.setProperty("--chatbox-color-primary", "red");
 		document.body.appendChild(wrapper);
 
-		render(<Chatbox apiUrl="http://example.com" />, { container: wrapper });
+		render(<Chatbox variant="embedded" apiUrl="http://example.com" />, { container: wrapper });
 
 		// The host's custom property is set on the ancestor.
 		expect(wrapper.style.getPropertyValue("--chatbox-color-primary")).toBe("red");
@@ -59,7 +59,7 @@ describe("Chatbox theming (RF-F61/T1)", () => {
 
 describe("Chatbox theming (RF-F61/T2 — dark mechanism)", () => {
 	it("ships the prefers-color-scheme: dark rule inside the imported stylesheet", () => {
-		render(<Chatbox apiUrl="http://example.com" />);
+		render(<Chatbox variant="embedded" apiUrl="http://example.com" />);
 
 		const media = darkMediaRule();
 		expect(media).toBeDefined();
@@ -75,7 +75,7 @@ describe("Chatbox theming (RF-F61/T2 — dark mechanism)", () => {
 	});
 
 	it("consumes text and surface on .chatbox (raw var values, jsdom does not resolve them)", () => {
-		const { container } = render(<Chatbox apiUrl="http://example.com" />);
+		const { container } = render(<Chatbox variant="embedded" apiUrl="http://example.com" />);
 		const root = container.querySelector(".chatbox") as HTMLElement;
 		expect(root).not.toBeNull();
 

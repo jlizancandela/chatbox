@@ -27,6 +27,10 @@ export type ChatboxProps = {
 	/**
 	 * Variante del widget (RF-F64): embebida en el flujo del sitio host, o flotante
 	 * anclada a la esquina inferior derecha de la pantalla.
+	 *
+	 * Por defecto es **flotante**: el sitio monta el chat como un lanzador en la esquina,
+	 * y la variante embebida —una sección que el sitio coloca donde quiere— es la que se
+	 * pide explícitamente.
 	 */
 	variant?: "embedded" | "floating";
 	/**
@@ -133,7 +137,7 @@ export function Chatbox({
 	suggestions = DEFAULT_SUGGESTIONS,
 	contactUrl,
 	title = strings.header.defaultTitle,
-	variant = "embedded",
+	variant = "floating",
 	initiallyCollapsed,
 }: ChatboxProps) {
 	const chat = useChat(loadFromSessionStorage() ?? undefined);

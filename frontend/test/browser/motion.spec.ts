@@ -78,7 +78,7 @@ test.describe("RF-F44 — el indicador de escritura", () => {
 		await page.emulateMedia({ reducedMotion: "reduce" });
 		const release = await holdChatAnswer(page);
 
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await askSomething(page);
 		await expect(page.locator(TYPING_SELECTOR).first()).toBeVisible();
 
@@ -92,7 +92,7 @@ test.describe("RF-F44 — el indicador de escritura", () => {
 		await page.emulateMedia({ reducedMotion: "no-preference" });
 		const release = await holdChatAnswer(page);
 
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await askSomething(page);
 		await expect(page.locator(TYPING_SELECTOR).first()).toBeVisible();
 
@@ -109,7 +109,7 @@ test.describe("RF-F44 — el scroll de la conversación", () => {
 
 	/** Una conversación larga, desplazada arriba, con el botón «Ir al final» a la vista. */
 	async function longConversationWithScrollToEnd(page: Page): Promise<void> {
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await askSomething(page);
 		// El markdown del asistente se carga diferido (RF-F30) y, hasta que llega, la
 		// burbuja está vacía: hay que esperarlo o el scroll se calcula sobre una altura que

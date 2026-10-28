@@ -7,7 +7,7 @@ const text = (page: import("@playwright/test").Page) =>
 	page.locator(".chatbox").evaluate((element) => getComputedStyle(element).color);
 
 async function openChatbox(page: import("@playwright/test").Page, theme?: "light" | "dark") {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await page.evaluate((value) => {
 		document.documentElement.dataset.theme = value ?? "";
 	}, theme);

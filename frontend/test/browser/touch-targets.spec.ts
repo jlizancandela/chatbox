@@ -83,7 +83,7 @@ function assertFloor(measured: Measured[], state: WidgetState): void {
 }
 
 test("los controles del estado vacío alcanzan el suelo", async ({ page }) => {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await expect(page.locator(".chatbox")).toBeVisible();
 
 	const measured = await measureControls(page);
@@ -98,7 +98,7 @@ test("los controles del estado vacío alcanzan el suelo", async ({ page }) => {
 });
 
 test("un control deshabilitado queda fuera de la medición", async ({ page }) => {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	const measured = contractControls(await measureControls(page));
 	const send = measured.find((control) => control.id === "send");
 
@@ -125,7 +125,7 @@ test("el botón de enviar mide el suelo con el campo lleno y durante el turno", 
 		});
 	});
 
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await page.locator("#chatbox-question").fill("¿Qué usa Jorge?");
 
 	// Con texto en el campo el envío está activo y ya es medible.
@@ -145,7 +145,7 @@ test("el botón de reintentar mide el suelo tras un fallo", async ({ page }) => 
 		await route.fulfill({ status: 500 });
 	});
 
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await page.locator("#chatbox-question").fill("¿Qué usa Jorge?");
 	await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
 	await expect(page.locator(".chatbox__status")).toContainText(strings.errors.HTTP_SERVER);
@@ -157,7 +157,7 @@ test("el botón de reintentar mide el suelo tras un fallo", async ({ page }) => 
 });
 
 test("la confirmación de nueva conversación mide el suelo", async ({ page }) => {
-	await page.goto("/");
+	await page.goto("/?widget=embedded");
 	await page.getByRole("button", { name: strings.actions.newConversation }).click();
 	await expect(page.locator(".chatbox__conversation-actions")).toBeVisible();
 
@@ -178,7 +178,7 @@ test.describe("en un viewport estrecho", () => {
 	test("los controles del footer alcanzan el suelo con el ancho mínimo", async ({ page }) => {
 		// El `min-width` del suelo se come ancho en el footer, que es donde conviven el campo,
 		// el envío y nueva conversación. En un contenedor estrecho es donde se rompería.
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator(".chatbox")).toBeVisible();
 
 		const measured = await measureControls(page);
@@ -199,7 +199,7 @@ test.describe("con una conversación larga", () => {
 		const answer = Array.from({ length: 120 }, (_, index) => `palabra${index} `).join("");
 		await mockChatApi(page, ...[answer].map((text) => tokenFrame(text)), doneFrame);
 
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await page.locator("#chatbox-question").fill("Cuéntame algo largo");
 		await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
 		// La respuesta completa antes de subir el hilo: si no, la subida cae a menos de ~80 px

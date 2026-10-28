@@ -161,7 +161,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 
 	test("el campo de texto queda por encima del teclado", async ({ page }) => {
 		await withVirtualKeyboard(page);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		await openKeyboard(page, KEYBOARD_PX);
@@ -185,7 +185,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		// La entrada que rechaza: el mismo escenario con la franja reservada anulada. Sin
 		// esta entrada, la comprobación de arriba no protegería nada.
 		await withVirtualKeyboard(page);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		await page.addStyleTag({ content: ".chatbox { padding-bottom: 0 !important; }" });
@@ -199,7 +199,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 
 	test("el widget reserva exactamente la franja que hace falta", async ({ page }) => {
 		await withVirtualKeyboard(page);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		await openKeyboard(page, KEYBOARD_PX);
@@ -217,7 +217,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		// La entrada que rechaza: el mismo escenario con una franja mayor que la del
 		// teclado. El widget dejaría un hueco entre el pie y el teclado.
 		await withVirtualKeyboard(page);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		await page.addStyleTag({ content: ".chatbox { padding-bottom: 400px !important; }" });
@@ -233,7 +233,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		// La página se desplaza al enfocar el campo, y el widget baja con ella: la reserva
 		// tiene que ajustarse, no desaparecer.
 		await withVirtualKeyboard(page);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		await openKeyboard(page, KEYBOARD_PX);
@@ -254,7 +254,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		// inferior de la zona visible también lo está, y el pie tiene que quedar por
 		// encima de ese borde.
 		await withVirtualKeyboard(page, 120);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		await openKeyboard(page, KEYBOARD_PX);
@@ -271,7 +271,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		// crece con cada medida, y sin tope la reserva crecería con ella hasta dejar al
 		// widget sin contenido.
 		await withVirtualKeyboard(page);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		await page.addStyleTag({ content: "#app { height: auto; } .chatbox { height: auto; }" });
@@ -296,7 +296,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		// ya lo desplaza al enfocar el campo, y reservar franja de más solo encogería el
 		// hilo.
 		await withVirtualKeyboard(page);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 		await expect(page.locator("#chatbox-question")).toBeVisible();
 
 		// La caja del widget deja de llegar al borde inferior de la pantalla.
@@ -311,7 +311,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 	test("el hilo no pierde su final cuando el teclado abre", async ({ page }) => {
 		await withVirtualKeyboard(page);
 		await longAnswer(page);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 
 		await page.locator("#chatbox-question").fill("Cuéntame algo largo");
 		await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
@@ -345,7 +345,7 @@ test.describe("RF-F51 — el teclado virtual", () => {
 		// aparta del hilo sigue leyendo por su cuenta, y el teclado no lo arrastra.
 		await withVirtualKeyboard(page);
 		await longAnswer(page);
-		await page.goto("/");
+		await page.goto("/?widget=embedded");
 
 		await page.locator("#chatbox-question").fill("Cuéntame algo largo");
 		await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
