@@ -76,12 +76,13 @@ describe("chatReducer", () => {
 	});
 
 	it("keeps incomplete responses out of context on error or abort", () => {
-		let errored = chatReducer(started(), { type: "token-received", token: "Parcial" });
-		errored = chatReducer(errored, {
+		const errored = chatReducer(started(), {
 			type: "turn-failed",
 			error: { code: "STREAM_ERROR", message: "No se pudo completar la respuesta." },
+			response: "Parcial",
 		});
 		expect(errored.turnState).toBe("error");
+		expect(errored.currentResponse).toBe("Parcial");
 		expect(errored.context).toEqual([]);
 
 		const aborted = chatReducer(started(), { type: "turn-aborted" });

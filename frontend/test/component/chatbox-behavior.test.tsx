@@ -229,6 +229,7 @@ describe("Chatbox — indicador de escritura (RF-F44)", () => {
 	afterEach(() => {
 		cleanup();
 		vi.unstubAllGlobals();
+		sessionStorage.clear();
 	});
 
 	it("shows three decorative dots while the assistant writes", async () => {
@@ -292,5 +293,52 @@ describe("Chatbox — conversation state unit coverage (RF-F20-26)", () => {
 
 	it("sessionStorage round-trip preserves messages and context", () => {
 		// Covered by test/unit/chat/infrastructure/storage.test.ts
+	});
+});
+
+// ─── Tests: retry after a failed turn ------------------------------------------
+
+describe("Chatbox — retry after an error", () => {
+	beforeEach(() => sessionStorage.clear());
+
+	afterEach(() => {
+		cleanup();
+		vi.unstubAllGlobals();
+		sessionStorage.clear();
+	});
+
+	it("retries the same question without duplicating the user message", async () => {
+		const user = userEvent.setup();
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValueOnce(new Response(null, { status: 500 }))
+			.mockImplementationOnce(
+				(_input: RequestInfo | URL, init?: RequestInit) =>
+					new Promise<Response>((_resolve, reject) => {
+						init?.signal?.addEventListener("abort", () =>
+							reject(new DOMException("Aborted", "AbortError"))
+						);
+					})
+			);
+		vi.stubGlobal("fetch", fetchMock);
+		render(<Chatbox apiUrl="http://localhost:7000" />);
+
+		await send("¿Qué sabe?");
+		await waitFor(() => expect(screen.getByText(strings.errors.HTTP_SERVER)).toBeInTheDocument());
+
+		const messages = screen.getByRole("list", { name: strings.messages.listLabel });
+		expect(within(messages).getAllByText("¿Qué sabe?")).toHaveLength(1);
+
+		await user.click(screen.getByRole("button", { name: strings.actions.retry }));
+		await waitFor(() =>
+			expect(screen.getByRole("button", { name: strings.input.stop.ariaLabel })).toBeInTheDocument()
+		);
+		expect(screen.getByRole("status")).toHaveTextContent(strings.messages.writing);
+
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+		expect(within(messages).getAllByText("¿Qué sabe?")).toHaveLength(1);
+
+		await user.click(screen.getByRole("button", { name: strings.input.stop.ariaLabel }));
+		await waitFor(() => expect(screen.getByText(strings.messages.stopped)).toBeInTheDocument());
 	});
 });

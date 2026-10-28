@@ -11,10 +11,11 @@ export type ChatState = ConversationState & {
 
 export type ChatAction =
 	| { type: "turn-started"; question: string }
+	| { type: "turn-retried" }
 	| { type: "sources-received"; sources: ChatSource[]; history: ChatMessage[] }
 	| { type: "token-received"; token: string }
 	| { type: "turn-completed" }
-	| { type: "turn-failed"; error: ChatError }
+	| { type: "turn-failed"; error: ChatError; response?: string }
 	| { type: "turn-aborted" }
 	| { type: "state-restored"; state: ConversationState }
 	| { type: "conversation-reset" };
@@ -36,6 +37,15 @@ export const chatReducer = (state: ChatState, action: ChatAction): ChatState => 
 				...state,
 				messages: [...state.messages, { role: "user", content: action.question }],
 				currentQuestion: action.question,
+				currentResponse: "",
+				sources: [],
+				turnState: "connecting",
+				error: null,
+			};
+
+		case "turn-retried":
+			return {
+				...state,
 				currentResponse: "",
 				sources: [],
 				turnState: "connecting",
@@ -90,7 +100,12 @@ export const chatReducer = (state: ChatState, action: ChatAction): ChatState => 
 		}
 
 		case "turn-failed":
-			return { ...state, turnState: "error", error: action.error };
+			return {
+				...state,
+				currentResponse: action.response ?? state.currentResponse,
+				turnState: "error",
+				error: action.error,
+			};
 
 		case "turn-aborted":
 			return { ...state, turnState: "aborted" };

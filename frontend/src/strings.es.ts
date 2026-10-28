@@ -45,6 +45,7 @@ export const strings = {
 	},
 	actions: {
 		scrollToEnd: "Ir al final",
+		retry: "Reintentar",
 		newConversation: "Nueva conversación",
 		confirm: {
 			question: "¿Borrar la conversación?",

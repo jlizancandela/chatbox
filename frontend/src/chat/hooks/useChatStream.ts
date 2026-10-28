@@ -31,6 +31,7 @@ export type UseChatStreamOptions = {
 
 export type UseChatStreamResult = {
 	sendQuestion: (text: string) => Promise<void>;
+	retryQuestion: (text: string) => Promise<void>;
 	abort: () => void;
 	isStreaming: boolean;
 };
@@ -77,6 +78,7 @@ const defaultCancelFrame = (frame: FrameId): void => {
 export type ChatStreamRunner = {
 	update: (options: UseChatStreamOptions) => void;
 	run: (text: string) => Promise<void>;
+	retry: (text: string) => Promise<void>;
 	abort: () => void;
 	isActive: () => boolean;
 };
@@ -117,7 +119,7 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 	// Fallar o abortar son siempre la misma pareja: cambiar el estado del turno y emitir su
 	// desenlace. Que vivan juntos es lo que hace cumplible el invariante de una salida, un evento.
 	const failWith = (error: ChatError): void => {
-		options.chat.failTurn(error);
+		options.chat.failTurn(error, active?.assistantText);
 		endTurn({ kind: "failed", error });
 	};
 
@@ -198,7 +200,7 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 		abortWith();
 	};
 
-	const run = async (text: string): Promise<void> => {
+	const run = async (text: string, retry = false): Promise<void> => {
 		if (active) {
 			return;
 		}
@@ -228,7 +230,8 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 			cancelFrame: options.cancelFrame ?? defaultCancelFrame,
 		});
 		options.onActivityChange?.(true);
-		options.chat.startTurn(request.question);
+		if (retry) options.chat.retryTurn();
+		else options.chat.startTurn(request.question);
 		armTimeout();
 
 		try {
@@ -281,6 +284,7 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 			options = { ...options, ...nextOptions };
 		},
 		run,
+		retry: (text) => run(text, true),
 		abort,
 		isActive: () => active !== null,
 	};
@@ -301,12 +305,17 @@ export const useChatStream = (options: UseChatStreamOptions): UseChatStreamResul
 		(text: string) => runnerRef.current?.run(text) ?? Promise.resolve(),
 		[]
 	);
+	const retryQuestion = useCallback(
+		(text: string) => runnerRef.current?.retry(text) ?? Promise.resolve(),
+		[]
+	);
 	const abort = useCallback(() => runnerRef.current?.abort(), []);
 
 	useEffect(() => () => runnerRef.current?.abort(), []);
 
 	return {
 		sendQuestion,
+		retryQuestion,
 		abort,
 		isStreaming,
 	};

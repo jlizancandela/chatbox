@@ -23,6 +23,7 @@ export const WIDGET_STATES = [
 	"vacío",
 	"campo lleno",
 	"turno en curso",
+	"turno fallido",
 	"confirmación abierta",
 	"desplazado",
 	"viewport estrecho",
@@ -51,7 +52,14 @@ export const CONTROLS: Control[] = [
 	{
 		id: "new-conversation",
 		name: "Nueva conversación",
-		states: ["vacío", "campo lleno", "turno en curso", "desplazado", "viewport estrecho"],
+		states: [
+			"vacío",
+			"campo lleno",
+			"turno en curso",
+			"turno fallido",
+			"desplazado",
+			"viewport estrecho",
+		],
 	},
 	{ id: "confirm-accept", name: "Aceptar", states: ["confirmación abierta"] },
 	{ id: "confirm-cancel", name: "Cancelar", states: ["confirmación abierta"] },
@@ -61,6 +69,7 @@ export const CONTROLS: Control[] = [
 		states: ["vacío", "campo lleno", "confirmación abierta", "viewport estrecho"],
 	},
 	{ id: "scroll-to-end", name: "Ir al final", states: ["desplazado"] },
+	{ id: "retry", name: "Reintentar", states: ["turno fallido"] },
 ];
 
 export const CONTROL_IDS: ReadonlySet<string> = new Set(CONTROLS.map((control) => control.id));
