@@ -16,6 +16,9 @@
 		"type": "git",
 		"url": "git+https://github.com/jlizancandela/chatbox.git"
 	},
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com"
+	},
 	"exports": {
 		".": "./src/index.ts",
 		"./element": "./src/element.ts"
@@ -32,9 +35,6 @@
 	"sideEffects": [
 		"**/*.css"
 	],
-	"publishConfig": {
-		"access": "public"
-	},
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
