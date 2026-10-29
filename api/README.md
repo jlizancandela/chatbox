@@ -144,8 +144,20 @@ Asegúrate de haber aplicado las migraciones y de tener configurados
 ### Reingerir el corpus
 
 La versión de un documento se calcula con su contenido, su título y la firma de la
-configuración de embeddings (modelo, dimensión y tipo de tarea). Si la ingesta
-encuentra un documento con la misma versión, lo reactiva **sin volver a embeberlo**.
+configuración de embeddings (modelo, dimensión y tipo de tarea).
+
+La ingesta compara la versión **antes** de pedir los embeddings: si el documento ya está
+con esa versión, lo reactiva y no hace ni una llamada al proveedor. Reingerir un corpus
+sin cambios es gratis y lo dice en el log:
+
+```text
+✓ curriculum-jorge-lizan.md — sin cambios
+✓ informe-github-jlizancandela.md — sin cambios
+Done. 2 files, 13 chunks, 2 unchanged, 0 errors.
+```
+
+Solo se vuelve a embeber lo que cambió, y solo si **de verdad** cambió: el contenido, el
+título o la firma de embeddings.
 
 Cambiar la firma de embeddings —por ejemplo, pasar de un tipo de tarea a otro— invalida
 el corpus: los vectores anteriores viven en otro espacio y no son comparables con los
@@ -269,6 +281,11 @@ Sin nombres, ingiere todo el corpus de la imagen:
 docker compose run --rm api ingest
 ```
 
+El comando **aplica las migraciones antes de ingerir**, así que funciona sobre una base
+de datos recién creada sin que la API haya arrancado nunca. Y no vuelve a embeber lo que
+no cambió: si el corpus de la imagen es el mismo que el de la base, la ingesta termina en
+un segundo y sin llamar al proveedor.
+
 ### Healthcheck
 
 La imagen declara un `HEALTHCHECK` contra `/health`:
@@ -319,12 +336,23 @@ services:
     restart: always
 ```
 
-El despliegue es el de siempre: `just deploy` tira de la imagen y levanta el
-stack. La primera vez, el corpus se ingiere a mano:
+El despliegue es el de siempre: `just deploy` tira de la imagen y levanta el stack.
 
-```bash
-docker compose run --rm chatbox-api ingest
+**La ingesta va colgada del despliegue**, no del arranque del contenedor. Como el corpus
+viaja dentro de la imagen, cualquier cambio en un documento obliga a publicar una imagen
+nueva; con la ingesta dentro de `just deploy`, el corpus no se queda viejo nunca y el
+arranque de la API no depende del proveedor de embeddings:
+
+```make
+deploy:
+	docker compose down
+	docker compose pull
+	docker compose up -d
+	docker compose run --rm chatbox-api ingest
 ```
+
+Y como la ingesta no reembebe lo que no cambió, un despliegue sin documentos nuevos
+termina en un segundo.
 
 El hostname `api.jorgelizancandela.com` se declara en el panel de Cloudflare: el
 túnel corre con `--token` y sus ingress no viven en un fichero.

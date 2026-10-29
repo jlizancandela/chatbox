@@ -1,76 +1,66 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import fastify from "fastify";
 import db from "../plugins/db";
-import { embeddingSignature } from "../services/embedding.config";
 import { documentEmbeddingsService } from "../services/documentEmbeddings";
-import {
-	computeDocumentVersion,
-	resolveDisplayTitle,
-} from "../services/documentIdentity";
 import documentService from "../services/documents";
+import { ingestFile, type IngestDeps } from "../services/ingest";
 
+/**
+ * El comando de ingesta: lee los nombres que recibe, los busca en `ingest/` y deja el
+ * corpus en la base de datos.
+ *
+ * La lógica vive en `services/ingest.ts`, con sus dependencias inyectadas, para poder
+ * probarla sin PostgreSQL y sin Gemini. Aquí solo se cablea lo de verdad.
+ */
 async function main() {
 	const app = fastify();
+
 	try {
 		await app.register(db);
 		await app.ready();
-		const { ingestDocument } = documentService(app);
+
+		const { ingestDocument, hasDocumentVersion } = documentService(app);
 		const { getDocumentEmbeddings } = documentEmbeddingsService();
 		const dir = path.join(process.cwd(), "ingest");
 
-		const args = process.argv.slice(2);
-
-		const splitter = new RecursiveCharacterTextSplitter({
-			chunkSize: 512,
-			chunkOverlap: 50,
-		});
+		const deps: IngestDeps = {
+			read: (source) => readFile(path.join(dir, source), "utf-8"),
+			hasVersion: hasDocumentVersion,
+			embed: (content, chunks, title) =>
+				getDocumentEmbeddings(content, chunks, title),
+			ingest: ingestDocument,
+		};
 
 		let processedFiles = 0;
 		let totalChunks = 0;
+		let reusedFiles = 0;
 		const errors: { file: string; error: unknown }[] = [];
 
-		const reportError = (file: string, error: unknown) => {
-			errors.push({ file, error });
-			console.error(`✗ ${file} — ${error instanceof Error ? error.message : error}`);
-		};
-
-		for (const arg of args) {
+		for (const source of process.argv.slice(2)) {
 			try {
-				const filePath = path.join(dir, arg);
-				const content = await readFile(filePath, "utf-8");
-				const fileName = path.parse(arg).name;
-				const title = resolveDisplayTitle(arg, fileName);
-				const chunks = await splitter.splitText(content);
-				const version = computeDocumentVersion({
-					content,
-					title,
-					embeddingSignature,
-				});
-				const embeddedChunks = await getDocumentEmbeddings(
-					content,
-					chunks,
-					title,
-				);
-
-				await ingestDocument({
-					content,
-					source: arg,
-					title,
-					version,
-					chunks: embeddedChunks,
-				});
-
+				const result = await ingestFile(deps, source);
 				processedFiles++;
-				totalChunks += chunks.length;
-				console.log(`✓ ${arg} — ${chunks.length} chunks`);
+				totalChunks += result.chunks;
+				if (result.reused) reusedFiles++;
+
+				console.log(
+					result.reused
+						? `✓ ${source} — sin cambios`
+						: `✓ ${source} — ${result.chunks} chunks`,
+				);
 			} catch (error) {
-				reportError(arg, error);
+				errors.push({ file: source, error });
+				console.error(
+					`✗ ${source} — ${error instanceof Error ? error.message : error}`,
+				);
 			}
 		}
 
-		console.log(`\nDone. ${processedFiles} files, ${totalChunks} chunks, ${errors.length} errors.`);
+		console.log(
+			`\nDone. ${processedFiles} files, ${totalChunks} chunks, ${reusedFiles} unchanged, ${errors.length} errors.`,
+		);
+
 		if (errors.length > 0) {
 			process.exitCode = 1;
 		}
