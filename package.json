@@ -1,15 +1,42 @@
 {
-  "name": "chatbox",
-  "version": "0.0.0",
-  "private": true,
-  "scripts": {
-    "prepare": "husky",
-    "lint": "npm --prefix frontend run lint",
-    "test": "npm --prefix frontend run test -- --run",
-    "build": "npm --prefix frontend run build"
-  },
-  "devDependencies": {
-    "husky": "^9.1.7",
-    "lint-staged": "^17.6.0"
-  }
+	"name": "@jlizancandela/chatbox",
+	"version": "0.1.0",
+	"description": "Widget de chat con respuestas fundamentadas sobre un corpus documental (RAG).",
+	"license": "MIT",
+	"keywords": [
+		"chat",
+		"chatbox",
+		"rag",
+		"preact",
+		"widget",
+		"astro"
+	],
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/jlizancandela/chatbox.git"
+	},
+	"exports": {
+		".": "./frontend/src/index.ts",
+		"./element": "./frontend/src/element.ts"
+	},
+	"files": [
+		"frontend/src/components",
+		"frontend/src/chat",
+		"frontend/src/strings.es.ts",
+		"frontend/src/css.d.ts",
+		"frontend/src/index.ts",
+		"frontend/src/element.ts",
+		"frontend/README.md"
+	],
+	"sideEffects": [
+		"**/*.css"
+	],
+	"dependencies": {
+		"eventsource-parser": "^4.1.1",
+		"react-markdown": "^10.1.0"
+	},
+	"peerDependencies": {
+		"preact": "^10.6.5 || ^11.0.0"
+	}
 }

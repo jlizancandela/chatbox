@@ -17,6 +17,7 @@ Chatbox es un monorepo cuya raíz está en la carpeta padre de `frontend/`:
 
 ```text
 chatbox/
+├── package.json # Manifiesto del widget: lo que el sitio instala (ver «Distribución»)
 ├── api/       # Backend Fastify, RAG, PostgreSQL y SSE
 ├── frontend/  # Aplicación Preact/Vite de este documento
 └── docs/      # Especificaciones y documentación compartida
@@ -25,6 +26,14 @@ chatbox/
 Las operaciones Git, las ramas, las issues, las pull requests y los merges se
 gestionan desde la raíz del repositorio, no desde un repositorio Git separado
 dentro de `frontend/`.
+
+El **manifiesto del widget** vive en la raíz, no en `frontend/`: el sitio lo instala
+como dependencia de git (`github:jlizancandela/chatbox#v0.1.0`) y npm busca el
+`package.json` en la raíz del repositorio. `frontend/package.json` es el de la app de
+desarrollo y es privado. Los dos campos que deciden lo que el sitio recibe —`exports` y
+`files`— los cruza `test/unit/package-manifest.test.ts`: si uno cambia sin el otro, el
+test falla aquí y no en el sitio. La versión se sube con `npm version` **en la raíz**, que
+es lo que crea el tag que el sitio fija.
 
 ## Estado del MVP
 

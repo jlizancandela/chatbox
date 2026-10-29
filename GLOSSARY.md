@@ -226,12 +226,16 @@ en issues, specs o tests.
 
 ## Distribución del widget (Paso 7)
 
-- **Paquete del widget**: el tarball que npm publica desde `frontend/`. Se distribuye
-  **como fuente**: lleva el TypeScript del widget y nada más, y el bundler del sitio
-  compila. No hay `dist` ni paso de build al instalar, y el monorepo no cambia de forma.
-- **Export del paquete**: cada entrada del mapa `exports` del paquete. Son dos y están
-  separados a propósito: `.` lleva el componente `Chatbox` y `./element` lleva el custom
-  element. Quien usa el componente no carga el elemento.
+- **Paquete del widget**: el manifiesto que vive en la **raíz** del repositorio y que el
+  sitio instala como dependencia de git (`github:jlizancandela/chatbox#v0.1.0`). Se
+  distribuye **como fuente**: lleva el TypeScript del widget y nada más, y el bundler del
+  sitio compila. No hay registro ni cuenta de por medio, no hay `dist` ni paso de build al
+  instalar, y el código sigue viviendo en `frontend/src`.
+- **Tag del widget**: cada versión del paquete. Es lo único que hay que crear para
+  publicar una versión nueva, y es lo que el sitio fija para quedarse en una versión.
+- **Export del paquete**: cada entrada del mapa `exports` del manifiesto de la raíz. Son
+  dos y están separados a propósito: `.` lleva el componente `Chatbox` y `./element` lleva
+  el custom element. Quien usa el componente no carga el elemento.
 - **Custom element del widget**: `<chatbox-widget>`, la puerta de entrada para un sitio
   que no integra Preact. No es una copia del widget: monta el mismo `Chatbox`, con las
   mismas props.
