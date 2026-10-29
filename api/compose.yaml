@@ -23,7 +23,7 @@ services:
       retries: 12
 
   api:
-    image: jlizancandela/chatbox-api:latest
+    image: jlizancandela/api_chatbox:latest
     build:
       context: .
       dockerfile: Dockerfile
