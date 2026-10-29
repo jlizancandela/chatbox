@@ -14,8 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      # Provenance: npm ata la publicación a la identidad de este workflow y no a un
-      # token que alguien pueda copiar. Sin `id-token: write`, `--provenance` falla.
+      # Trusted publishing: npm emite un token de vida corta para esta publicación a
+      # partir de la identidad de este workflow, así que no hay ningún secreto que
+      # guardar ni que rotar. Sin `id-token: write` no hay token, y sin token no hay
+      # publicación.
       id-token: write
     defaults:
       run:
@@ -31,6 +33,11 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
+      # El trusted publishing necesita npm 11.5.1 o posterior. La versión que trae el
+      # runner puede ir por detrás.
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - run: npm ci
 
       # `verify` es la lista única (lint + typecheck + build + tests). Si se escribe aquí
@@ -43,7 +50,8 @@ jobs:
       - name: Inspect the tarball
         run: npm pack --dry-run
 
+      # Sin token y sin `--provenance`: con trusted publishing, npm emite un token de
+      # vida corta para esta publicación a partir de la identidad de este workflow, y
+      # genera la atestación de provenance solo.
       - name: Publish
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
