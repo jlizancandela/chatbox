@@ -20,7 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # `pnpm/action-setup` busca la versión de pnpm en la raíz del repositorio, no en el
+      # directorio de trabajo: sin esta ruta no encuentra el campo `packageManager` de
+      # `api/package.json` y falla antes de instalar nada.
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: api/package.json
+          cache_dependency_path: api/pnpm-lock.yaml
 
       - uses: actions/setup-node@v4
         with:
