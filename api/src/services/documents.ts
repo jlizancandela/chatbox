@@ -50,7 +50,20 @@ function documentService(app: FastifyInstance) {
 			return repository.findChunksByDocumentId(documentId);
 		});
 
-	return { getDocumentChunks, ingestDocument };
+	/**
+	 * ¿Está ya esta versión del documento?
+	 *
+	 * La ingesta lo pregunta **antes** de pedir los embeddings: si la respuesta es sí,
+	 * el documento se reactiva y no se gasta ni una llamada al proveedor.
+	 */
+	const hasDocumentVersion = async (source: string, version: string) =>
+		app.pg.transact(async (client) => {
+			const repository = documentRepository(client);
+			const existingId = await repository.findIdBySourceAndVersion(source, version);
+			return existingId !== undefined;
+		});
+
+	return { getDocumentChunks, hasDocumentVersion, ingestDocument };
 }
 
 export default documentService;

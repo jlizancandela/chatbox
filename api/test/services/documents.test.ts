@@ -85,3 +85,25 @@ test("la misma versión reactiva el documento y no vuelve a embeberlo", async ()
 		"debe reactivar el documento existente",
 	);
 });
+
+test("hasDocumentVersion distingue la versión que ya está de la que no", async () => {
+	const conDocumento = createFakeApp("7");
+	const sinDocumento = createFakeApp();
+
+	assert.strictEqual(
+		await documentService(conDocumento.app).hasDocumentVersion(
+			document.source,
+			"version-igual",
+		),
+		true,
+		"la versión que existe tiene que encontrarse",
+	);
+	assert.strictEqual(
+		await documentService(sinDocumento.app).hasDocumentVersion(
+			document.source,
+			"version-nueva",
+		),
+		false,
+		"la versión que no existe no puede darse por buena",
+	);
+});
