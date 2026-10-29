@@ -1,0 +1,49 @@
+name: Publish widget
+
+# El paquete se publica al empujar un tag de versión: `npm version 0.1.0` dentro de
+# `frontend/` deja la versión en el `package.json` y crea el tag `v0.1.0` en el
+# repositorio. El tag es lo que dispara la publicación.
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  publish:
+    name: Publicar el paquete en npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Provenance: npm ata la publicación a la identidad de este workflow y no a un
+      # token que alguien pueda copiar. Sin `id-token: write`, `--provenance` falla.
+      id-token: write
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      # `verify` es la lista única (lint + typecheck + build + tests). Si se escribe aquí
+      # paso a paso, el hook y el documento se desincronizan sin que nadie lo note.
+      - name: Verify
+        run: npm run verify
+
+      # Lo que se publica se ve antes de publicarlo: el tarball tiene que llevar el
+      # código del widget y nada más.
+      - name: Inspect the tarball
+        run: npm pack --dry-run
+
+      - name: Publish
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

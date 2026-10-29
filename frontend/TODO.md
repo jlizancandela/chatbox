@@ -104,7 +104,7 @@ bundler del sitio lo compila. El custom element cubre el consumo sin framework
 - [x] Exponer un custom element `<chatbox-widget>` para uso universal desde HTML (export `./element`).
 - [x] Recibir `apiUrl` y opciones mediante props/atributos; no hardcodear URLs de producción.
 - [x] Documentar instalación y uso vía NPM, HTML plano, Astro y Preact (`frontend/README.md`).
-- [ ] Configurar versionado, releases y publicación en NPM: la identidad del paquete está lista (`npm version` + el workflow `publish-widget.yml`), pero falta la cuenta de npm y su token (`NPM_TOKEN`).
+- [ ] Configurar versionado, releases y publicación en NPM: la identidad del paquete está lista (`npm version` + el workflow `publish-widget.yml`, que publica con trusted publishing y sin token), pero falta la cuenta de npm con 2FA, la primera versión publicada a mano y el Trusted Publisher declarado en npmjs.com.
 
 ### Decisiones cerradas
 
