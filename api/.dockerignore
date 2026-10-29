@@ -1,0 +1,29 @@
+# Dependencias y artefactos de build: la imagen los instala y compila ella misma.
+node_modules
+dist
+coverage
+.nyc_output
+
+# Configuración local y secretos: nunca dentro de la imagen.
+.env
+.env.*
+!.env.example
+
+# Los tests no se ejecutan en la imagen.
+test
+
+# Metadatos del repositorio y herramientas que la imagen no necesita.
+.git
+.gitignore
+.github
+.atl
+.claude
+memory
+**/*.md
+**/*.log
+logs
+
+# El corpus que se ingiere sí viaja en la imagen: el comando `ingest` lo lee desde ahí.
+!ingest/*.md
+
+# `database/` viaja en la imagen: las migraciones se aplican al arrancar.
