@@ -1,3 +1,4 @@
+/// <reference path="../css.d.ts" />
 import "./Chatbox.css";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { ExternalLink } from "../chat/components/ExternalLink";

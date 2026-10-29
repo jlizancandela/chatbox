@@ -90,27 +90,31 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F50` — Altura con `dvh`, `env(safe-area-inset-*)`, `font-size` ≥ 16 px en textarea (evitar zoom iOS). La altura la da el host y el tope es `100dvh`; la safe area se suma al padding base en cabecera, hilo y pie; el campo declara `max(1rem, 16px)` como suelo absoluto. Contrato con guarda de mecanismo y resolución en Chromium, y sin nivel manual (`.specs/RF-F50-viewport-movil.md`).
 - [x] `RF-F51` — Ajuste con `visualViewport` si el chat va a pantalla completa o flotante: el widget reserva en su raíz la franja que tapa el teclado —y solo si está anclado al borde inferior de la pantalla—; el pie con el campo de texto queda por encima del teclado y el hilo no pierde su final. Contrato con guarda de mecanismo y resolución en Chromium, y sin nivel manual (`.specs/RF-F51-teclado-virtual.md`, #119).
 
-## Paso 7 — Distribución como widget universal
+## Paso 7 — Distribución como paquete npm
 
 La integración con Astro será un caso de consumo, no el objetivo principal. El
-widget debe poder instalarse desde NPM o cargarse desde un CDN en Astro, HTML
-plano, React/Preact, Vue, Svelte, WordPress y otros hosts.
+widget se distribuye desde npm como **fuente** (sin `dist`, sin build al instalar): el
+bundler del sitio lo compila. El custom element cubre el consumo sin framework
+(HTML plano, CMS, WordPress) sin convertir el paquete en un bundle «universal».
 
 - [x] `RF-F64` — Variante flotante con estado contraído: el widget se ancla a la esquina inferior derecha y nace reducido a un lanzador circular de 56×56 que abre el panel. Contraer no interrumpe el turno ni borra la conversación. Cierra el formato del widget (embebido o flotante) que SPEC-FRONTEND §12.2 dejó abierto (#127, `.specs/RF-F64-modo-contraido.md`).
-- [ ] Separar la app/demo Vite del paquete distribuible.
-- [ ] Crear un paquete publicable con API y configuración estables.
-- [ ] Exponer `Chatbox` como componente Preact para consumidores con framework.
-- [ ] Exponer un custom element `<chatbox-widget>` para uso universal desde HTML.
-- [ ] Generar bundles ESM y browser/CDN, además de declaraciones TypeScript y CSS.
-- [ ] Recibir `apiUrl` y opciones mediante props/atributos; no hardcodear URLs de producción.
-- [ ] Documentar instalación y uso vía NPM, CDN, HTML plano, Astro y Preact.
-- [ ] Configurar versionado, releases y publicación en NPM.
+- [x] Separar la app/demo Vite del paquete distribuible: el tarball lleva el código del widget y nada más (`files` en `package.json`).
+- [x] Crear un paquete publicable con API y configuración estables (`@jlizancandela/chatbox`).
+- [x] Exponer `Chatbox` como componente Preact para consumidores con framework (export `.`).
+- [x] Exponer un custom element `<chatbox-widget>` para uso universal desde HTML (export `./element`).
+- [x] Recibir `apiUrl` y opciones mediante props/atributos; no hardcodear URLs de producción.
+- [x] Documentar instalación y uso vía NPM, HTML plano, Astro y Preact (`frontend/README.md`).
+- [ ] Configurar versionado, releases y publicación en NPM: la identidad del paquete está lista (`npm version` + el workflow `publish-widget.yml`), pero falta la cuenta de npm y su token (`NPM_TOKEN`).
+
+### Decisiones cerradas
+
+- [x] El paquete oficial incluye el componente Preact y el custom element, en exports separados.
+- [x] Nombre y scope: `@jlizancandela/chatbox`. El nombre de npm es irreversible.
+- [x] Sin CDN: el sitio ya se sirve desde un CDN (Netlify) y el paquete se instala con npm. Se cae la idea de bundles browser/CDN y de un paquete «universal» desde HTML plano: el custom element sobrevive como «el widget sin integrar Preact».
 
 ### Decisiones pendientes
 
-- [ ] Confirmar si el paquete oficial incluirá tanto el componente Preact como el custom element.
-- [ ] Elegir nombre y scope del paquete NPM.
-- [ ] Elegir estrategia de distribución CDN (unpkg, jsDelivr u otra).
+- [ ] Cuándo se publica la primera versión (`0.1.0`) y con qué cuenta de npm.
 
 ## Paso 8 — Pruebas y validación
 
