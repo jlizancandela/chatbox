@@ -191,7 +191,7 @@ de petición ni contenido sensible.
 
 ## La imagen de Docker
 
-La API se distribuye como imagen en Docker Hub: `jlizancandela/chatbox-api`. El tag
+La API se distribuye como imagen en Docker Hub: `jlizancandela/api_chatbox`. El tag
 `latest` apunta al último push a `main`, y cada push publica además un tag con el
 SHA del commit.
 
@@ -284,13 +284,14 @@ el balanceador da por bueno.
 
 El VPS (`/home/jorge/svr`) corre su propio `docker-compose.yml`, con Traefik
 enrutando por `Host(...)` y `cloudflared` publicando el túnel. Los servicios del
-chatbox son dos: `chatbox-api` (la imagen de Docker Hub) y `chatbox-db`
-(PostgreSQL con pgvector, con volumen nombrado).
+chatbox son dos: `chatbox-api` (el servicio, con la imagen
+`jlizancandela/api_chatbox`) y `chatbox-db` (PostgreSQL con pgvector, con volumen
+nombrado).
 
 ```yaml
 services:
   chatbox-api:
-    image: jlizancandela/chatbox-api:latest
+    image: jlizancandela/api_chatbox:latest
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.chatboxapi.rule=Host(`api.jorgelizancandela.com`)"
