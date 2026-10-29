@@ -10,6 +10,37 @@ services:
       - pgvector-data:/var/lib/postgresql
     ports:
       - "5432:5432"
+    healthcheck:
+      # La API espera a que PostgreSQL acepte conexiones: sin esto, el primer arranque
+      # choca contra la base de datos todavía arrancando.
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-chatbox}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  api:
+    image: jlizancandela/chatbox-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # La URL de la base de datos apunta al servicio de Compose, no a `localhost`:
+      # dentro de la red de Compose la base vive en `db`.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-chatbox}
+      PORT: "7000"
+      NODE_ENV: production
+    ports:
+      - "7000:7000"
 
 volumes:
   pgvector-data:

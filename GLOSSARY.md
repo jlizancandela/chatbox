@@ -3,8 +3,9 @@
 Vocabulario compartido del repositorio. Definido en RF-F61 (tema), RF-F62 (textos de
 UI), RF-F41 (región de estado), RF-F42 (contraste), RF-F43 (objetivos táctiles), RF-F44
 (movimiento reducido), RF-F45 (nombres accesibles), RF-F50 (viewport móvil), RF-F51
-(teclado virtual) y RF-F64 (variantes y estados del widget); cuando un término falte, se
-declara aquí como decisión de modelado en lugar de inventarlo en issues, specs o tests.
+(teclado virtual), RF-F64 (variantes y estados del widget) y el Paso 7 (paquete npm);
+cuando un término falte, se declara aquí como decisión de modelado en lugar de inventarlo
+en issues, specs o tests.
 
 ## Tema del widget (RF-F61)
 
@@ -222,3 +223,20 @@ declara aquí como decisión de modelado en lugar de inventarlo en issues, specs
   mismo verbo del estado.
 - **Anclaje del panel**: la esquina de la pantalla a la que se ancla la variante flotante —
   abajo a la derecha—, con la safe area sumada al margen y nunca sustituida (RF-F50).
+
+## Distribución del widget (Paso 7)
+
+- **Paquete del widget**: el tarball que npm publica desde `frontend/`. Se distribuye
+  **como fuente**: lleva el TypeScript del widget y nada más, y el bundler del sitio
+  compila. No hay `dist` ni paso de build al instalar, y el monorepo no cambia de forma.
+- **Export del paquete**: cada entrada del mapa `exports` del paquete. Son dos y están
+  separados a propósito: `.` lleva el componente `Chatbox` y `./element` lleva el custom
+  element. Quien usa el componente no carga el elemento.
+- **Custom element del widget**: `<chatbox-widget>`, la puerta de entrada para un sitio
+  que no integra Preact. No es una copia del widget: monta el mismo `Chatbox`, con las
+  mismas props.
+- **Atributo del elemento**: la forma que toma una prop cuando el widget se monta desde
+  HTML. Es kebab-case de la prop (`api-url` → `apiUrl`), con una excepción: el
+  atributo booleano `initially-expanded` declara el estado afirmativo, porque en HTML un
+  atributo booleano está presente o no está y `initially-collapsed="false"` valdría
+  `true`.

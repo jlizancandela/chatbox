@@ -66,8 +66,8 @@ npm run format    # formatear src/
 
 La organización debe hacer visible la funcionalidad de chat (Screaming
 Architecture). Todo código específico del chat debe vivir bajo `src/chat/`.
-La raíz de `src/` queda reservada para el arranque de la aplicación, estilos
-globales, assets y declaraciones de entorno.
+La raíz de `src/` queda reservada para el arranque de la aplicación, los puntos de
+entrada públicos del paquete, estilos globales, assets y declaraciones de entorno.
 
 Estructura actual y responsabilidades:
 
@@ -97,6 +97,8 @@ src/
 ├── assets/
 ├── App.tsx                 # Página por defecto: el widget contra el API real
 ├── index.tsx               # Arranque de la aplicación
+├── index.ts                # Entry público del paquete npm (export ".")
+├── element.ts              # Custom element <chatbox-widget> (export "./element")
 └── style.css               # Estilos globales
 ```
 
