@@ -3,36 +3,32 @@
 Widget de chat con **respuestas fundamentadas**: pregunta sobre un corpus documental y el
 asistente responde con lo que hay en esos documentos, citando de dónde sale cada respuesta.
 
-Es el widget que usa [jorgelizancandela.com](https://jorgelizancandela.com), publicado
-en el registro npm de **GitHub Packages** para que cualquier sitio pueda instalarlo con
-`npm i`.
+Es el widget que usa [jorgelizancandela.com](https://jorgelizancandela.com), instalable
+**directo desde este repositorio**: sin registro de paquetes, sin cuenta y sin token.
 
 ## Instalación
 
-El paquete vive en el **registro npm de GitHub Packages**, no en npmjs.org. Para
-instalarlo, el proyecto que lo consume necesita apuntar ese scope al registro de
-GitHub y autenticarse:
-
 ```bash
-# .npmrc del proyecto que consume el widget
-@jlizancandela:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+npm i github:jlizancandela/chatbox#v0.1.0
 ```
 
+Cada versión del widget es un **tag** del repositorio (`v0.1.0`, `v0.2.0`…), así que
+actualizar es cambiar el tag:
+
 ```bash
-npm i @jlizancandela/chatbox
+npm i github:jlizancandela/chatbox#v0.2.0
 ```
 
-El token es un **PAT (classic) de GitHub** con el permiso `read:packages`. GitHub
-Packages pide autenticación para instalar también los paquetes públicos, así que sin
-token no hay `npm i`.
+Lo que se instala es lo que declara el `package.json` de la raíz del repositorio: el
+componente, el custom element y sus estilos. La app de desarrollo (`frontend/src/App.tsx`,
+`index.tsx`, `style.css`) y los tests no viajan.
 
 El paquete se distribuye **como fuente**: no hay `dist` ni paso de build al instalar. El
 bundler del sitio compila el TypeScript del widget y resuelve su hoja de estilos. El
-único peer dependency es `preact`:
+único peer dependency es `preact`, que aporta el sitio:
 
 ```bash
-npm i @jlizancandela/chatbox preact
+npm i github:jlizancandela/chatbox#v0.1.0 preact
 ```
 
 ## Los dos exports
@@ -65,7 +61,7 @@ import { Chatbox } from "@jlizancandela/chatbox";
 <Chatbox apiUrl="https://api.jorgelizancandela.com" client:idle />
 ```
 
-Y la integración de Preact, con `compat` activado (ver [ Notas para quien
+Y la integración de Preact, con `compat` activado (ver [Notas para quien
 integra](#notas-para-quien-integra)):
 
 ```js
@@ -145,13 +141,16 @@ abre con el lanzador.
   `moduleResolution: "bundler"` (el valor por defecto de Astro) funciona; con
   `node16`/`nodenext` hay que apuntar a los tipos a mano.
 - **`preact` es peer dependency.** La gama es `^10.6.5 || ^11.0.0`: el widget usa la API
-  clásica de Preact y sirve con las dos.
+  clásica de Preact y sirve con las dos. El sitio aporta su copia.
+- **Instalar clona el repositorio.** Es una dependencia de git: npm trae el repo del
+  tag y se queda solo con lo que declara el `files` de la raíz. No hay registro de por
+  medio, y por eso tampoco hay actualizaciones automáticas: la versión la fija el tag.
 
 ## Desarrollo en este repositorio
 
-Este README es el que muestra npm. El día a día del repositorio —los comandos, el
-reparto de los tests y las reglas del widget— está en [`AGENTS.md`](AGENTS.md) y en
-[`TODO.md`](TODO.md).
+El manifiesto que se instala es el `package.json` de la **raíz** del repositorio. El día
+a día del widget —los comandos, el reparto de los tests y sus reglas— está en
+[`AGENTS.md`](AGENTS.md) y en [`TODO.md`](TODO.md).
 
 ## Licencia
 
