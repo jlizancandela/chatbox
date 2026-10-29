@@ -26,37 +26,45 @@ ignorado por Git y no debe versionarse ni compartirse.
 
 ### Variables de la API
 
-| Variable | Obligatoria | Valor por defecto | Uso |
-|---|---:|---|---|
-| `DATABASE_URL` | Sí | — | Conexión de la API a PostgreSQL. |
-| `GEMINI_API_KEY` | Sí | — | Generación de embeddings con Gemini. |
-| `GEMINI_EMBEDDING_MODEL` | No | `gemini-embedding-001` | Modelo de embeddings. |
-| `GEMINI_VECTOR_DIMENSION` | Sí | — | Dimensión de los vectores; debe ser `768` para este esquema. |
-| `GROQ_API_KEY` | Sí | — | Acceso al modelo generativo de Groq. |
-| `GROQ_MODEL_DEFAULT` | No | `openai/gpt-oss-20b` | Modelo usado para responder. |
-| `SIMILARITY_THRESHOLD` | No | `0.5` | Umbral de similitud coseno para recuperar contexto. |
-| `RETRIEVAL_TOP_K` | No | `5` | Número de fragmentos recuperados por pregunta. |
-| `GENERATION_TEMPERATURE` | No | `0.6` | Temperatura de la generación, entre `0` y `2`. |
-| `GENERATION_MAX_COMPLETION_TOKENS` | No | `2048` | Límite de tokens de la respuesta, razonamiento incluido. |
-| `GENERATION_REASONING_EFFORT` | No | `low` | Esfuerzo de razonamiento del modelo: `low`, `medium` o `high`. |
+| Variable | Obligatoria | Secreto | Valor por defecto | Uso |
+|---|---:|---:|---|---|
+| `DATABASE_URL` | Sí | Sí | — | Conexión de la API a PostgreSQL. |
+| `GEMINI_API_KEY` | Sí | Sí | — | Generación de embeddings con Gemini. |
+| `GEMINI_EMBEDDING_MODEL` | No | No | `gemini-embedding-001` | Modelo de embeddings. |
+| `GEMINI_VECTOR_DIMENSION` | Sí | No | — | Dimensión de los vectores; debe ser `768` para este esquema. |
+| `GROQ_API_KEY` | Sí | Sí | — | Acceso al modelo generativo de Groq. |
+| `GROQ_MODEL_DEFAULT` | No | No | `openai/gpt-oss-20b` | Modelo usado para responder. |
+| `SIMILARITY_THRESHOLD` | No | No | `0.5` | Umbral de similitud coseno para recuperar contexto. |
+| `RETRIEVAL_TOP_K` | No | No | `5` | Número de fragmentos recuperados por pregunta. |
+| `GENERATION_TEMPERATURE` | No | No | `0.6` | Temperatura de la generación, entre `0` y `2`. |
+| `GENERATION_MAX_COMPLETION_TOKENS` | No | No | `2048` | Límite de tokens de la respuesta, razonamiento incluido. |
+| `GENERATION_REASONING_EFFORT` | No | No | `low` | Esfuerzo de razonamiento del modelo: `low`, `medium` o `high`. |
+| `CORS_ORIGIN` | Sí | No | — | Único origen permitido por CORS, por ejemplo `http://localhost:3000`. |
+
+«Secreto» marca las variables cuyo valor no debe aparecer en un repositorio, en una
+imagen ni en un log: las claves de los proveedores y la URL de la base de datos, que
+lleva la contraseña dentro.
+
+Los valores con los que la API está configurada hoy, y de dónde sale cada clave real,
+viven en `api/README.local.md`: ese fichero no se versiona, porque lleva valores que
+no deben salir de la máquina.
 
 El límite de tokens incluye el razonamiento del modelo: con un esfuerzo alto, el
 modelo puede gastar el presupuesto antes de responder y devolver la respuesta
 vacía. `GENERATION_MAX_COMPLETION_TOKENS` tiene que cubrir las dos cosas. Con
 `low`, el razonamiento de una pregunta del widget son unos pocos tokens; con
 `medium` (el valor por defecto del proveedor) son del orden de varios cientos.
-| `CORS_ORIGIN` | Sí | — | Único origen permitido por CORS, por ejemplo `http://localhost:3000`. |
 
 ### Variables de Docker Compose
 
 Estas variables configuran el contenedor de PostgreSQL definido en
 `compose.yaml`:
 
-| Variable | Obligatoria | Valor por defecto | Uso |
-|---|---:|---|---|
-| `POSTGRES_USER` | No | `postgres` | Usuario creado en PostgreSQL. |
-| `POSTGRES_PASSWORD` | Sí | — | Contraseña del usuario de PostgreSQL. |
-| `POSTGRES_DB` | No | `chatbox` | Base de datos creada. |
+| Variable | Obligatoria | Secreto | Valor por defecto | Uso |
+|---|---:|---:|---|---|
+| `POSTGRES_USER` | No | No | `postgres` | Usuario creado en PostgreSQL. |
+| `POSTGRES_PASSWORD` | Sí | Sí | — | Contraseña del usuario de PostgreSQL. |
+| `POSTGRES_DB` | No | No | `chatbox` | Base de datos creada. |
 
 `DATABASE_URL` debe apuntar al mismo usuario, contraseña, host, puerto y base de
 datos que utiliza Compose. `api/.env.example` contiene una plantilla segura con
@@ -82,6 +90,22 @@ pnpm db:migrate
 Las migraciones se encuentran en `database/migrations/`, se ejecutan en orden
 por nombre y quedan registradas en la tabla `pgmigrations`. Es seguro volver a
 ejecutar el comando: solo se aplican las migraciones pendientes.
+
+> **Una base de datos con una migración que ya no está en el directorio se queda
+> atascada.** `node-pg-migrate` compara la lista de migraciones aplicadas con la
+> lista de ficheros por posición, así que un registro huérfano en `pgmigrations`
+> —una migración que se aplicó en su día y luego se borró del repositorio— impide
+> aplicar cualquier otra. El caso real del repositorio es `004_conversation_history`,
+> que se eliminó al quitar el historial en el servidor y dejó su fila en las bases
+> de datos que lo:applyaron. La salida es borrar esa fila:
+>
+> ```sql
+> DELETE FROM pgmigrations WHERE name = '004_conversation_history';
+> ```
+>
+> La migración que la acompaña, `005_drop_conversation_history`, hace el resto
+> (`DROP TABLE IF EXISTS`) y no deja rastro.
+
 
 La migración de embeddings cambia el esquema de `vector(384)` a `vector(768)`.
 Los embeddings antiguos no se pueden convertir de forma segura, por lo que esa
@@ -164,6 +188,145 @@ pnpm start
 
 Los comandos de arranque usan logging mínimo (`warn`) para no registrar cuerpos
 de petición ni contenido sensible.
+
+## La imagen de Docker
+
+La API se distribuye como imagen en Docker Hub: `jlizancandela/chatbox-api`. El tag
+`latest` apunta al último push a `main`, y cada push publica además un tag con el
+SHA del commit.
+
+La imagen lleva el TypeScript ya compilado, las dependencias de producción, las
+migraciones y el corpus que se ingiere. Arranca como un usuario sin privilegios
+(`node`), escucha en `$PORT` y comprueba su salud contra `/health`.
+
+### Variables de la imagen
+
+Además de las variables de la API, la imagen lee:
+
+| Variable | Obligatoria | Valor por defecto | Uso |
+|---|---:|---|---|
+| `PORT` | No | `7000` | Puerto en el que escucha la API. |
+| `SKIP_MIGRATIONS` | No | `0` | Con `1`, el contenedor arranca **sin** aplicar migraciones. |
+| `NODE_ENV` | No | `production` | Modo de ejecución. |
+
+Las claves de los proveedores no están en la imagen: viajan por variables de
+entorno, igual que en local.
+
+### Con Compose
+
+`compose.yaml` levanta la API y PostgreSQL con pgvector, aplica las migraciones y
+espera a que la base de datos esté lista:
+
+```bash
+cp .env.example .env   # y rellena los secretos
+docker compose up -d --build
+curl http://localhost:7000/health
+```
+
+La API queda en `http://localhost:7000` y la base de datos en `5432`. El servicio
+`api` depende de `db` con `condition: service_healthy`: sin ese healthcheck, el
+primer arranque choca contra una base de datos que todavía está arrancando.
+
+### Con Docker a pelo
+
+```bash
+docker build -t chatbox-api:test api/
+docker run --rm -p 7000:7000 \
+  -e DATABASE_URL=postgresql://postgres:change-me@host.docker.internal:5432/chatbox \
+  -e GEMINI_API_KEY=... \
+  -e GEMINI_VECTOR_DIMENSION=768 \
+  -e GROQ_API_KEY=... \
+  -e CORS_ORIGIN=https://jorgelizancandela.com \
+  chatbox-api:test
+```
+
+### Migraciones
+
+El contenedor aplica las migraciones pendientes antes de arrancar. Es seguro
+repetirlo: `node-pg-migrate` solo aplica lo que falta.
+
+Con más de una réplica, las migraciones tienen que correr una sola vez. Para eso
+está `SKIP_MIGRATIONS`: con `1`, el contenedor arranca sin tocar el esquema y
+espera a que otro lo haga.
+
+```bash
+docker compose run --rm -e SKIP_MIGRATIONS=1 api start
+```
+
+### Ingesta
+
+El comando `ingest` lee el corpus que viaja en la imagen y lo graba en la base de
+datos:
+
+```bash
+docker compose run --rm api ingest curriculum-jorge-lizan.md
+docker compose run --rm api ingest curriculum-jorge-lizan.md informe-github-jlizancandela.md
+```
+
+Sin nombres, ingiere todo el corpus de la imagen:
+
+```bash
+docker compose run --rm api ingest
+```
+
+### Healthcheck
+
+La imagen declara un `HEALTHCHECK` contra `/health`:
+
+```bash
+docker inspect --format '{{.State.Health.Status}}' <contenedor>
+```
+
+Un contenedor `healthy` es el que responde `{"status":"ok"}` en `/health` y el que
+el balanceador da por bueno.
+
+### En el VPS
+
+El VPS (`/home/jorge/svr`) corre su propio `docker-compose.yml`, con Traefik
+enrutando por `Host(...)` y `cloudflared` publicando el túnel. Los servicios del
+chatbox son dos: `chatbox-api` (la imagen de Docker Hub) y `chatbox-db`
+(PostgreSQL con pgvector, con volumen nombrado).
+
+```yaml
+services:
+  chatbox-api:
+    image: jlizancandela/chatbox-api:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chatboxapi.rule=Host(`api.jorgelizancandela.com`)"
+      - "traefik.http.routers.chatboxapi.entrypoints=web"
+      - "traefik.http.services.chatboxapi.loadbalancer.server.port=7000"
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@chatbox-db:5432/chatbox
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_VECTOR_DIMENSION: "768"
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      CORS_ORIGIN: https://jorgelizancandela.com
+    depends_on:
+      - chatbox-db
+    networks:
+      - traefik-public
+    restart: always
+
+  chatbox-db:
+    image: pgvector/pgvector:pg18
+    volumes:
+      - chatbox-db-data:/var/lib/postgresql
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: chatbox
+    restart: always
+```
+
+El despliegue es el de siempre: `just deploy` tira de la imagen y levanta el
+stack. La primera vez, el corpus se ingiere a mano:
+
+```bash
+docker compose run --rm chatbox-api ingest
+```
+
+El hostname `api.jorgelizancandela.com` se declara en el panel de Cloudflare: el
+túnel corre con `--token` y sus ingress no viven en un fichero.
 
 ## Llamada a `POST /api/chat`
 

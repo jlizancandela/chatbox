@@ -5,6 +5,9 @@
 !.env.sample
 *.local
 
+# Valores reales de las variables del API: local, nunca versionados.
+api/README.local.md
+
 # Dependencies
 node_modules/
 .pnpm-store/
