@@ -4,13 +4,28 @@ Widget de chat con **respuestas fundamentadas**: pregunta sobre un corpus docume
 asistente responde con lo que hay en esos documentos, citando de dónde sale cada respuesta.
 
 Es el widget que usa [jorgelizancandela.com](https://jorgelizancandela.com), publicado
-para que cualquier sitio pueda instalarlo con `npm i`.
+en el registro npm de **GitHub Packages** para que cualquier sitio pueda instalarlo con
+`npm i`.
 
 ## Instalación
+
+El paquete vive en el **registro npm de GitHub Packages**, no en npmjs.org. Para
+instalarlo, el proyecto que lo consume necesita apuntar ese scope al registro de
+GitHub y autenticarse:
+
+```bash
+# .npmrc del proyecto que consume el widget
+@jlizancandela:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
+```
 
 ```bash
 npm i @jlizancandela/chatbox
 ```
+
+El token es un **PAT (classic) de GitHub** con el permiso `read:packages`. GitHub
+Packages pide autenticación para instalar también los paquetes públicos, así que sin
+token no hay `npm i`.
 
 El paquete se distribuye **como fuente**: no hay `dist` ni paso de build al instalar. El
 bundler del sitio compila el TypeScript del widget y resuelve su hoja de estilos. El
