@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { buildChatRequest } from "../domain/conversation";
+import { buildChatRequest, dropClosedTurn } from "../domain/conversation";
 import { chatErrors, isAbortError } from "../infrastructure/chat-errors";
 import type { ChatEvent } from "../infrastructure/sse";
 import { readChatEvents, requestChatStream } from "../infrastructure/stream-transport";
@@ -123,8 +123,9 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 		endTurn({ kind: "failed", error });
 	};
 
+	// Abortar y fallar se guardan igual: lo que se mostró se confirma como mensaje (#145).
 	const abortWith = (): void => {
-		options.chat.abortTurn();
+		options.chat.abortTurn(active?.assistantText);
 		endTurn({ kind: "aborted" });
 	};
 
@@ -208,7 +209,12 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 
 		let request: ReturnType<typeof buildChatRequest>;
 		try {
-			request = buildChatRequest(text, options.chat.state.context);
+			// Reintentar repite la misma pregunta: el intento fallido que se acaba de cerrar
+			// no puede viajar otra vez en el historial (#145).
+			const history = retry
+				? dropClosedTurn(options.chat.state.context, text)
+				: options.chat.state.context;
+			request = buildChatRequest(text, history);
 		} catch {
 			failWith(chatErrors.invalidQuestion());
 			return;

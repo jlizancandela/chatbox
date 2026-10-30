@@ -20,8 +20,8 @@ const createChat = (): HookChatController => {
 		receiveSources: (sources, history) => dispatch({ type: "sources-received", sources, history }),
 		receiveToken: (token) => dispatch({ type: "token-received", token }),
 		completeTurn: () => dispatch({ type: "turn-completed" }),
-		failTurn: (error) => dispatch({ type: "turn-failed", error }),
-		abortTurn: () => dispatch({ type: "turn-aborted" }),
+		failTurn: (error, response) => dispatch({ type: "turn-failed", error, response }),
+		abortTurn: (response) => dispatch({ type: "turn-aborted", response }),
 		restore: (conversation) => dispatch({ type: "state-restored", state: conversation }),
 		reset: () => dispatch({ type: "conversation-reset" }),
 	};
@@ -103,7 +103,7 @@ describe("useChatStream runner", () => {
 		]);
 	});
 
-	it("finishes without adding a response when there is no context", async () => {
+	it("keeps the question in the context when the assistant answers nothing", async () => {
 		const chat = createChat();
 		const runner = createRunner(
 			chat,
@@ -113,8 +113,8 @@ describe("useChatStream runner", () => {
 		await runner.run("Pregunta fuera del perfil");
 
 		expect(chat.state.turnState).toBe("idle");
-		expect(chat.state.messages).toHaveLength(1);
-		expect(chat.state.context).toEqual([]);
+		expect(chat.state.messages).toEqual([{ role: "user", content: "Pregunta fuera del perfil" }]);
+		expect(chat.state.context).toEqual([{ role: "user", content: "Pregunta fuera del perfil" }]);
 	});
 
 	it.each([400, 413, 429, 500])("maps HTTP %s to a local error", async (status) => {
@@ -138,7 +138,7 @@ describe("useChatStream runner", () => {
 		);
 	});
 
-	it("keeps partial text out of context after a stream error", async () => {
+	it("commits the partial text that was already shown when the stream fails", async () => {
 		const chat = createChat();
 		const runner = createRunner(
 			chat,
@@ -156,9 +156,43 @@ describe("useChatStream runner", () => {
 		await runner.run("Pregunta");
 
 		expect(chat.state.turnState).toBe("error");
-		expect(chat.state.currentResponse).toBe("Parcial");
-		expect(chat.state.context).toEqual([]);
+		expect(chat.state.currentResponse).toBe("");
+		expect(chat.state.messages).toEqual([
+			{ role: "user", content: "Pregunta" },
+			{ role: "assistant", content: "Parcial" },
+		]);
+		expect(chat.state.context).toEqual([
+			{ role: "user", content: "Pregunta" },
+			{ role: "assistant", content: "Parcial" },
+		]);
 		expect(chat.state.error?.message).toBe("No he podido completar la respuesta.");
+	});
+
+	it("retries without sending the turn that failed twice", async () => {
+		const chat = createChat();
+		const fetchImpl = vi
+			.fn()
+			.mockResolvedValueOnce(new Response(null, { status: 500 }))
+			.mockResolvedValueOnce(responseFor(sourceFrame(), tokenFrame("Completa"), doneFrame));
+		const runner = createRunner(chat, fetchImpl).runner;
+
+		await runner.run("Pregunta");
+		expect(chat.state.context).toEqual([{ role: "user", content: "Pregunta" }]);
+
+		await runner.retry("Pregunta");
+
+		const retriedBody = JSON.parse((fetchImpl.mock.calls[1][1] as RequestInit).body as string) as {
+			history: unknown[];
+		};
+		expect(retriedBody.history).toEqual([]);
+		expect(chat.state.messages).toEqual([
+			{ role: "user", content: "Pregunta" },
+			{ role: "assistant", content: "Completa" },
+		]);
+		expect(chat.state.context).toEqual([
+			{ role: "user", content: "Pregunta" },
+			{ role: "assistant", content: "Completa" },
+		]);
 	});
 
 	it("aborts an active request without treating it as a network error", async () => {
@@ -181,7 +215,46 @@ describe("useChatStream runner", () => {
 
 		expect(chat.state.turnState).toBe("aborted");
 		expect(chat.state.error).toBeNull();
-		expect(chat.state.context).toEqual([]);
+		expect(chat.state.context).toEqual([{ role: "user", content: "Pregunta" }]);
+	});
+
+	it("keeps the partial answer that was shown when the user stops the turn", async () => {
+		const chat = createChat();
+		const fetchImpl = vi
+			.fn()
+			.mockImplementation((_input: RequestInfo | URL, init?: RequestInit) => {
+				const stream = new ReadableStream<Uint8Array>({
+					start(controller) {
+						controller.enqueue(new TextEncoder().encode(sourceFrame()));
+						controller.enqueue(new TextEncoder().encode(tokenFrame("Parcial")));
+						// El cuerpo se queda abierto: el turno solo termina cuando la persona lo
+						// detiene, y entonces la lectura del stream falla como en un navegador.
+						init?.signal?.addEventListener("abort", () => {
+							controller.error(new DOMException("Aborted", "AbortError"));
+						});
+					},
+				});
+
+				return Promise.resolve(
+					new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } })
+				);
+			});
+		const runner = createRunner(chat, fetchImpl as unknown as typeof fetch).runner;
+		const request = runner.run("Pregunta");
+
+		await vi.waitFor(() => expect(chat.state.currentResponse).toBe("Parcial"));
+		runner.abort();
+		await request;
+
+		expect(chat.state.turnState).toBe("aborted");
+		expect(chat.state.messages).toEqual([
+			{ role: "user", content: "Pregunta" },
+			{ role: "assistant", content: "Parcial" },
+		]);
+		expect(chat.state.context).toEqual([
+			{ role: "user", content: "Pregunta" },
+			{ role: "assistant", content: "Parcial" },
+		]);
 	});
 
 	it("times out an inactive request", async () => {
@@ -219,7 +292,10 @@ describe("useChatStream runner", () => {
 		await runner.run("Pregunta");
 
 		expect(chat.state.error?.code).toBe("INCOMPLETE_STREAM");
-		expect(chat.state.context).toEqual([]);
+		expect(chat.state.context).toEqual([
+			{ role: "user", content: "Pregunta" },
+			{ role: "assistant", content: "Parcial" },
+		]);
 	});
 });
 

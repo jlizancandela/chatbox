@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	buildChatRequest,
+	dropClosedTurn,
 	HISTORY_MAX_MESSAGE_CHARS,
 	HISTORY_MAX_MESSAGES,
 	HISTORY_MAX_TOTAL_CHARS,
@@ -68,5 +69,34 @@ describe("conversation rules", () => {
 		history[0].content = "changed";
 
 		expect(merged).toEqual([message("user", "canonical")]);
+	});
+});
+
+describe("dropClosedTurn", () => {
+	it("removes the question and the answer of the closed turn", () => {
+		const context = [
+			message("user", "anterior"),
+			message("assistant", "respuesta anterior"),
+			message("user", "pregunta"),
+			message("assistant", "parcial"),
+		];
+
+		expect(dropClosedTurn(context, "pregunta")).toEqual([
+			message("user", "anterior"),
+			message("assistant", "respuesta anterior"),
+		]);
+	});
+
+	it("removes a question that was closed without an answer", () => {
+		const context = [message("user", "anterior"), message("user", "pregunta")];
+
+		expect(dropClosedTurn(context, "pregunta")).toEqual([message("user", "anterior")]);
+	});
+
+	it("leaves a turn it does not own untouched", () => {
+		const context = [message("user", "anterior"), message("assistant", "respuesta anterior")];
+
+		expect(dropClosedTurn(context, "otra")).toEqual(context);
+		expect(dropClosedTurn(context, null)).toEqual(context);
 	});
 });

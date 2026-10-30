@@ -178,6 +178,12 @@ detenida"*) porque hoy no existe copy de aborto. Recordar que en un aborto el te
 **desaparece** de la vista (`ChatMessages` solo muestra `currentResponse` mientras hay
 turno activo): el anuncio no debe prometer un texto que ya no está en pantalla.
 
+> *Enmienda (2026-10-30, issue #145):* el parcial ya **no** desaparece al abortar: se
+> confirma como mensaje y queda en el hilo y en el contexto (ver
+> `145-turno-vacio-y-abort.md`). El texto de la región no cambia —sigue siendo
+> `strings.messages.stopped`—, pero ahora sí hay un texto visible que lo acompaña. La
+> frase anterior describe el comportamiento que había antes de esa issue.
+
 ## Alternativas rechazadas
 
 - **Derivar el anuncio del estado** en un `useEffect`: es el diseño actual. Es el que

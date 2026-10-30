@@ -98,6 +98,33 @@ export const trimHistory = (
 export const mergeContext = (sourcesHistory: readonly ChatMessage[]): ChatMessage[] =>
 	sourcesHistory.filter(isChatMessage).map(copyMessage);
 
+/**
+ * Quita del historial el turno que acaba de cerrarse: la respuesta que lo acompañó, si la
+ * hubo, y la pregunta que lo abrió. Reintentar vuelve a enviar la misma pregunta, así que
+ * su rastro no puede quedarse dos veces (#145).
+ */
+export const dropClosedTurn = (
+	context: readonly ChatMessage[],
+	question: string | null
+): ChatMessage[] => {
+	if (question === null) {
+		return context.map(copyMessage);
+	}
+
+	const last = context.at(-1);
+	const before = context.at(-2);
+
+	if (before?.role === "user" && before.content === question && last?.role === "assistant") {
+		return context.slice(0, -2).map(copyMessage);
+	}
+
+	if (last?.role === "user" && last.content === question) {
+		return context.slice(0, -1).map(copyMessage);
+	}
+
+	return context.map(copyMessage);
+};
+
 export const buildChatRequest = (
 	text: string,
 	context: readonly ChatMessage[],
