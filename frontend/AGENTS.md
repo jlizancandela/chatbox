@@ -158,7 +158,7 @@ La respuesta correcta es `text/event-stream` con esta secuencia:
 | `sources` | `{ sources, history }` | Guardar fuentes y sincronizar el contexto canónico. |
 | `token` | `{ token }` | Añadir texto a la respuesta en curso. |
 | `done` | `{}` | Cerrar el turno correctamente. |
-| `error` | `{ message }` | Mostrar un error propio, nunca el mensaje interno. |
+| `error` | `{ code, message, retryAfterSeconds? }` | Mostrar un error propio, nunca el mensaje interno. `QUOTA_EXHAUSTED` tiene texto propio; el resto cae en el genérico. |
 
 Sin contexto suficiente, el API envía `sources: []` y `done`, sin tokens. El
 frontend debe mostrar el mensaje local definido por la especificación.

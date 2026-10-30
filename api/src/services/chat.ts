@@ -14,11 +14,30 @@ export type ChatSource = {
 	distance: number;
 };
 
+/**
+ * Por qué falló la generación, según el estado que devolvió el proveedor.
+ *
+ * El cliente decide el texto; el servidor solo clasifica. `QUOTA_EXHAUSTED` se separa del
+ * resto porque la respuesta correcta no es "algo se rompió" sino "vuelve más tarde" (#144).
+ */
+export type GenerationErrorCode = "GENERATION_FAILED" | "QUOTA_EXHAUSTED";
+
 export type ChatEvent =
 	| { type: "sources"; sources: ChatSource[]; history: ChatMessage[] }
 	| { type: "token"; token: string }
 	| { type: "done" }
-	| { type: "error"; message: string };
+	| {
+			type: "error";
+			code: GenerationErrorCode;
+			message: string;
+			retryAfterSeconds?: number;
+	  };
+
+/** Lo que se sabe de un fallo de generación antes de construir el evento. */
+type GenerationFailure = {
+	code: GenerationErrorCode;
+	retryAfterSeconds?: number;
+};
 
 export type ChatMessage = {
 	role: "system" | "user" | "assistant";
@@ -48,6 +67,68 @@ export type AskStreamOptions = {
 
 const GENERIC_ERROR_MESSAGE =
 	"An unexpected error occurred while generating the answer";
+
+/** Cuota agotada, tal como la reporta el proveedor: `429 Too Many Requests`. */
+const QUOTA_EXHAUSTED_STATUS = 429;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+	typeof value === "object" && value !== null;
+
+/** `Headers` de fetch o un objeto plano: el proveedor puede dar cualquiera de los dos. */
+const headerValue = (headers: unknown, name: string): string | null => {
+	if (!isRecord(headers)) {
+		return null;
+	}
+
+	const get = (headers as { get?: unknown }).get;
+
+	if (typeof get === "function") {
+		const value = get.call(headers, name) as unknown;
+		return typeof value === "string" ? value : null;
+	}
+
+	const value = headers[name];
+	return typeof value === "string" ? value : null;
+};
+
+const retryAfterSeconds = (headers: unknown): number | undefined => {
+	const raw = headerValue(headers, "retry-after");
+
+	if (raw === null) {
+		return undefined;
+	}
+
+	const seconds = Number(raw);
+	return Number.isInteger(seconds) && seconds >= 0 ? seconds : undefined;
+};
+
+/**
+ * Clasifica un fallo del proveedor por su **estado**, no por el texto del mensaje: el texto
+ * cambia entre proveedores y versiones, el estado no. La información de reintento se
+ * conserva cuando viene, para que el cliente pueda decidir qué decir o cuándo reintentar.
+ */
+const classifyGenerationError = (error: unknown): GenerationFailure => {
+	if (isRecord(error) && error.status === QUOTA_EXHAUSTED_STATUS) {
+		const retryAfter = retryAfterSeconds(error.headers);
+
+		return retryAfter === undefined
+			? { code: "QUOTA_EXHAUSTED" }
+			: { code: "QUOTA_EXHAUSTED", retryAfterSeconds: retryAfter };
+	}
+
+	return { code: "GENERATION_FAILED" };
+};
+
+/**
+ * El evento de error del stream. El mensaje es siempre el genérico: el código es lo que
+ * distingue la cuota, y ni uno ni otro revelan la causa interna (#144). Sin error —o con uno
+ * sin estado de proveedor— el resultado es el genérico.
+ */
+export const generationErrorEvent = (error?: unknown): ChatEvent => ({
+	type: "error",
+	message: GENERIC_ERROR_MESSAGE,
+	...classifyGenerationError(error),
+});
 
 const systemPrompt = (context: string): string =>
 	`Respondes preguntas sobre Jorge Lizan Candela, desarrollador web.
@@ -190,7 +271,7 @@ export const createAskStream =
 		try {
 			sources = await retrieve(question);
 		} catch {
-			yield { type: "error", message: GENERIC_ERROR_MESSAGE };
+			yield generationErrorEvent();
 			return;
 		}
 
@@ -225,11 +306,11 @@ export const createAskStream =
 			}
 
 			yield { type: "done" };
-		} catch {
+		} catch (caught) {
 			if (signal?.aborted) {
 				return;
 			}
-			yield { type: "error", message: GENERIC_ERROR_MESSAGE };
+			yield generationErrorEvent(caught);
 		}
 	};
 

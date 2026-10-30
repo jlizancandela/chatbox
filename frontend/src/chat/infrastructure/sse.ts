@@ -1,6 +1,13 @@
 import { createParser, type EventSourceMessage } from "eventsource-parser";
 import { isChatSource } from "../domain/sources";
-import type { ChatMessage, DoneEvent, ErrorEvent, SourcesEvent, TokenEvent } from "../types";
+import type {
+	ChatMessage,
+	DoneEvent,
+	ErrorEvent,
+	SourcesEvent,
+	StreamErrorCode,
+	TokenEvent,
+} from "../types";
 
 export type ChatEvent = SourcesEvent | TokenEvent | DoneEvent | ErrorEvent;
 
@@ -16,6 +23,12 @@ const isChatMessage = (value: unknown): value is ChatMessage =>
 	isRecord(value) &&
 	(value.role === "user" || value.role === "assistant") &&
 	typeof value.content === "string";
+
+const isStreamErrorCode = (value: unknown): value is StreamErrorCode =>
+	value === "GENERATION_FAILED" || value === "QUOTA_EXHAUSTED";
+
+const isRetryAfterSeconds = (value: unknown): value is number =>
+	typeof value === "number" && Number.isInteger(value) && value >= 0;
 
 const parseEvent = (event: EventSourceMessage): ChatEvent | null => {
 	let payload: unknown;
@@ -54,12 +67,22 @@ const parseEvent = (event: EventSourceMessage): ChatEvent | null => {
 		case "done":
 			return { type: "done" } satisfies DoneEvent;
 
-		case "error":
+		case "error": {
 			if (!isRecord(payload) || typeof payload.message !== "string") {
 				return null;
 			}
 
-			return { type: "error", message: payload.message } satisfies ErrorEvent;
+			// El código es lo único que distingue la cuota; un valor desconocido o ausente
+			// (servidor anterior al contrato) cae en el genérico en vez de perder el error.
+			const retryAfterSeconds = payload.retryAfterSeconds;
+
+			return {
+				type: "error",
+				code: isStreamErrorCode(payload.code) ? payload.code : "GENERATION_FAILED",
+				message: payload.message,
+				...(isRetryAfterSeconds(retryAfterSeconds) ? { retryAfterSeconds } : {}),
+			} satisfies ErrorEvent;
+		}
 
 		default:
 			return null;

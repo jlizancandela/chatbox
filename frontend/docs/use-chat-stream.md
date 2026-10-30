@@ -365,10 +365,7 @@ for (const event of events) {
       break;
 
     case "error":
-      chat.failTurn({
-        code: "STREAM_ERROR",
-        message: "No he podido completar la respuesta.",
-      });
+      chat.failTurn(chatErrors.streamEvent(event));
       break;
   }
 }
@@ -419,8 +416,10 @@ contexto. La interfaz mostrará después el mensaje local de “no lo tengo”.
 
 ### Evento `error`
 
-El texto recibido en `event.message` no se muestra directamente. El hook lo
-convierte a un error de interfaz genérico.
+El texto recibido en `event.message` no se muestra directamente. El código
+`event.code` decide el error de interfaz: `QUOTA_EXHAUSTED` tiene su propio
+mensaje ("el asistente está ocupado", no "algo falló") y el resto cae en el
+genérico. `retryAfterSeconds` viaja con el error cuando el proveedor lo da.
 
 ## 9. Agrupación de tokens con `requestAnimationFrame`
 

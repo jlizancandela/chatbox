@@ -1,6 +1,11 @@
 export type ChatError = {
 	code: string;
 	message: string;
+	/**
+	 * Lo que el proveedor dijo que hay que esperar antes de reintentar. Se conserva para que
+	 * la interfaz pueda decidir qué decir; no se usa para reintentar sola (#144).
+	 */
+	retryAfterSeconds?: number;
 };
 
 export type ChatMessage = {
@@ -40,9 +45,17 @@ export type DoneEvent = {
 	type: "done";
 };
 
+/**
+ * Por qué falló el stream, tal como lo clasifica el servidor. Son valores de contrato, no
+ * texto: el mensaje que ve el visitante lo elige el cliente (RF-F14).
+ */
+export type StreamErrorCode = "GENERATION_FAILED" | "QUOTA_EXHAUSTED";
+
 export type ErrorEvent = {
 	type: "error";
+	code: StreamErrorCode;
 	message: string;
+	retryAfterSeconds?: number;
 };
 
 export type TurnState = "idle" | "connecting" | "generating" | "streaming" | "error" | "aborted";

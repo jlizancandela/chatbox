@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { chatReducer, createInitialChatState } from "../../../../src/chat/application/chat-reducer";
 import type { ChatController as HookChatController } from "../../../../src/chat/hooks/useChat";
 import { createChatStreamRunner, type TurnEnd } from "../../../../src/chat/hooks/useChatStream";
+import { strings } from "../../../../src/strings.es";
 
 const createChat = (): HookChatController => {
 	let state = createInitialChatState();
@@ -316,6 +317,20 @@ describe("useChatStream runner — turn end events (RF-F41)", () => {
 			question: "Pregunta",
 		},
 		{
+			scenario: "cuota agotada del proveedor",
+			code: "QUOTA_EXHAUSTED",
+			fetchImpl: vi
+				.fn()
+				.mockResolvedValue(
+					responseFor(
+						sourceFrame(),
+						tokenFrame("Parcial"),
+						'event: error\ndata: {"code":"QUOTA_EXHAUSTED","message":"internal detail","retryAfterSeconds":42}\n\n'
+					)
+				),
+			question: "Pregunta",
+		},
+		{
 			scenario: "stream cerrado antes de done",
 			code: "INCOMPLETE_STREAM",
 			fetchImpl: vi.fn().mockResolvedValue(responseFor(sourceFrame(), tokenFrame("Parcial"))),
@@ -333,6 +348,31 @@ describe("useChatStream runner — turn end events (RF-F41)", () => {
 			expect(events[0].kind === "failed" && events[0].error.code).toBe(code);
 		}
 	);
+
+	it("keeps the provider's retry hint in the failed turn", async () => {
+		// El dato existe para poder decir algo cierto ("vuelve en un minuto") en vez de
+		// inventarlo o tirarlo. Aquí se afirma que llega al desenlace del turno (#144).
+		const fetchImpl = vi
+			.fn()
+			.mockResolvedValue(
+				responseFor(
+					sourceFrame(),
+					'event: error\ndata: {"code":"QUOTA_EXHAUSTED","message":"internal detail","retryAfterSeconds":42}\n\n'
+				)
+			);
+		const { runner, events } = createRunner(createChat(), fetchImpl as unknown as typeof fetch);
+
+		await runner.run("Pregunta");
+
+		expect(events[0]).toEqual({
+			kind: "failed",
+			error: {
+				code: "QUOTA_EXHAUSTED",
+				message: strings.errors.QUOTA_EXHAUSTED,
+				retryAfterSeconds: 42,
+			},
+		});
+	});
 
 	it("emits exactly one aborted event when the user stops the turn", async () => {
 		const { runner, events } = createRunner(createChat(), hangingFetch());

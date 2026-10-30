@@ -8,7 +8,11 @@ import "../../plugins/db";
 import "../../plugins/embedding";
 import "../../plugins/groq";
 import { chatOptions } from "../../schemas/chat";
-import { chatService, type ChatEvent } from "../../services/chat";
+import {
+	chatService,
+	generationErrorEvent,
+	type ChatEvent,
+} from "../../services/chat";
 
 const SSE_HEADERS = {
 	"content-type": "text/event-stream",
@@ -31,18 +35,35 @@ const encodeEvent = (event: ChatEvent): string => {
 			data = {};
 			break;
 		case "error":
-			data = { message: event.message };
+			data =
+				event.retryAfterSeconds === undefined
+					? { code: event.code, message: event.message }
+					: {
+							code: event.code,
+							message: event.message,
+							retryAfterSeconds: event.retryAfterSeconds,
+						};
 			break;
 	}
 
 	return `event: ${event.type}\ndata: ${JSON.stringify(data)}\n\n`;
 };
 
-const toSSE = async function* (
+/**
+ * El stream es total: lo que lance el origen de eventos se convierte en un frame `error` de
+ * cierre. Dejar que el fallo suba al manejador de errores significa intentar un cuerpo JSON
+ * sobre una respuesta ya empezada, y eso no es una respuesta: es una conexión cortada sin
+ * explicación (#144).
+ */
+export const toSSE = async function* (
 	events: AsyncIterable<ChatEvent>,
 ): AsyncIterable<string> {
-	for await (const event of events) {
-		yield encodeEvent(event);
+	try {
+		for await (const event of events) {
+			yield encodeEvent(event);
+		}
+	} catch {
+		yield encodeEvent(generationErrorEvent());
 	}
 };
 

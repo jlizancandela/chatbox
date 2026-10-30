@@ -1,10 +1,19 @@
 import { strings } from "../../strings.es";
-import type { ChatError } from "../types";
+import type { ChatError, ErrorEvent } from "../types";
 
 type ErrorCode = keyof typeof strings.errors;
 
 // Cada error nace de su clave en el módulo de textos: aquí no vive ninguna redacción (RF-F62).
 const error = (code: ErrorCode): ChatError => ({ code, message: strings.errors[code] });
+
+/**
+ * Cuota agotada. El servidor solo manda el código; el texto lo decide el widget, y el aviso
+ * de reintento viaja con el error para que no se pierda por el camino (#144).
+ */
+const quota = (retryAfterSeconds?: number): ChatError => ({
+	...error("QUOTA_EXHAUSTED"),
+	...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
+});
 
 export const chatErrors = {
 	http(status: number): ChatError {
@@ -21,6 +30,9 @@ export const chatErrors = {
 	},
 	network: (): ChatError => error("NETWORK_ERROR"),
 	stream: (): ChatError => error("STREAM_ERROR"),
+	/** El evento `error` del stream, traducido por su código: cuota vs fallo genérico. */
+	streamEvent: (event: ErrorEvent): ChatError =>
+		event.code === "QUOTA_EXHAUSTED" ? quota(event.retryAfterSeconds) : error("STREAM_ERROR"),
 	incomplete: (): ChatError => error("INCOMPLETE_STREAM"),
 	timeout: (): ChatError => error("TIMEOUT"),
 	invalidQuestion: (): ChatError => error("QUESTION_INVALID"),

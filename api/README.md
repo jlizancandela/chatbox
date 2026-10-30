@@ -392,7 +392,7 @@ lugar de esperar al resultado completo.
 | `sources` | `{"sources":[...]}` | Fragmentos recuperados; se emite antes de llamar a Groq. |
 | `token` | `{"token":"..."}` | Fragmento de la respuesta generada por el modelo. |
 | `done` | `{}` | Fin del stream. |
-| `error` | `{"message":"..."}` | Error durante el stream (no filtra detalles internos). |
+| `error` | `{"code":"GENERATION_FAILED" \| "QUOTA_EXHAUSTED","message":"...","retryAfterSeconds":42}` | Error durante el stream (no filtra detalles internos). `QUOTA_EXHAUSTED` es cuota agotada del proveedor; `retryAfterSeconds` solo aparece si el proveedor lo da. |
 
 Secuencia normal: `sources`, uno o más `token`, `done`. Sin contexto
 suficiente, la API no invoca al modelo generativo y emite únicamente

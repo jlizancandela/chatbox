@@ -116,9 +116,64 @@ test('chat stream emits a generic error when Groq fails after sources', async (t
   assert.equal(frames[0].event, 'sources')
   assert.equal(frames[frames.length - 1].event, 'error')
   assert.deepStrictEqual(frames[frames.length - 1].data, {
+    code: 'GENERATION_FAILED',
     message: 'An unexpected error occurred while generating the answer'
   })
   assert.equal(res.payload.includes('provider secret that must not leak'), false)
+})
+
+test('chat stream classifies an exhausted quota and keeps the retry hint', async (t) => {
+  // La cuota se reconoce por el estado del proveedor, no por el texto: 429. El visitante
+  // necesita un código propio porque la respuesta correcta es "vuelve más tarde", no
+  // "algo se rompió" (#144).
+  const quota = Object.assign(new Error('429 provider detail that must not leak'), {
+    status: 429,
+    headers: new Headers({ 'retry-after': '42' })
+  })
+  const app = await build(t, testDependencies({
+    pg: fakePg([CHUNK]),
+    groqClient: fakeGroq([], { failWith: quota }).client
+  }))
+
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/chat',
+    payload: {
+      question: '¿Qué tecnologías usa Jorge en el proyecto de reservas de peluquería?'
+    }
+  })
+
+  const frames = parseSSE(res.payload)
+  assert.equal(frames[0].event, 'sources')
+  assert.equal(frames[frames.length - 1].event, 'error')
+  assert.deepStrictEqual(frames[frames.length - 1].data, {
+    code: 'QUOTA_EXHAUSTED',
+    message: 'An unexpected error occurred while generating the answer',
+    retryAfterSeconds: 42
+  })
+  assert.equal(res.payload.includes('provider detail that must not leak'), false)
+})
+
+test('chat stream leaves the retry hint out when the provider gives none', async (t) => {
+  const quota = Object.assign(new Error('quota'), { status: 429 })
+  const app = await build(t, testDependencies({
+    pg: fakePg([CHUNK]),
+    groqClient: fakeGroq([], { failWith: quota }).client
+  }))
+
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/chat',
+    payload: {
+      question: '¿Qué tecnologías usa Jorge en el proyecto de reservas de peluquería?'
+    }
+  })
+
+  const frames = parseSSE(res.payload)
+  assert.deepStrictEqual(frames[frames.length - 1].data, {
+    code: 'QUOTA_EXHAUSTED',
+    message: 'An unexpected error occurred while generating the answer'
+  })
 })
 
 test('chat stream aborts Groq when the HTTP client disconnects', async (t) => {
