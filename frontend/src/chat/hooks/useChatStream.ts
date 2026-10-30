@@ -104,9 +104,9 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 	};
 
 	const enqueueToken = (token: string): void => {
-		// El texto anunciado se acumula aquí, antes de cualquier `requestFrame`: leerlo del
-		// estado en `done` ya no es posible porque el dispatch aún no ha re-renderizado.
-		if (active) active.assistantText += token;
+		// El texto se encola y se pinta en el siguiente frame. Lo que se guarda al cerrar el
+		// turno es lo pintado, así que `assistantText` se acumula al volcar el búfer, no al
+		// encolar: un token a medio camino de pintarse todavía no se ha visto (#145).
 		tokenBuffer?.enqueue(token);
 	};
 
@@ -118,7 +118,12 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 
 	// Fallar o abortar son siempre la misma pareja: cambiar el estado del turno y emitir su
 	// desenlace. Que vivan juntos es lo que hace cumplible el invariante de una salida, un evento.
+	//
+	// Las dos guardan el mismo texto —el que se pintó—, pero no lo vacían igual: abortar
+	// descarta el frame pendiente (el token a medio pintar se pierde, porque la persona pidió
+	// parar), mientras que fallar lo vuelca para que no se pierda lo ya generado.
 	const failWith = (error: ChatError): void => {
+		flushTokens();
 		options.chat.failTurn(error, active?.assistantText);
 		endTurn({ kind: "failed", error });
 	};
@@ -232,7 +237,11 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 		};
 		active = turn;
 		tokenBuffer = createTokenBuffer({
-			onFlush: (tokens) => options.chat.receiveToken(tokens),
+			onFlush: (tokens) => {
+				// Lo pintado es lo que el turno guarda: aquí nace el texto confirmado.
+				if (active) active.assistantText += tokens;
+				options.chat.receiveToken(tokens);
+			},
 			requestFrame: (callback) => (options.requestFrame ?? defaultRequestFrame)(() => callback(0)),
 			cancelFrame: options.cancelFrame ?? defaultCancelFrame,
 		});

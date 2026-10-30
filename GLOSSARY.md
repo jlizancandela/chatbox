@@ -56,6 +56,14 @@ en issues, specs o tests.
 - **Turno**: ciclo completo de una pregunta y su respuesta, desde que se envía hasta que
   termina bien, mal o detenido. Un turno produce exactamente un anuncio de desenlace, y el
   aviso de "escribiendo" es lo que precede a ese anuncio en la región.
+- **Turno cerrado**: turno que ya terminó, con desenlace. Al cerrarse, su pregunta entra
+  siempre en el contexto —con o sin respuesta— y su respuesta entra solo si tiene texto.
+  Un turno cerrado sin respuesta no inventa un mensaje vacío del asistente.
+- **Respuesta parcial**: texto generado que se ha mostrado pero no ha cerrado su turno.
+  Al cerrarse el turno pasa a ser un mensaje: lo que se ve es lo que se guarda. Lo que no
+  llegó a pintarse no se guarda.
+- **Regla de una sola puerta**: todo cierre de turno —terminado, fallido o detenido— pasa por
+  la misma regla, de modo que la pregunta se guarda siempre y la respuesta solo si hay texto.
 - **Contrato de la pasada automática**: el nivel auditado de axe —WCAG 2.0, 2.1 y 2.2, niveles
   A y AA—, la raíz del escaneo —el widget— y los ocho estados en que el widget puede
   encontrarse: vacío, turno en marcha, respuesta anunciada, turno sin respuesta, turno

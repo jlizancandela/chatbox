@@ -43,6 +43,15 @@ Dos fallos del reducer del widget, independientes entre sí y ninguno avisa.
   se arma antes de que el reducer aplique la acción.
 - **D6 — Los límites de historial no cambian.** `trimHistory` sigue recortando al enviar;
   el contexto puede crecer un mensaje más entre turnos y se ajusta en la petición.
+- **D7 — Lo que se guarda es lo que se pintó.** `active.assistantText` se acumula al **volcar**
+  el búfer de tokens, no al encolarlos: el texto que aún no ha pasado por un frame de
+  animación todavía no se ha visto, así que no puede estar en lo guardado. Sin esta regla,
+  abortar persistía una respuesta del asistente que el visitante nunca vio —la ventana real
+  entre que llega un token y que se pinta el siguiente frame—.
+- **D8 — Abortar descarta lo pendiente; fallar lo conserva.** Las dos acciones guardan lo
+  mismo —el texto pintado—, pero no lo vacían igual: abortar cancela el frame pendiente (la
+  persona pidió parar, así que el token a medio pintar se pierde), mientras que fallar vuelca
+  el búfer para que no se pierda lo ya generado. El texto se anuncia siempre como se pintó.
 
 ## Pruebas
 
@@ -54,6 +63,9 @@ Dos fallos del reducer del widget, independientes entre sí y ninguno avisa.
 - Runner: un turno vacío deja la pregunta en el contexto; un error de stream confirma el
   parcial; el aborto conserva lo que ya se mostró; el reintento envía el historial sin la
   pregunta repetida.
+- Runner: **abortar con un token a medio pintar no lo guarda** —el token está en el búfer
+  pero su frame no ha llegado, así que nunca se vio; fallar con el mismo token sí lo muestra
+  y lo guarda.
 - Componente: tras una respuesta vacía, la petición siguiente lleva historial y el hilo no
   muestra un mensaje vacío del asistente; tras abortar, el parcial queda en
   `sessionStorage` y sigue visible al volver a montar el widget. Ambas entradas fallan con

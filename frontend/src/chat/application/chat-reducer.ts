@@ -1,4 +1,9 @@
-import { type ConversationState, dropClosedTurn, mergeContext } from "../domain/conversation";
+import {
+	type ConversationState,
+	dropClosedTurn,
+	isTurnOpen,
+	mergeContext,
+} from "../domain/conversation";
 import type { ChatError, ChatMessage, ChatSource, TurnState, VisibleMessage } from "../types";
 
 export type ChatState = ConversationState & {
@@ -33,11 +38,6 @@ export const createInitialChatState = (initial: Partial<ConversationState> = {})
 	turnState: "idle",
 	error: null,
 });
-
-const OPEN_TURN_STATES: readonly TurnState[] = ["connecting", "generating", "streaming"];
-
-/** ¿Hay un turno en marcha? Es la misma señal que usa el widget para el aviso de escritura. */
-export const isTurnOpen = (turnState: TurnState): boolean => OPEN_TURN_STATES.includes(turnState);
 
 type TurnOutcome = {
 	turnState: TurnState;

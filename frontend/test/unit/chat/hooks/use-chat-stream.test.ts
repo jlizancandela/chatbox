@@ -257,6 +257,88 @@ describe("useChatStream runner", () => {
 		]);
 	});
 
+	it("does not persist a token that was never shown when the turn is stopped", async () => {
+		const chat = createChat();
+		const fetchImpl = vi
+			.fn()
+			.mockImplementation((_input: RequestInfo | URL, init?: RequestInit) => {
+				const stream = new ReadableStream<Uint8Array>({
+					start(controller) {
+						controller.enqueue(new TextEncoder().encode(sourceFrame()));
+						controller.enqueue(new TextEncoder().encode(tokenFrame("Parcial")));
+						init?.signal?.addEventListener("abort", () => {
+							controller.error(new DOMException("Aborted", "AbortError"));
+						});
+					},
+				});
+
+				return Promise.resolve(
+					new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } })
+				);
+			});
+		// Un frame que nunca llega: el token se queda en el búfer y no llega a pintarse.
+		const runner = createChatStreamRunner({
+			apiUrl: "http://localhost:7000",
+			chat,
+			fetchImpl: fetchImpl as unknown as typeof fetch,
+			requestFrame: () => 1,
+			cancelFrame: () => {},
+		});
+		const request = runner.run("Pregunta");
+
+		// El token llega al lector pero su frame todavía no ha volcado el búfer: es la
+		// ventana real en la que una persona pulsa detener.
+		await new Promise((resolve) => setTimeout(resolve, 50));
+		expect(chat.state.currentResponse).toBe("");
+		runner.abort();
+		await request;
+
+		// Lo que se confirma es lo que se vio: el token del búfer nunca llegó a la pantalla.
+		expect(chat.state.messages).toEqual([{ role: "user", content: "Pregunta" }]);
+		expect(chat.state.context).toEqual([{ role: "user", content: "Pregunta" }]);
+	});
+
+	it("shows and saves the pending token when the stream fails", async () => {
+		const chat = createChat();
+		// El stream revienta con un error de red después de entregar un token.
+		const fetchImpl = vi.fn().mockImplementation((_input: RequestInfo | URL) => {
+			const stream = new ReadableStream<Uint8Array>({
+				start(controller) {
+					controller.enqueue(new TextEncoder().encode(sourceFrame()));
+					controller.enqueue(new TextEncoder().encode(tokenFrame("Parcial")));
+				},
+				pull(controller) {
+					controller.error(new TypeError("Failed to fetch"));
+				},
+			});
+
+			return Promise.resolve(
+				new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } })
+			);
+		});
+		const runner = createChatStreamRunner({
+			apiUrl: "http://localhost:7000",
+			chat,
+			fetchImpl: fetchImpl as unknown as typeof fetch,
+			requestFrame: () => 1,
+			cancelFrame: () => {},
+		});
+		const request = runner.run("Pregunta");
+
+		await request;
+
+		expect(chat.state.turnState).toBe("error");
+		// Fallar no tira lo generado: el token pendiente se muestra y se guarda.
+		expect(chat.state.messages).toEqual([
+			{ role: "user", content: "Pregunta" },
+			{ role: "assistant", content: "Parcial" },
+		]);
+		expect(chat.state.context).toEqual([
+			{ role: "user", content: "Pregunta" },
+			{ role: "assistant", content: "Parcial" },
+		]);
+	});
+
 	it("times out an inactive request", async () => {
 		vi.useFakeTimers();
 		try {

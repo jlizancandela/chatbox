@@ -59,6 +59,31 @@ export const mockHangingRequest = (): void => {
 };
 
 /**
+ * Un turno que entrega un token y luego se queda abierto: solo termina si la persona lo
+ * detiene. Sirve para ver qué se guarda de un turno interrumpido.
+ */
+export const mockPartialThenHang = (token: string): void => {
+	vi.stubGlobal(
+		"fetch",
+		vi.fn().mockImplementation((_input: RequestInfo | URL, init?: RequestInit) => {
+			const stream = new ReadableStream<Uint8Array>({
+				start(controller) {
+					controller.enqueue(new TextEncoder().encode(sourcesFrame()));
+					controller.enqueue(new TextEncoder().encode(tokenFrame(token)));
+					init?.signal?.addEventListener("abort", () => {
+						controller.error(new DOMException("Aborted", "AbortError"));
+					});
+				},
+			});
+
+			return Promise.resolve(
+				new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } })
+			);
+		})
+	);
+};
+
+/**
  * Registra cada texto distinto que pasa por la región, para fijar la secuencia real de un
  * turno.
  */

@@ -15,11 +15,11 @@ import { strings } from "../../src/strings.es";
 import {
 	answerTurn,
 	doneFrame,
+	mockPartialThenHang,
 	regionOf,
 	send,
 	sourcesFrame,
 	streamedAnswer,
-	tokenFrame,
 } from "./fixtures";
 
 const requestBody = (
@@ -27,28 +27,6 @@ const requestBody = (
 	call: number
 ): { question: string; history: { role: string; content: string }[] } =>
 	JSON.parse((fetchMock.mock.calls[call][1] as RequestInit).body as string);
-
-/** Un turno que escribe un token y no cierra: solo termina si la persona lo detiene. */
-const mockPartialThenHang = (token: string): void => {
-	vi.stubGlobal(
-		"fetch",
-		vi.fn().mockImplementation((_input: RequestInfo | URL, init?: RequestInit) => {
-			const stream = new ReadableStream<Uint8Array>({
-				start(controller) {
-					controller.enqueue(new TextEncoder().encode(sourcesFrame()));
-					controller.enqueue(new TextEncoder().encode(tokenFrame(token)));
-					init?.signal?.addEventListener("abort", () => {
-						controller.error(new DOMException("Aborted", "AbortError"));
-					});
-				},
-			});
-
-			return Promise.resolve(
-				new Response(stream, { status: 200, headers: { "Content-Type": "text/event-stream" } })
-			);
-		})
-	);
-};
 
 describe("#145 — cierre del turno", () => {
 	beforeEach(() => sessionStorage.clear());

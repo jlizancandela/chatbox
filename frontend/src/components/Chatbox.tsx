@@ -1,10 +1,9 @@
 /// <reference path="../css.d.ts" />
 import "./Chatbox.css";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
-import { isTurnOpen } from "../chat/application/chat-reducer";
 import { ExternalLink } from "../chat/components/ExternalLink";
 import { toAnnouncementText } from "../chat/domain/announcement";
-import { trimHistory } from "../chat/domain/conversation";
+import { isTurnOpen, trimHistory } from "../chat/domain/conversation";
 import { REDUCED_MOTION_QUERY, type ScrollIntent, scrollBehavior } from "../chat/domain/motion";
 import { isAwayFromEnd } from "../chat/domain/scroll";
 import { sourceTitles } from "../chat/domain/sources";

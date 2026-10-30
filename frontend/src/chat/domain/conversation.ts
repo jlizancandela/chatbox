@@ -1,10 +1,19 @@
-import type { ChatMessage, VisibleMessage } from "../types";
+import type { ChatMessage, TurnState, VisibleMessage } from "../types";
 import { isChatSource } from "./sources";
 
 export const HISTORY_MAX_MESSAGES = 20;
 export const HISTORY_MAX_MESSAGE_CHARS = 2000;
 export const HISTORY_MAX_TOTAL_CHARS = 8000;
 export const QUESTION_MAX_CHARS = 1000;
+
+/** Los estados en los que el turno todavía está en marcha. */
+const OPEN_TURN_STATES: readonly TurnState[] = ["connecting", "generating", "streaming"];
+
+/**
+ * ¿Hay un turno en marcha? Es la misma señal que usa el widget para el aviso de escritura,
+ * así que vive en el dominio: es una regla sobre `TurnState`, no una decisión del reducer.
+ */
+export const isTurnOpen = (turnState: TurnState): boolean => OPEN_TURN_STATES.includes(turnState);
 
 export type ChatLimits = {
 	maxMessages: number;
