@@ -43,6 +43,11 @@ Cargado automáticamente por @fastify/autoload desde `app.ts`:
 `documents` (fuente original) 1—N `document_chunks` (fragmentos con embedding).
 Ver `api/database/erd.md`. Migraciones en `api/database/migrations/`.
 
+Una migración que ya llegó a `main` **no se borra ni se renombra**: la herramienta
+compara las migraciones aplicadas con los ficheros por posición, así que un hueco
+deja huérfano el historial de cualquier base que la aplicara. Se anula con una
+migración nueva. Ver `docs/decisions/015-migraciones-publicadas-no-se-borran.md`.
+
 ## Comandos (en api/)
 - `pnpm dev` — arranca en modo dev (puerto 7000)
 - `pnpm start` — producción
