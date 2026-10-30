@@ -19,8 +19,7 @@ type GroqPlugin = {
  */
 const groq: FastifyPluginAsync<AppOptions> = async (fastify, opts) => {
 	const injected = opts.dependencies?.groqClient;
-	const groqModelDefault =
-		process.env.GROQ_MODEL_DEFAULT?.trim() || "openai/gpt-oss-20b";
+	const groqModelDefault = process.env.GROQ_MODEL_DEFAULT?.trim() || "openai/gpt-oss-20b";
 
 	let client: Groq;
 

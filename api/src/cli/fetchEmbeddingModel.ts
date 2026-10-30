@@ -1,7 +1,7 @@
 import {
+	documentPrompt,
 	EMBEDDING_DTYPE,
 	EMBEDDING_MODEL_ID,
-	documentPrompt,
 	embeddingCacheDir,
 } from "../services/embedding.config";
 import { downloadEmbeddingModel } from "../services/embeddingModel";
@@ -13,9 +13,7 @@ import { downloadEmbeddingModel } from "../services/embeddingModel";
  * de la red. En desarrollo se ejecuta una vez con `pnpm embeddings:fetch`.
  */
 async function main() {
-	console.log(
-		`==> Descargando ${EMBEDDING_MODEL_ID} (${EMBEDDING_DTYPE}) en ${embeddingCacheDir}`,
-	);
+	console.log(`==> Descargando ${EMBEDDING_MODEL_ID} (${EMBEDDING_DTYPE}) en ${embeddingCacheDir}`);
 
 	const embed = await downloadEmbeddingModel();
 	const vector = await embed(`${documentPrompt()}warm-up`);
@@ -24,9 +22,6 @@ async function main() {
 }
 
 main().catch((error) => {
-	console.error(
-		"Fatal:",
-		error instanceof Error ? error.message : error,
-	);
+	console.error("Fatal:", error instanceof Error ? error.message : error);
 	process.exitCode = 1;
 });

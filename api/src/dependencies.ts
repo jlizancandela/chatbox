@@ -29,8 +29,6 @@ export type AppDependencies = {
 	embedContent?: EmbedContentFn;
 };
 
-export interface AppOptions
-	extends FastifyServerOptions,
-		Partial<AutoloadPluginOptions> {
+export interface AppOptions extends FastifyServerOptions, Partial<AutoloadPluginOptions> {
 	dependencies?: AppDependencies;
 }

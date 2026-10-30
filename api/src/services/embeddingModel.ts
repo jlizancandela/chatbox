@@ -32,18 +32,14 @@ type SentenceEmbeddingOutput = {
  * suite no paga el coste de cargar ONNX Runtime para inyectar un doble.
  */
 const load = async (allowRemoteModels: boolean): Promise<LocalEmbeddingFn> => {
-	const { AutoModel, AutoTokenizer, env } = await import(
-		"@huggingface/transformers"
-	);
+	const { AutoModel, AutoTokenizer, env } = await import("@huggingface/transformers");
 
 	env.cacheDir = embeddingCacheDir;
 	env.allowRemoteModels = allowRemoteModels;
 
 	const loadModel = async () => {
 		// Con red se pide el id y la revisión; sin red, la carpeta ya resuelta.
-		const modelPath = allowRemoteModels
-			? EMBEDDING_MODEL_ID
-			: embeddingModelPath();
+		const modelPath = allowRemoteModels ? EMBEDDING_MODEL_ID : embeddingModelPath();
 		const revision: { revision?: string } = allowRemoteModels
 			? { revision: EMBEDDING_MODEL_REVISION }
 			: {};
@@ -64,7 +60,7 @@ const load = async (allowRemoteModels: boolean): Promise<LocalEmbeddingFn> => {
 	} catch (error) {
 		throw new Error(
 			`Could not load ${EMBEDDING_MODEL_ID} from ${embeddingCacheDir}. Run \`pnpm embeddings:fetch\` to download it.`,
-			{ cause: error },
+			{ cause: error }
 		);
 	}
 

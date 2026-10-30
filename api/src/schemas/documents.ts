@@ -11,15 +11,7 @@ const documentSchema = {
 		is_active: { type: "boolean" },
 		created_at: { type: "string", format: "date-time" },
 	},
-	required: [
-		"id",
-		"title",
-		"content",
-		"source",
-		"version",
-		"is_active",
-		"created_at",
-	],
+	required: ["id", "title", "content", "source", "version", "is_active", "created_at"],
 } as const;
 
 const newDocumentSchema = {
@@ -45,8 +37,4 @@ const documentIdParamsSchema = {
 	required: ["id"],
 } as const;
 
-export {
-	documentIdParamsSchema,
-	documentSchema,
-	newDocumentSchema,
-};
+export { documentIdParamsSchema, documentSchema, newDocumentSchema };

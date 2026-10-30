@@ -8,11 +8,7 @@ import "../../plugins/db";
 import "../../plugins/embedding";
 import "../../plugins/groq";
 import { chatOptions } from "../../schemas/chat";
-import {
-	chatService,
-	generationErrorEvent,
-	type ChatEvent,
-} from "../../services/chat";
+import { type ChatEvent, chatService, generationErrorEvent } from "../../services/chat";
 
 const SSE_HEADERS = {
 	"content-type": "text/event-stream",
@@ -55,9 +51,7 @@ const encodeEvent = (event: ChatEvent): string => {
  * sobre una respuesta ya empezada, y eso no es una respuesta: es una conexión cortada sin
  * explicación (#144).
  */
-export const toSSE = async function* (
-	events: AsyncIterable<ChatEvent>,
-): AsyncIterable<string> {
+export const toSSE = async function* (events: AsyncIterable<ChatEvent>): AsyncIterable<string> {
 	try {
 		for await (const event of events) {
 			yield encodeEvent(event);
@@ -80,8 +74,7 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 			return reply.code(400).send({
 				error: {
 					code: "INVALID_QUESTION",
-					message:
-						"Question must be between 1 and 1000 characters long.",
+					message: "Question must be between 1 and 1000 characters long.",
 				},
 			});
 		}
@@ -115,9 +108,9 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 					chat.askStream(question, {
 						history,
 						signal: controller.signal,
-					}),
-				),
-			),
+					})
+				)
+			)
 		);
 	});
 };

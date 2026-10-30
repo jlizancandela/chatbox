@@ -15,10 +15,7 @@ import type { AppOptions } from "./dependencies";
  * Ver `src/dependencies.ts` para el contrato y `test/helper.ts` para cómo lo usan los
  * tests.
  */
-const app: FastifyPluginAsync<AppOptions> = async (
-	fastify,
-	opts,
-): Promise<void> => {
+const app: FastifyPluginAsync<AppOptions> = async (fastify, opts): Promise<void> => {
 	// Do not touch the following lines
 
 	// This loads all plugins defined in plugins
@@ -40,5 +37,5 @@ const app: FastifyPluginAsync<AppOptions> = async (
 };
 
 export default app;
-export { app };
 export type { AppDependencies, AppOptions } from "./dependencies";
+export { app };

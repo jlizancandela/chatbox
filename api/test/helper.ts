@@ -1,4 +1,4 @@
-import { test } from "node:test";
+import type { test } from "node:test";
 import Fastify, { type FastifyInstance } from "fastify";
 import fp from "fastify-plugin";
 import type Groq from "groq-sdk";
@@ -24,7 +24,7 @@ export type TestContext = {
  */
 export const build = async (
 	t: TestContext,
-	dependencies: AppDependencies = {},
+	dependencies: AppDependencies = {}
 ): Promise<FastifyInstance> => {
 	const instance = Fastify({ logger: false });
 
@@ -98,9 +98,7 @@ export const CHUNK: FakeChunkRow = {
  * a usar `transact` o `pool`, el typecheck no lo verá —se declara completo con el
  * cast— pero el test fallará al ejecutarlo, que es donde importa.
  */
-export const fakePg = (
-	rows: FakeChunkRow[] = [],
-): NonNullable<AppDependencies["pg"]> =>
+export const fakePg = (rows: FakeChunkRow[] = []): NonNullable<AppDependencies["pg"]> =>
 	({
 		query: async () => ({
 			rows,
@@ -118,9 +116,7 @@ export const fakePg = (
  * aplicación lo transporte hasta la base de datos, no lo que el proveedor devuelva.
  * Tiene la dimensión del esquema porque el servicio la comprueba antes de serializar.
  */
-export const fakeEmbedContent = (
-	values: number[] = vectorOf(),
-): EmbedContentFn => {
+export const fakeEmbedContent = (values: number[] = vectorOf()): EmbedContentFn => {
 	return async () => values;
 };
 
@@ -144,17 +140,14 @@ export type FakeGroqOptions = {
  */
 export const fakeGroq = (
 	tokens: string[] = [],
-	{ delayMs = 0, failWith }: FakeGroqOptions = {},
+	{ delayMs = 0, failWith }: FakeGroqOptions = {}
 ): { client: Groq; signal: () => AbortSignal | undefined } => {
 	let modelSignal: AbortSignal | undefined;
 
 	const client = {
 		chat: {
 			completions: {
-				create: async function* (
-					_body: unknown,
-					init?: { signal?: AbortSignal | null },
-				) {
+				create: async function* (_body: unknown, init?: { signal?: AbortSignal | null }) {
 					modelSignal = init?.signal ?? undefined;
 
 					if (failWith) {
@@ -187,9 +180,7 @@ export const fakeGroq = (
  * red. Cada test ajusta lo que necesita —las filas, los tokens— y lo que no, se
  * queda con estos.
  */
-export const testDependencies = (
-	overrides: Partial<AppDependencies> = {},
-): AppDependencies => ({
+export const testDependencies = (overrides: Partial<AppDependencies> = {}): AppDependencies => ({
 	pg: fakePg([]),
 	groqClient: fakeGroq([]).client,
 	embedContent: fakeEmbedContent(),

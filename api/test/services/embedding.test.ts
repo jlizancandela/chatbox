@@ -1,11 +1,11 @@
 import assert from "node:assert";
 import { test } from "node:test";
+import { embeddingService } from "../../src/services/embedding";
 import {
 	EMBEDDING_DIMENSION,
 	EMBEDDING_MODEL_REVISION,
 	embeddingSignature,
 } from "../../src/services/embedding.config";
-import { embeddingService } from "../../src/services/embedding";
 import { vectorOf } from "../vector";
 
 const decode = (sqlEmbedding: string): number[] => JSON.parse(sqlEmbedding);
@@ -23,10 +23,7 @@ test("el embedding de un documento lleva su título como prefijo", async () => {
 		title: "Currículum",
 	});
 
-	assert.strictEqual(
-		captured,
-		"title: Currículum | text: Jorge usa React",
-	);
+	assert.strictEqual(captured, "title: Currículum | text: Jorge usa React");
 });
 
 test("el embedding de un documento sin título usa el prefijo neutro", async () => {
@@ -52,10 +49,7 @@ test("el embedding de una pregunta usa el prefijo de consulta", async () => {
 
 	await embedText("¿Qué stack usa?", { purpose: "query" });
 
-	assert.strictEqual(
-		captured,
-		"task: search result | query: ¿Qué stack usa?",
-	);
+	assert.strictEqual(captured, "task: search result | query: ¿Qué stack usa?");
 });
 
 test("el vector se normaliza L2 antes de serializarlo", async () => {
@@ -64,9 +58,7 @@ test("el vector se normaliza L2 antes de serializarlo", async () => {
 	values[1] = 4;
 
 	const { embedText } = embeddingService(async () => values);
-	const embedding = decode(
-		await embedText("Jorge usa React", { purpose: "document" }),
-	);
+	const embedding = decode(await embedText("Jorge usa React", { purpose: "document" }));
 
 	assert.strictEqual(embedding.length, EMBEDDING_DIMENSION);
 	assert.ok(Math.abs(embedding[0] - 0.6) < 1e-9);
@@ -81,40 +73,37 @@ test("un vector de dimensión distinta a la del esquema es un error", async () =
 
 	await assert.rejects(
 		() => embedText("Jorge usa React", { purpose: "document" }),
-		/3 dimensions; the schema expects 768/,
+		/3 dimensions; the schema expects 768/
 	);
 });
 
 test("un vector nulo no se puede normalizar", async () => {
 	const { embedText } = embeddingService(async () =>
-		Array.from({ length: EMBEDDING_DIMENSION }, () => 0),
+		Array.from({ length: EMBEDDING_DIMENSION }, () => 0)
 	);
 
 	await assert.rejects(
 		() => embedText("Jorge usa React", { purpose: "document" }),
-		/zero or non-finite vector/,
+		/zero or non-finite vector/
 	);
 });
 
 test("la firma de embeddings identifica el modelo y el prefijo del documento", () => {
 	assert.ok(
 		embeddingSignature.includes("onnx-community/embeddinggemma-300m-ONNX"),
-		"cambiar de modelo debe invalidar el corpus",
+		"cambiar de modelo debe invalidar el corpus"
 	);
 	assert.ok(
 		embeddingSignature.includes(EMBEDDING_MODEL_REVISION),
-		"republicar los pesos en otra revisión debe invalidar el corpus",
+		"republicar los pesos en otra revisión debe invalidar el corpus"
 	);
-	assert.ok(
-		embeddingSignature.includes("q4"),
-		"cambiar de cuantización debe invalidar el corpus",
-	);
+	assert.ok(embeddingSignature.includes("q4"), "cambiar de cuantización debe invalidar el corpus");
 	assert.ok(
 		embeddingSignature.includes("title: none | text: "),
-		"cambiar el prefijo del documento debe invalidar el corpus",
+		"cambiar el prefijo del documento debe invalidar el corpus"
 	);
 	assert.ok(
 		!embeddingSignature.includes("task: search result"),
-		"el prefijo de la consulta no cambia los vectores guardados",
+		"el prefijo de la consulta no cambia los vectores guardados"
 	);
 });

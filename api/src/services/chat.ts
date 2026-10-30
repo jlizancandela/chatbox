@@ -1,8 +1,5 @@
 import type Groq from "groq-sdk";
-import {
-	findChunksByEmbedding,
-	type QueryClient,
-} from "../repositories/documents";
+import { findChunksByEmbedding, type QueryClient } from "../repositories/documents";
 import { chatConfig, type GenerationConfig } from "./chat.config";
 import type { EmbedTextFn } from "./embedding";
 
@@ -65,8 +62,7 @@ export type AskStreamOptions = {
 	signal?: AbortSignal;
 };
 
-const GENERIC_ERROR_MESSAGE =
-	"An unexpected error occurred while generating the answer";
+const GENERIC_ERROR_MESSAGE = "An unexpected error occurred while generating the answer";
 
 /** Cuota agotada, tal como la reporta el proveedor: `429 Too Many Requests`. */
 const QUOTA_EXHAUSTED_STATUS = 429;
@@ -160,9 +156,7 @@ ${context}
  * saber de dónde viene un dato ni atribuirlo.
  */
 export const buildContext = (sources: ChatSource[]): string =>
-	sources
-		.map((source, index) => `[${index + 1}] ${source.title} — ${source.content}`)
-		.join("\n\n");
+	sources.map((source, index) => `[${index + 1}] ${source.title} — ${source.content}`).join("\n\n");
 
 const mergeAdjacentRoles = (messages: ChatMessage[]): ChatMessage[] => {
 	const merged: ChatMessage[] = [];
@@ -187,7 +181,7 @@ const mergeAdjacentRoles = (messages: ChatMessage[]): ChatMessage[] => {
 export const buildChatMessages = (
 	context: string,
 	history: ChatMessage[],
-	question: string,
+	question: string
 ): ChatMessage[] =>
 	mergeAdjacentRoles([
 		{ role: "system", content: systemPrompt(context) },
@@ -211,7 +205,7 @@ export const trimHistory = (
 		maxMessages: number;
 		maxMessageChars: number;
 		maxTotalChars: number;
-	},
+	}
 ): ChatMessage[] => {
 	// Iterate from most recent (end) toward oldest (start).
 	const truncated: ChatMessage[] = [];
@@ -250,18 +244,14 @@ export const trimHistory = (
 	return truncated;
 };
 
-export const createAskStream =
-	({
-		retrieve,
-		groqClient,
-		modelDefault,
-		historyLimits,
-		generation,
-	}: AskStreamDeps) =>
-	async function* askStream(
-		question: string,
-		options: AskStreamOptions,
-	): AsyncIterable<ChatEvent> {
+export const createAskStream = ({
+	retrieve,
+	groqClient,
+	modelDefault,
+	historyLimits,
+	generation,
+}: AskStreamDeps) =>
+	async function* askStream(question: string, options: AskStreamOptions): AsyncIterable<ChatEvent> {
 		const { history: rawHistory, signal } = options;
 
 		// Trim server-side; the trimmed version is the canonical one.
@@ -295,7 +285,7 @@ export const createAskStream =
 					max_completion_tokens: generation.maxCompletionTokens,
 					reasoning_effort: generation.reasoningEffort,
 				},
-				{ signal },
+				{ signal }
 			)) as AsyncIterable<CompletionChunk>;
 
 			for await (const chunk of completion) {
@@ -328,12 +318,7 @@ export type ChatServiceDeps = {
 	embedText: EmbedTextFn;
 };
 
-export const chatService = ({
-	pg,
-	groqClient,
-	modelDefault,
-	embedText,
-}: ChatServiceDeps) => {
+export const chatService = ({ pg, groqClient, modelDefault, embedText }: ChatServiceDeps) => {
 	const retrieve = async (question: string): Promise<ChatSource[]> => {
 		const sqlEmbedding = await embedText(question, { purpose: "query" });
 
@@ -341,7 +326,7 @@ export const chatService = ({
 			pg,
 			sqlEmbedding,
 			chatConfig.similarityThreshold,
-			chatConfig.topK,
+			chatConfig.topK
 		);
 
 		const sources: ChatSource[] = relevantChunks.map(
@@ -357,7 +342,7 @@ export const chatService = ({
 				title: chunk.title,
 				content: chunk.content,
 				distance: chunk.distance,
-			}),
+			})
 		);
 
 		return sources;

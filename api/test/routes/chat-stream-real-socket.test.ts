@@ -1,13 +1,13 @@
-import { test } from "node:test";
 import * as assert from "node:assert";
+import { test } from "node:test";
 import {
-	CHUNK,
 	build,
+	CHUNK,
 	fakeGroq,
 	fakePg,
 	parseSSE,
-	testDependencies,
 	type TestContext,
+	testDependencies,
 } from "../helper";
 
 /**
@@ -19,10 +19,7 @@ import {
  * Lo que se sustituye son los proveedores —base de datos, embeddings y generación—,
  * no el transporte: el socket es de verdad.
  */
-async function serve(
-	t: TestContext,
-	tokens: string[] = ["Hola", " ", "mundo"],
-) {
+async function serve(t: TestContext, tokens: string[] = ["Hola", " ", "mundo"]) {
 	const groq = fakeGroq(tokens, { delayMs: 100 });
 
 	const app = await build(
@@ -30,7 +27,7 @@ async function serve(
 		testDependencies({
 			pg: fakePg([CHUNK]),
 			groqClient: groq.client,
-		}),
+		})
 	);
 
 	await app.listen({ port: 0, host: "127.0.0.1" });
@@ -72,16 +69,7 @@ test("chat stream aborts the model request when the client goes away", async (t)
 	//
 	// Se afirma sobre la señal, no sobre lo que recibe el cliente, porque eso es lo único que
 	// distingue este caso de "no hay cancelación": un stream abandonado tampoco entrega `done`.
-	const { url, signal } = await serve(t, [
-		"a",
-		"b",
-		"c",
-		"d",
-		"e",
-		"f",
-		"g",
-		"h",
-	]);
+	const { url, signal } = await serve(t, ["a", "b", "c", "d", "e", "f", "g", "h"]);
 
 	const controller = new AbortController();
 	const res = await fetch(`${url}/api/chat`, {
@@ -116,6 +104,6 @@ test("chat stream aborts the model request when the client goes away", async (t)
 	assert.equal(
 		modelSignal.aborted,
 		true,
-		"al irse el cliente, la petición al modelo debería quedar abortada",
+		"al irse el cliente, la petición al modelo debería quedar abortada"
 	);
 });

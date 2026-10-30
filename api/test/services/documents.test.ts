@@ -57,11 +57,11 @@ test("una versión nueva inserta el documento y sus fragmentos", async () => {
 	assert.strictEqual(documentId, "42");
 	assert.ok(
 		calls.some((call) => call.text.includes("INSERT INTO documents")),
-		"esperaba insertar el documento",
+		"esperaba insertar el documento"
 	);
 	assert.ok(
 		calls.some((call) => call.text.includes("INSERT INTO document_chunks")),
-		"esperaba insertar los fragmentos",
+		"esperaba insertar los fragmentos"
 	);
 });
 
@@ -74,15 +74,15 @@ test("la misma versión reactiva el documento y no vuelve a embeberlo", async ()
 	assert.strictEqual(documentId, "7");
 	assert.ok(
 		!calls.some((call) => call.text.includes("INSERT INTO documents")),
-		"no debe insertar un documento nuevo",
+		"no debe insertar un documento nuevo"
 	);
 	assert.ok(
 		!calls.some((call) => call.text.includes("INSERT INTO document_chunks")),
-		"no debe volver a embeber los fragmentos",
+		"no debe volver a embeber los fragmentos"
 	);
 	assert.ok(
 		calls.some((call) => call.text.includes("SET is_active = TRUE")),
-		"debe reactivar el documento existente",
+		"debe reactivar el documento existente"
 	);
 });
 
@@ -91,19 +91,13 @@ test("hasDocumentVersion distingue la versión que ya está de la que no", async
 	const sinDocumento = createFakeApp();
 
 	assert.strictEqual(
-		await documentService(conDocumento.app).hasDocumentVersion(
-			document.source,
-			"version-igual",
-		),
+		await documentService(conDocumento.app).hasDocumentVersion(document.source, "version-igual"),
 		true,
-		"la versión que existe tiene que encontrarse",
+		"la versión que existe tiene que encontrarse"
 	);
 	assert.strictEqual(
-		await documentService(sinDocumento.app).hasDocumentVersion(
-			document.source,
-			"version-nueva",
-		),
+		await documentService(sinDocumento.app).hasDocumentVersion(document.source, "version-nueva"),
 		false,
-		"la versión que no existe no puede darse por buena",
+		"la versión que no existe no puede darse por buena"
 	);
 });

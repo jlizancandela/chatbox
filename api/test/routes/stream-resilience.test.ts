@@ -1,5 +1,5 @@
-import { test } from "node:test";
 import * as assert from "node:assert";
+import { test } from "node:test";
 import Fastify from "fastify";
 import fp from "fastify-plugin";
 import app from "../../src/app";
@@ -29,7 +29,7 @@ test("the SSE pipeline turns a failing source into a closing error frame", async
 
 	assert.deepStrictEqual(
 		parsed.map((frame) => frame.event),
-		["sources", "error"],
+		["sources", "error"]
 	);
 	assert.deepStrictEqual(parsed[1].data, {
 		code: "GENERATION_FAILED",

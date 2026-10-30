@@ -35,13 +35,13 @@ async function main() {
 				 WHERE d.is_active = TRUE
 				 ORDER BY cosine
 				 LIMIT 5`,
-				[sqlEmbedding],
+				[sqlEmbedding]
 			);
 
 			console.log(`\nQ: ${question}`);
 			for (const row of result.rows) {
 				console.log(
-					`  cos=${row.cosine.toFixed(4)}  l2=${row.l2.toFixed(4)}  [${row.title}#${row.chunk_index}] ${row.snippet}`,
+					`  cos=${row.cosine.toFixed(4)}  l2=${row.l2.toFixed(4)}  [${row.title}#${row.chunk_index}] ${row.snippet}`
 				);
 			}
 		}

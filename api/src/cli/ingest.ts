@@ -4,7 +4,7 @@ import fastify from "fastify";
 import db from "../plugins/db";
 import { documentEmbeddingsService } from "../services/documentEmbeddings";
 import documentService from "../services/documents";
-import { ingestFile, type IngestDeps } from "../services/ingest";
+import { type IngestDeps, ingestFile } from "../services/ingest";
 
 /**
  * El comando de ingesta: lee los nombres que recibe, los busca en `ingest/` y deja el
@@ -27,8 +27,7 @@ async function main() {
 		const deps: IngestDeps = {
 			read: (source) => readFile(path.join(dir, source), "utf-8"),
 			hasVersion: hasDocumentVersion,
-			embed: (content, chunks, title) =>
-				getDocumentEmbeddings(content, chunks, title),
+			embed: (content, chunks, title) => getDocumentEmbeddings(content, chunks, title),
 			ingest: ingestDocument,
 		};
 
@@ -45,20 +44,16 @@ async function main() {
 				if (result.reused) reusedFiles++;
 
 				console.log(
-					result.reused
-						? `✓ ${source} — sin cambios`
-						: `✓ ${source} — ${result.chunks} chunks`,
+					result.reused ? `✓ ${source} — sin cambios` : `✓ ${source} — ${result.chunks} chunks`
 				);
 			} catch (error) {
 				errors.push({ file: source, error });
-				console.error(
-					`✗ ${source} — ${error instanceof Error ? error.message : error}`,
-				);
+				console.error(`✗ ${source} — ${error instanceof Error ? error.message : error}`);
 			}
 		}
 
 		console.log(
-			`\nDone. ${processedFiles} files, ${totalChunks} chunks, ${reusedFiles} unchanged, ${errors.length} errors.`,
+			`\nDone. ${processedFiles} files, ${totalChunks} chunks, ${reusedFiles} unchanged, ${errors.length} errors.`
 		);
 
 		if (errors.length > 0) {

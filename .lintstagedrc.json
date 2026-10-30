@@ -1,3 +1,4 @@
 {
-  "frontend/**/*.{ts,tsx,js,jsx,json,css}": "npm --prefix frontend run lint:fix"
+  "frontend/**/*.{ts,tsx,js,jsx,json,css}": "npm --prefix frontend run lint:fix",
+  "api/**/*.{ts,js,json}": "pnpm --dir api run lint:fix"
 }

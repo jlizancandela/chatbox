@@ -1,6 +1,6 @@
-import fastify, { type FastifyError } from "fastify";
-import { test } from "node:test";
 import * as assert from "node:assert";
+import { test } from "node:test";
+import fastify, { type FastifyError } from "fastify";
 import { createRateLimitMiddleware } from "../../src/middleware/rate-limit";
 
 test("rate limit resets after the burst window expires", async (t) => {
@@ -12,7 +12,7 @@ test("rate limit resets after the burst window expires", async (t) => {
 			burstWindow: 50,
 			dailyMax: 100,
 			dailyWindow: "1 day",
-		}),
+		})
 	);
 
 	app.setErrorHandler<FastifyError>((error, _request, reply) => {
@@ -38,10 +38,7 @@ test("rate limit resets after the burst window expires", async (t) => {
 	assert.equal(limited.statusCode, 429);
 	const limitedBody = limited.json();
 	assert.equal(limitedBody.error.code, "RATE_LIMIT_EXCEEDED");
-	assert.match(
-		limitedBody.error.message,
-		/^Rate limit exceeded, retry in \d+ second/,
-	);
+	assert.match(limitedBody.error.message, /^Rate limit exceeded, retry in \d+ second/);
 	assert.ok(Number(limited.headers["retry-after"]) >= 1);
 
 	await new Promise((resolve) => setTimeout(resolve, 100));

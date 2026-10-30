@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { test } from "node:test";
 import type { DocumentChunk } from "../../src/repositories/documents";
-import { ingestFile, type IngestDeps } from "../../src/services/ingest";
+import { type IngestDeps, ingestFile } from "../../src/services/ingest";
 
 /**
  * La ingesta, con PostgreSQL y el modelo de mentira.
@@ -52,7 +52,7 @@ test("una versión que ya está no pide embeddings", async () => {
 	assert.strictEqual(
 		calls.embeddings,
 		0,
-		"con la misma versión no debe llamarse al proveedor de embeddings",
+		"con la misma versión no debe llamarse al proveedor de embeddings"
 	);
 
 	const [ingested] = calls.ingested;
@@ -60,7 +60,7 @@ test("una versión que ya está no pide embeddings", async () => {
 	assert.deepStrictEqual(
 		ingested.chunks,
 		[],
-		"reactiva el documento sin fragmentos: los que tenía siguen en la base de datos",
+		"reactiva el documento sin fragmentos: los que tenía siguen en la base de datos"
 	);
 	assert.strictEqual(ingested.title, "Currículum");
 	assert.ok(ingested.version.length > 0, "esperaba una versión calculada");

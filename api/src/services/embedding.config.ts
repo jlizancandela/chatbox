@@ -14,8 +14,7 @@ export const EMBEDDING_MODEL_ID = "onnx-community/embeddinggemma-300m-ONNX";
  * imagen no cambia por sorpresa y la firma de embeddings sigue describiendo lo que
  * hay guardado.
  */
-export const EMBEDDING_MODEL_REVISION =
-	"5090578d9565bb06545b4552f76e6bc2c93e4a66";
+export const EMBEDDING_MODEL_REVISION = "5090578d9565bb06545b4552f76e6bc2c93e4a66";
 
 /** Cuantización del ONNX: `q4` son ~200 MB de pesos y la calidad medida no baja. */
 export const EMBEDDING_DTYPE = "q4" as const;
@@ -33,8 +32,7 @@ export const EMBEDDING_DIMENSION = 768;
  */
 export const QUERY_PROMPT = "task: search result | query: ";
 
-export const documentPrompt = (title?: string): string =>
-	`title: ${title ?? "none"} | text: `;
+export const documentPrompt = (title?: string): string => `title: ${title ?? "none"} | text: `;
 
 export type EmbedPurpose = "query" | "document";
 

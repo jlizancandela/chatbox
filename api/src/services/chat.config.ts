@@ -19,11 +19,7 @@ export type GenerationConfig = {
 	reasoningEffort: ReasoningEffort;
 };
 
-const readPositiveInt = (
-	env: NodeJS.ProcessEnv,
-	key: string,
-	fallback: number,
-): number => {
+const readPositiveInt = (env: NodeJS.ProcessEnv, key: string, fallback: number): number => {
 	const raw = env[key];
 	if (raw === undefined || raw.trim() === "") {
 		return fallback;
@@ -40,7 +36,7 @@ const readFloatInRange = (
 	key: string,
 	fallback: number,
 	min: number,
-	max: number,
+	max: number
 ): number => {
 	const raw = env[key];
 	if (raw === undefined || raw.trim() === "") {
@@ -57,7 +53,7 @@ const readEnum = <T extends string>(
 	env: NodeJS.ProcessEnv,
 	key: string,
 	fallback: T,
-	allowed: readonly T[],
+	allowed: readonly T[]
 ): T => {
 	const raw = env[key]?.trim().toLowerCase();
 	if (raw === undefined || raw === "") {
@@ -69,22 +65,14 @@ const readEnum = <T extends string>(
 	return raw as T;
 };
 
-const createHistoryLimits = (
-	env: NodeJS.ProcessEnv = process.env,
-): HistoryLimits => {
+const createHistoryLimits = (env: NodeJS.ProcessEnv = process.env): HistoryLimits => {
 	const limits: HistoryLimits = {
 		maxMessages: readPositiveInt(env, "HISTORY_MAX_MESSAGES", 20),
-		maxMessageChars: readPositiveInt(
-			env,
-			"HISTORY_MAX_MESSAGE_CHARS",
-			2000,
-		),
+		maxMessageChars: readPositiveInt(env, "HISTORY_MAX_MESSAGE_CHARS", 2000),
 		maxTotalChars: readPositiveInt(env, "HISTORY_MAX_TOTAL_CHARS", 8000),
 	};
 	if (limits.maxTotalChars < limits.maxMessageChars) {
-		throw new Error(
-			"HISTORY_MAX_TOTAL_CHARS must be >= HISTORY_MAX_MESSAGE_CHARS",
-		);
+		throw new Error("HISTORY_MAX_TOTAL_CHARS must be >= HISTORY_MAX_MESSAGE_CHARS");
 	}
 	return limits;
 };
@@ -96,26 +84,10 @@ const createHistoryLimits = (
  * esfuerzo por defecto ("medium") paga razonamiento en cada pregunta de un
  * widget que pide datos concretos.
  */
-export const createGenerationConfig = (
-	env: NodeJS.ProcessEnv = process.env,
-): GenerationConfig => ({
-	temperature: readFloatInRange(
-		env,
-		"GENERATION_TEMPERATURE",
-		0.6,
-		0,
-		2,
-	),
-	maxCompletionTokens: readPositiveInt(
-		env,
-		"GENERATION_MAX_COMPLETION_TOKENS",
-		2048,
-	),
-	reasoningEffort: readEnum(env, "GENERATION_REASONING_EFFORT", "low", [
-		"low",
-		"medium",
-		"high",
-	]),
+export const createGenerationConfig = (env: NodeJS.ProcessEnv = process.env): GenerationConfig => ({
+	temperature: readFloatInRange(env, "GENERATION_TEMPERATURE", 0.6, 0, 2),
+	maxCompletionTokens: readPositiveInt(env, "GENERATION_MAX_COMPLETION_TOKENS", 2048),
+	reasoningEffort: readEnum(env, "GENERATION_REASONING_EFFORT", "low", ["low", "medium", "high"]),
 });
 
 export const createTopK = (env: NodeJS.ProcessEnv = process.env): number =>
@@ -127,9 +99,7 @@ export const createTopK = (env: NodeJS.ProcessEnv = process.env): number =>
  * por encima. Cambiar de modelo obliga a recalibrarlo.
  */
 export const chatConfig: ChatConfig = {
-	similarityThreshold: parseFloat(
-		process.env.SIMILARITY_THRESHOLD ?? "0.8",
-	),
+	similarityThreshold: parseFloat(process.env.SIMILARITY_THRESHOLD ?? "0.8"),
 	topK: createTopK(),
 	generation: createGenerationConfig(),
 	historyLimits: createHistoryLimits(),

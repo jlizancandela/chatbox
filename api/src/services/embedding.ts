@@ -1,9 +1,9 @@
 import pgvector from "pgvector/pg";
 import {
-	EMBEDDING_DIMENSION,
-	QUERY_PROMPT,
-	type EmbedPurpose,
 	documentPrompt,
+	EMBEDDING_DIMENSION,
+	type EmbedPurpose,
+	QUERY_PROMPT,
 } from "./embedding.config";
 import { loadLocalEmbedding } from "./embeddingModel";
 
@@ -24,10 +24,7 @@ export type EmbedTextOptions = {
  * serializado para pgvector fuera. Ni la ingesta ni el chat saben qué modelo hay
  * detrás ni cómo se llama.
  */
-export type EmbedTextFn = (
-	text: string,
-	options: EmbedTextOptions,
-) => Promise<string>;
+export type EmbedTextFn = (text: string, options: EmbedTextOptions) => Promise<string>;
 
 export type EmbeddingService = {
 	embedText: EmbedTextFn;
@@ -40,9 +37,7 @@ export type EmbeddingService = {
  * igual: sin esta distinción el vector de la pregunta no cae cerca de su fragmento.
  */
 const prompt = (text: string, { purpose, title }: EmbedTextOptions): string =>
-	purpose === "query"
-		? `${QUERY_PROMPT}${text}`
-		: `${documentPrompt(title)}${text}`;
+	purpose === "query" ? `${QUERY_PROMPT}${text}` : `${documentPrompt(title)}${text}`;
 
 /**
  * L2 normaliza el vector antes de guardarlo. El modelo ya devuelve vectores
@@ -70,9 +65,7 @@ const normalize = (values: number[]): number[] => {
  * en el proceso. Quien lo llama decide —la aplicación lo decora en la instancia, la
  * ingesta lo cablea en el CLI— y así el servicio no sabe nada de quién lo usa.
  */
-export const embeddingService = (
-	embedContent?: EmbedContentFn,
-): EmbeddingService => {
+export const embeddingService = (embedContent?: EmbedContentFn): EmbeddingService => {
 	let embed = embedContent;
 
 	const ready: Promise<void> =
@@ -82,10 +75,7 @@ export const embeddingService = (
 					embed = loaded;
 				});
 
-	const embedText = async (
-		text: string,
-		options: EmbedTextOptions,
-	): Promise<string> => {
+	const embedText = async (text: string, options: EmbedTextOptions): Promise<string> => {
 		await ready;
 
 		if (!embed) {
@@ -96,7 +86,7 @@ export const embeddingService = (
 
 		if (values.length !== EMBEDDING_DIMENSION) {
 			throw new Error(
-				`The embedding model returned ${values.length} dimensions; the schema expects ${EMBEDDING_DIMENSION}`,
+				`The embedding model returned ${values.length} dimensions; the schema expects ${EMBEDDING_DIMENSION}`
 			);
 		}
 

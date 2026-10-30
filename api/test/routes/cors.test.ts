@@ -15,8 +15,5 @@ test("CORS allows the configured origin", async (t) => {
 	});
 
 	assert.equal(res.statusCode, 204);
-	assert.equal(
-		res.headers["access-control-allow-origin"],
-		process.env.CORS_ORIGIN,
-	);
+	assert.equal(res.headers["access-control-allow-origin"], process.env.CORS_ORIGIN);
 });

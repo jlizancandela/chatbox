@@ -18,13 +18,7 @@
  * proveedor de verdad a propósito.
  */
 
-const LOOPBACK_HOSTS = new Set([
-	"localhost",
-	"127.0.0.1",
-	"::1",
-	"[::1]",
-	"0.0.0.0",
-]);
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0"]);
 
 const urlOf = (input: unknown): string | undefined => {
 	if (typeof input === "string") return input;

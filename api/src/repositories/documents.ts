@@ -22,7 +22,7 @@ function documentRepository(client: TransactionClient) {
 			`SELECT id
 			 FROM documents
 			 WHERE source = $1 AND version = $2`,
-			[source, version],
+			[source, version]
 		);
 
 		return result.rows[0]?.id;
@@ -33,27 +33,20 @@ function documentRepository(client: TransactionClient) {
 			`UPDATE documents
 			 SET is_active = FALSE
 			 WHERE source = $1 AND is_active = TRUE`,
-			[source],
+			[source]
 		);
 	};
 
 	const activateById = async (id: string) => {
-		await client.query("UPDATE documents SET is_active = TRUE WHERE id = $1", [
-			id,
-		]);
+		await client.query("UPDATE documents SET is_active = TRUE WHERE id = $1", [id]);
 	};
 
-	const insertDocument = async ({
-		content,
-		source,
-		title,
-		version,
-	}: InsertDocumentInput) => {
+	const insertDocument = async ({ content, source, title, version }: InsertDocumentInput) => {
 		const result = await client.query<{ id: string }>(
 			`INSERT INTO documents (source, title, version, content)
 			 VALUES ($1, $2, $3, $4)
 			 RETURNING id`,
-			[source, title, version, content],
+			[source, title, version, content]
 		);
 		const documentId = result.rows[0]?.id;
 		if (!documentId) {
@@ -68,7 +61,7 @@ function documentRepository(client: TransactionClient) {
 			await client.query(
 				`INSERT INTO document_chunks (document_id, chunk_index, content, embedding)
 				 VALUES ($1, $2, $3, $4)`,
-				[documentId, chunk.chunkIndex, chunk.text, chunk.embedding],
+				[documentId, chunk.chunkIndex, chunk.text, chunk.embedding]
 			);
 		}
 	};
@@ -83,7 +76,7 @@ function documentRepository(client: TransactionClient) {
 			 FROM document_chunks
 			 WHERE document_id = $1
 			 ORDER BY chunk_index`,
-			[documentId],
+			[documentId]
 		);
 
 		return result.rows;
@@ -103,7 +96,7 @@ export const findChunksByEmbedding = async (
 	queryClient: QueryClient,
 	embedding: string,
 	threshold: number,
-	limit = 5,
+	limit = 5
 ) => {
 	const result = await queryClient.query<{
 		document_id: string;
@@ -120,7 +113,7 @@ export const findChunksByEmbedding = async (
 		   AND dc.embedding <=> $1 < $2
 		 ORDER BY distance
 		 LIMIT $3`,
-		[embedding, threshold, limit],
+		[embedding, threshold, limit]
 	);
 
 	return result.rows;
