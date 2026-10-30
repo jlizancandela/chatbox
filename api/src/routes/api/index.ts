@@ -92,6 +92,25 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 		const sessionHeader = request.headers[BUDGET_SESSION_HEADER];
 		const sessionId = typeof sessionHeader === "string" ? sessionHeader.trim() : "";
 
+		// Los tres límites cuentan sobre la misma ruta: la ráfaga corta antes, el diario
+		// es el respaldo por IP y el tope global el último, que es el único que no se
+		// puede eludir rotando la IP (#143).
+		const limit = await fastify.checkRateLimits(request, reply);
+
+		if (limit !== "none") {
+			return reply.code(429).send({
+				error: {
+					code: limit === "global" ? "GLOBAL_LIMIT_EXCEEDED" : "RATE_LIMIT_EXCEEDED",
+					message:
+						limit === "global"
+							? "The assistant is busy today. Try again later."
+							: limit === "daily"
+								? "Daily request limit exceeded, retry in 1 day."
+								: "Rate limit exceeded, retry in 1 minute.",
+				},
+			});
+		}
+
 		if (question.trim().length === 0 || question.trim().length > 1000) {
 			return reply.code(400).send({
 				error: {
