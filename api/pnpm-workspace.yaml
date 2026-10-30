@@ -1,3 +1,6 @@
 allowBuilds:
-  '@google/genai': false
+  # El postinstall de onnxruntime-node descarga los binarios CUDA en linux/x64. El
+  # modelo corre en CPU y esos binarios no se usan: permitir el script engordaría la
+  # imagen sin dar nada a cambio. Los binarios CPU vienen ya en el paquete.
+  onnxruntime-node: false
   protobufjs: false

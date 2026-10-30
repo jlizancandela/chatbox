@@ -5,6 +5,7 @@ import type Groq from "groq-sdk";
 import app from "../src/app";
 import type { AppDependencies } from "../src/dependencies";
 import type { EmbedContentFn } from "../src/services/embedding";
+import { vectorOf } from "./vector";
 
 export type TestContext = {
 	after: typeof test.after;
@@ -78,7 +79,7 @@ export type FakeChunkRow = {
  * El fragmento que devuelve la base de datos de mentira.
  *
  * Antes de que existiera el seam esta fila salía de una búsqueda vectorial de verdad:
- * la suite gastaba cuota de Gemini y dependía de la red para poder afirmar nada.
+ * la suite gastaba cuota del proveedor y dependía de la red para poder afirmar nada.
  */
 export const CHUNK: FakeChunkRow = {
 	document_id: "1",
@@ -115,11 +116,12 @@ export const fakePg = (
  *
  * Devuelve siempre el mismo vector: lo que importa en los tests de ruta es que la
  * aplicación lo transporte hasta la base de datos, no lo que el proveedor devuelva.
+ * Tiene la dimensión del esquema porque el servicio la comprueba antes de serializar.
  */
 export const fakeEmbedContent = (
-	values: number[] = [0.1, 0.2, 0.3],
+	values: number[] = vectorOf(),
 ): EmbedContentFn => {
-	return async () => ({ embeddings: [{ values }] });
+	return async () => values;
 };
 
 export type FakeGroqOptions = {

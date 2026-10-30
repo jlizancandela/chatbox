@@ -3,6 +3,7 @@ node_modules
 dist
 coverage
 .nyc_output
+.cache
 
 # Configuración local y secretos: nunca dentro de la imagen.
 .env

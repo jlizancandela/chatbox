@@ -4,8 +4,8 @@ import { embeddingService, type EmbedContentFn } from "./embedding";
 /**
  * Los embeddings de un documento.
  *
- * `embedContent` es el colaborador: si viene, se usa; si no, se construye el cliente
- * de verdad. La ingesta lo cablea con el proveedor real y los tests con un doble.
+ * `embedContent` es el colaborador: si viene, se usa; si no, se carga el modelo local.
+ * La ingesta lo cablea con el modelo de verdad y los tests con un doble.
  */
 export const documentEmbeddingsService = (embedContent?: EmbedContentFn) => {
 	const { embedText } = embeddingService(embedContent);

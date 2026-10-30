@@ -8,7 +8,7 @@ import {
 const base = {
 	content: "Jorge Lizán Candela desarrolla en React.",
 	title: "Currículum",
-	embeddingSignature: "gemini-embedding-001:768",
+	embeddingSignature: "onnx-community/embeddinggemma-300m-ONNX:5090578:q4:768:title: none | text: ",
 };
 
 test("la versión es la misma para la misma entrada", () => {
@@ -37,7 +37,7 @@ test("cambiar la firma de embeddings cambia la versión", () => {
 		computeDocumentVersion(base),
 		computeDocumentVersion({
 			...base,
-			embeddingSignature: "gemini-embedding-001:768:RETRIEVAL_DOCUMENT",
+			embeddingSignature: "onnx-community/embeddinggemma-300m-ONNX:otra-revision:q4:768:title: none | text: ",
 		}),
 	);
 });

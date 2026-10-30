@@ -1,14 +1,14 @@
 # Chatbox API
 
 API Fastify en TypeScript para ingesta de documentos, recuperación vectorial con
-PostgreSQL/pgvector y respuestas fundamentadas mediante Gemini y Groq.
+PostgreSQL/pgvector y respuestas fundamentadas mediante Groq, con embeddings autoalojados.
 
 ## Requisitos
 
 - Node.js compatible con el proyecto.
 - pnpm.
 - Docker y Docker Compose, para ejecutar PostgreSQL con pgvector.
-- Claves de API de Gemini y Groq para embeddings y generación.
+- Una clave de API de Groq para la generación.
 
 Todos los comandos de esta guía se ejecutan desde `api/`.
 
@@ -29,12 +29,10 @@ ignorado por Git y no debe versionarse ni compartirse.
 | Variable | Obligatoria | Secreto | Valor por defecto | Uso |
 |---|---:|---:|---|---|
 | `DATABASE_URL` | Sí | Sí | — | Conexión de la API a PostgreSQL. |
-| `GEMINI_API_KEY` | Sí | Sí | — | Generación de embeddings con Gemini. |
-| `GEMINI_EMBEDDING_MODEL` | No | No | `gemini-embedding-001` | Modelo de embeddings. |
-| `GEMINI_VECTOR_DIMENSION` | No | No | `768` | Dimensión de los vectores; la del esquema es `768`. |
+| `EMBEDDING_CACHE_DIR` | No | No | `.cache/embeddings` | Directorio con los ficheros de EmbeddingGemma. La imagen usa `/app/model`. |
 | `GROQ_API_KEY` | Sí | Sí | — | Acceso al modelo generativo de Groq. |
 | `GROQ_MODEL_DEFAULT` | No | No | `openai/gpt-oss-20b` | Modelo usado para responder. |
-| `SIMILARITY_THRESHOLD` | No | No | `0.5` | Umbral de similitud coseno para recuperar contexto. |
+| `SIMILARITY_THRESHOLD` | No | No | `0.8` | Distancia coseno máxima para recuperar contexto. |
 | `RETRIEVAL_TOP_K` | No | No | `5` | Número de fragmentos recuperados por pregunta. |
 | `GENERATION_TEMPERATURE` | No | No | `0.6` | Temperatura de la generación, entre `0` y `2`. |
 | `GENERATION_MAX_COMPLETION_TOKENS` | No | No | `2048` | Límite de tokens de la respuesta, razonamiento incluido. |
@@ -132,19 +130,19 @@ La ingesta:
 
 1. Lee cada archivo desde `ingest/`.
 2. Lo divide en fragmentos de 512 caracteres con solapamiento de 50.
-3. Genera embeddings de 768 dimensiones con Gemini, con el tipo de tarea de
-   documento (`RETRIEVAL_DOCUMENT`) y el título del documento.
+3. Genera embeddings de 768 dimensiones con EmbeddingGemma en proceso, con el
+   prefijo de documento (`title: … | text: …`) y normalización L2.
 4. Guarda el documento, sus fragmentos y vectores en PostgreSQL.
 5. Informa los archivos y fragmentos procesados; termina con código de error si
    algún archivo falla.
 
-Asegúrate de haber aplicado las migraciones y de tener configurados
-`DATABASE_URL` y `GEMINI_API_KEY` antes de ingerir.
+Antes de ingerir, aplica las migraciones, configura `DATABASE_URL` y descarga el
+modelo una vez con `pnpm embeddings:fetch` (la imagen ya lo trae dentro).
 
 ### Reingerir el corpus
 
 La versión de un documento se calcula con su contenido, su título y la firma de la
-configuración de embeddings (modelo, dimensión y tipo de tarea).
+configuración de embeddings (modelo, cuantización, dimensión y prefijo del documento).
 
 La ingesta compara la versión **antes** de pedir los embeddings: si el documento ya está
 con esa versión, lo reactiva y no hace ni una llamada al proveedor. Reingerir un corpus
@@ -159,9 +157,9 @@ Done. 2 files, 13 chunks, 2 unchanged, 0 errors.
 Solo se vuelve a embeber lo que cambió, y solo si **de verdad** cambió: el contenido, el
 título o la firma de embeddings.
 
-Cambiar la firma de embeddings —por ejemplo, pasar de un tipo de tarea a otro— invalida
-el corpus: los vectores anteriores viven en otro espacio y no son comparables con los
-nuevos. Cuando eso ocurre hay que reingerir:
+Cambiar la firma de embeddings —por ejemplo, cambiar de modelo o de cuantización—
+invalida el corpus: los vectores anteriores viven en otro espacio y no son comparables
+con los nuevos. Cuando eso ocurre hay que reingerir:
 
 ```bash
 pnpm ingest curriculum-jorge-lizan.md informe-github-jlizancandela.md
@@ -208,8 +206,15 @@ La API se distribuye como imagen en Docker Hub: `jlizancandela/api_chatbox`. El 
 SHA del commit.
 
 La imagen lleva el TypeScript ya compilado, las dependencias de producción, las
-migraciones y el corpus que se ingiere. Arranca como un usuario sin privilegios
-(`node`), escucha en `$PORT` y comprueba su salud contra `/health`.
+migraciones, el corpus que se ingiere y **los pesos de EmbeddingGemma** (~200 MB en
+`q4`). Se descargan al construir, así que el arranque no necesita red. Arranca como
+un usuario sin privilegios (`node`), escucha en `$PORT` y comprueba su salud contra
+`/health`.
+
+El modelo se carga una vez al arrancar (~4 s) y la aplicación no empieza a escuchar
+hasta que está listo: `/health` no puede declarar sano un proceso que todavía no
+puede embeber. Su RSS estabilizado ronda los 620 MB; `compose.yaml` limita el
+servicio a 1 GB para que un fallo del modelo no arrastre al resto del servidor.
 
 ### Variables de la imagen
 
@@ -245,8 +250,6 @@ primer arranque choca contra una base de datos que todavía está arrancando.
 docker build -t chatbox-api:test api/
 docker run --rm -p 7000:7000 \
   -e DATABASE_URL=postgresql://postgres:change-me@host.docker.internal:5432/chatbox \
-  -e GEMINI_API_KEY=... \
-  -e GEMINI_VECTOR_DIMENSION=768 \
   -e GROQ_API_KEY=... \
   -e CORS_ORIGIN=https://jorgelizancandela.com \
   chatbox-api:test
@@ -316,10 +319,10 @@ services:
       - "traefik.http.services.chatboxapi.loadbalancer.server.port=7000"
     environment:
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@chatbox-db:5432/chatbox
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
-      GEMINI_VECTOR_DIMENSION: "768"
       GROQ_API_KEY: ${GROQ_API_KEY}
       CORS_ORIGIN: https://jorgelizancandela.com
+    # EmbeddingGemma vive dentro del contenedor: ~620 MB de RSS y un techo de 1 GB.
+    mem_limit: 1g
     depends_on:
       - chatbox-db
     networks:
@@ -337,6 +340,10 @@ services:
 ```
 
 El despliegue es el de siempre: `just deploy` tira de la imagen y levanta el stack.
+
+Al pasar al corpus de EmbeddingGemma, actualiza o borra `SIMILARITY_THRESHOLD` en el
+`.env` del VPS: el `0.5` que servía para Gemini deja las cuatro preguntas del widget
+sin contexto. El valor calibrado es `0.8`.
 
 **La ingesta va colgada del despliegue**, no del arranque del contenedor. Como el corpus
 viaja dentro de la imagen, cualquier cambio en un documento obliga a publicar una imagen
@@ -482,14 +489,15 @@ Los tests compilan TypeScript, ejecutan la suite y recogen cobertura. `pnpm veri
 es lo mismo sin cobertura, y es lo que corre CI.
 
 La suite es **hermética**: no hace ninguna petición a los proveedores y no necesita
-sus credenciales. Los proveedores externos —base de datos, generación y embeddings—
-entran por el **punto único de inyección de la aplicación**, las opciones de
+sus credenciales. Los proveedores —base de datos, generación y embeddings— entran por el **punto
+único de inyección de la aplicación**, las opciones de
 construcción (`src/dependencies.ts`): los tests de ruta pasan dobles por ahí y en
 producción no se pasa nada, así que se usan los de verdad. Los servicios, a su vez,
 reciben su colaborador por parámetro en vez de construirlo dentro.
 
 Lo único que pide el entorno es lo del test de integración de `pgvector`
-(`DATABASE_URL`) y `CORS_ORIGIN`. Ni claves de Gemini ni de Groq.
+(`DATABASE_URL`) y `CORS_ORIGIN`. Ni la clave de Groq ni la de ningún proveedor de
+embeddings: el modelo corre en el proceso y los tests lo doblan.
 
 Un guardián (`test/setup.ts`, cargado con `-r`) cierra `fetch` a todo lo que no sea el
 bucle local: si un test se olvida de un doble, falla al instante y dice qué URL intentó
@@ -507,3 +515,4 @@ el proveedor de verdad a propósito, `API_TEST_ALLOW_NETWORK=1`.
 | `pnpm test:run` | Solo la suite, sin el paso de compilación previa (ts-node compila al vuelo). |
 | `pnpm db:migrate` | Aplica migraciones pendientes. |
 | `pnpm ingest <archivos>` | Ingresa uno o más archivos desde `ingest/`. |
+| `pnpm embeddings:fetch` | Descarga el modelo de embeddings en `EMBEDDING_CACHE_DIR`. |

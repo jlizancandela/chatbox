@@ -5,14 +5,14 @@ El MVP será un RAG vectorial real y pequeño: ingerirá documentos, almacenará
 ## Arquitectura y flujo
 
 ```text
-Markdown/texto -> CLI -> chunking simple -> Gemini Embeddings -> PostgreSQL/pgvector
+Markdown/texto -> CLI -> chunking simple -> EmbeddingGemma en proceso -> PostgreSQL/pgvector
 
-POST /api/chat -> rate limiting en memoria (ráfaga + diario) -> validar pregunta -> Gemini Embeddings -> búsqueda top-k
+POST /api/chat -> rate limiting en memoria (ráfaga + diario) -> validar pregunta -> EmbeddingGemma en proceso -> búsqueda top-k
                -> sin contexto: sources + done mediante SSE
                -> con contexto: Groq en streaming -> sources + tokens + done mediante SSE
 ```
 
-Todo se implementa en un único backend Fastify con TypeScript. Las claves de Gemini y Groq permanecen en el backend. El rate limiting por IP (ráfaga + tope diario) se incorpora en el Paso 4 usando un store en memoria, sin Redis: no bloquea la implementación del RAG de los pasos 1–3 y queda integrado antes de publicar el endpoint.
+Todo se implementa en un único backend Fastify con TypeScript. La clave de Groq permanece en el backend y los embeddings corren dentro del proceso. El rate limiting por IP (ráfaga + tope diario) se incorpora en el Paso 4 usando un store en memoria, sin Redis: no bloquea la implementación del RAG de los pasos 1–3 y queda integrado antes de publicar el endpoint.
 
 ## Decisiones
 
@@ -22,21 +22,21 @@ Todo se implementa en un único backend Fastify con TypeScript. Las claves de Ge
 | Datos | PostgreSQL + extensión `pgvector` |
 | Ingesta | CLI local para archivos Markdown y texto plano |
 | Chunking | División simple por longitud, conservando un solapamiento pequeño |
-| Embeddings | API de Google Gemini, modelo `gemini-embedding-001`, vectores de 768 dimensiones |
-| Consistencia vectorial | Documentos y preguntas usan la misma API, modelo y dimensión |
+| Embeddings | EmbeddingGemma 300M en ONNX `q4`, en proceso, vectores de 768 dimensiones |
+| Consistencia vectorial | Documentos y preguntas usan el mismo modelo, prefijos y dimensión |
 | Recuperación | Similitud vectorial top-k, con `k` configurable |
 | Generación | Groq recibe únicamente la pregunta y los fragmentos recuperados |
 | Contrato | `POST /api/chat` recibe JSON y devuelve SSE para peticiones válidas; errores de validación previos al stream son JSON 400 |
 | Protección | Validación, rate limiting por IP en memoria (20/minuto y 100/24 h), CORS restringido, body limit de 16 KiB, secretos en backend y logs mínimos sin contenido sensible |
 
-> **Advertencia:** el nivel gratuito de Gemini puede usar datos para mejorar productos y sus límites pueden cambiar. Usar únicamente documentos públicos o no sensibles, y mantener proveedor, modelo y dimensión configurables.
+> **Advertencia:** el nivel gratuito de Gemini puede usar datos para mejorar productos y sus límites pueden cambiar. Por eso los embeddings pasan a un modelo local (Decisión 013): el corpus no sale de la infraestructura.
 
 ## Paso 1 - Base ejecutable y almacenamiento vectorial
 
 - [x] Crear el proyecto Fastify con TypeScript estricto y configuración validada al arrancar.
 - [x] Configurar PostgreSQL, habilitar `pgvector` y aplicar una migración reproducible.
 - [x] Crear una tabla mínima de fragmentos con fuente, texto y `vector(768)`.
-- [x] Mantener las credenciales de PostgreSQL, Gemini y Groq solo en variables del backend.
+- [x] Mantener las credenciales de PostgreSQL y Groq solo en variables del backend.
 
 **Cierre:** la API arranca, detecta configuración inválida y puede insertar y leer un vector de 768 dimensiones.
 
@@ -44,7 +44,7 @@ Todo se implementa en un único backend Fastify con TypeScript. Las claves de Ge
 
 - [x] Crear un comando CLI que reciba uno o más archivos Markdown o texto plano.
 - [x] Dividir el contenido con chunking simple y descartar fragmentos vacíos.
-- [x] Generar cada embedding con `gemini-embedding-001` a 768 dimensiones.
+- [x] Generar cada embedding con EmbeddingGemma en proceso a 768 dimensiones.
 - [x] Guardar fuente, texto y vector en PostgreSQL e informar cantidades y errores.
 
 **Cierre:** un documento público de ejemplo queda convertido en fragmentos consultables desde `pgvector`.
@@ -98,7 +98,7 @@ corre por cuenta del cliente.
 ## Criterios de éxito
 
 - El sistema usa embeddings reales almacenados y consultados mediante `pgvector`.
-- Documentos y preguntas comparten `gemini-embedding-001` y 768 dimensiones.
+- Documentos y preguntas comparten EmbeddingGemma y 768 dimensiones.
 - Las respuestas con contexto se generan con Groq y emiten fuentes y tokens mediante SSE.
 - Las preguntas sin contexto no producen respuestas inventadas.
 - El endpoint valida entradas, limita abuso por IP en memoria y no expone secretos.

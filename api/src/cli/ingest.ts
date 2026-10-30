@@ -11,7 +11,7 @@ import { ingestFile, type IngestDeps } from "../services/ingest";
  * corpus en la base de datos.
  *
  * La lógica vive en `services/ingest.ts`, con sus dependencias inyectadas, para poder
- * probarla sin PostgreSQL y sin Gemini. Aquí solo se cablea lo de verdad.
+ * probarla sin PostgreSQL y sin modelo. Aquí solo se cablea lo de verdad.
  */
 async function main() {
 	const app = fastify();
