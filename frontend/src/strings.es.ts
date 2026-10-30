@@ -77,6 +77,11 @@ export const strings = {
 		HTTP_SERVER: "Algo ha fallado. Inténtalo de nuevo.",
 		NETWORK_ERROR: "No se pudo conectar. Comprueba tu conexión.",
 		STREAM_ERROR: "No he podido completar la respuesta.",
+		/**
+		 * Cuota agotada del proveedor (#144). No es un fallo: el chat está ocupado y volver
+		 * más tarde sirve. No promete una hora concreta porque el reintento no la garantiza.
+		 */
+		QUOTA_EXHAUSTED: "El asistente está ocupado ahora mismo. Vuelve a intentarlo más tarde.",
 		INCOMPLETE_STREAM: "La respuesta se interrumpió.",
 		TIMEOUT: "No se pudo conectar. Comprueba tu conexión.",
 		QUESTION_INVALID: "No se pudo enviar esa pregunta.",

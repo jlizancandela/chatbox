@@ -181,8 +181,9 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 				if (active) {
 					active.failed = true;
 				}
-				const error = chatErrors.stream();
-				failWith(error);
+				// El código viaja desde el servidor: la cuota no es un fallo genérico y el
+				// visitante merece saber que volver más tarde sirve (#144).
+				failWith(chatErrors.streamEvent(event));
 				break;
 			}
 		}

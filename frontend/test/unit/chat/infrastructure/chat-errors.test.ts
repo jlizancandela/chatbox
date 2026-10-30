@@ -21,6 +21,47 @@ describe("chat error translation", () => {
 		});
 	});
 
+	it("answers an exhausted quota with its own message and keeps the retry hint", () => {
+		// La cuota no es "no he podido": es "está ocupado". El código y el texto lo distinguen,
+		// y el aviso de reintento del proveedor no se tira por el camino (#144).
+		expect(
+			chatErrors.streamEvent({
+				type: "error",
+				code: "QUOTA_EXHAUSTED",
+				message: "internal detail",
+				retryAfterSeconds: 42,
+			})
+		).toEqual({
+			code: "QUOTA_EXHAUSTED",
+			message: strings.errors.QUOTA_EXHAUSTED,
+			retryAfterSeconds: 42,
+		});
+
+		expect(
+			chatErrors.streamEvent({
+				type: "error",
+				code: "QUOTA_EXHAUSTED",
+				message: "internal detail",
+			})
+		).toEqual({
+			code: "QUOTA_EXHAUSTED",
+			message: strings.errors.QUOTA_EXHAUSTED,
+		});
+	});
+
+	it("leaves a generic stream failure as the generic error", () => {
+		expect(
+			chatErrors.streamEvent({
+				type: "error",
+				code: "GENERATION_FAILED",
+				message: "internal detail",
+			})
+		).toEqual({
+			code: "STREAM_ERROR",
+			message: strings.errors.STREAM_ERROR,
+		});
+	});
+
 	it.each([
 		["network", "NETWORK_ERROR"],
 		["stream", "STREAM_ERROR"],

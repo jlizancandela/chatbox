@@ -194,6 +194,7 @@ test("askStream emits an error event when the provider fails mid-stream", async 
 		{ type: "token", token: "Hola" },
 		{
 			type: "error",
+			code: "GENERATION_FAILED",
 			message: "An unexpected error occurred while generating the answer",
 		},
 	]);
@@ -264,6 +265,7 @@ test("askStream emits an error event when retrieval fails", async () => {
 	assert.deepStrictEqual(events, [
 		{
 			type: "error",
+			code: "GENERATION_FAILED",
 			message: "An unexpected error occurred while generating the answer",
 		},
 	]);

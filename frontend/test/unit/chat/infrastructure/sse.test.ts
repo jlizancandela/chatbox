@@ -65,7 +65,37 @@ describe("SSE parser", () => {
 			"event: unknown\ndata: {}\n\n",
 		].join("");
 
-		expect(parser.feed(chunk)).toEqual([{ type: "error", message: "internal detail" }]);
+		expect(parser.feed(chunk)).toEqual([
+			{ type: "error", code: "GENERATION_FAILED", message: "internal detail" },
+		]);
+	});
+
+	it("keeps the quota code and the retry hint apart from a generic failure", () => {
+		const parser = createSSEParser();
+		const chunk = [
+			'event: error\ndata: {"code":"QUOTA_EXHAUSTED","message":"busy","retryAfterSeconds":42}\n\n',
+			'event: error\ndata: {"code":"GENERATION_FAILED","message":"boom"}\n\n',
+		].join("");
+
+		expect(parser.feed(chunk)).toEqual([
+			{ type: "error", code: "QUOTA_EXHAUSTED", message: "busy", retryAfterSeconds: 42 },
+			{ type: "error", code: "GENERATION_FAILED", message: "boom" },
+		]);
+	});
+
+	it("falls back to the generic code and drops a retry hint it cannot trust", () => {
+		const parser = createSSEParser();
+		const chunk = [
+			'event: error\ndata: {"code":"SOMETHING_ELSE","message":"boom"}\n\n',
+			'event: error\ndata: {"code":"QUOTA_EXHAUSTED","message":"busy","retryAfterSeconds":"42"}\n\n',
+			'event: error\ndata: {"code":"QUOTA_EXHAUSTED","message":"busy","retryAfterSeconds":-1}\n\n',
+		].join("");
+
+		expect(parser.feed(chunk)).toEqual([
+			{ type: "error", code: "GENERATION_FAILED", message: "boom" },
+			{ type: "error", code: "QUOTA_EXHAUSTED", message: "busy" },
+			{ type: "error", code: "QUOTA_EXHAUSTED", message: "busy" },
+		]);
 	});
 
 	it("can be reset for a new stream", () => {

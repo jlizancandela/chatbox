@@ -117,6 +117,18 @@ en issues, specs o tests.
   nuevos si la firma de embeddings ha cambiado; si no, el documento se reactiva sin
   rehacer sus fragmentos.
 
+## Errores del stream (#144)
+
+- **Código de error del stream**: discriminante de un evento `error`
+  (`GENERATION_FAILED` o `QUOTA_EXHAUSTED`). El servidor clasifica; el texto que ve el
+  visitante lo elige el widget. No es redacción de interfaz y no revela la causa interna.
+- **Cuota agotada**: estado del proveedor de generación que responde `429`, distinto de un
+  fallo del proveedor. La respuesta correcta no es «algo se rompió» sino «está ocupado,
+  vuelve más tarde», y por eso viaja con su propio código.
+- **Aviso de reintento**: segundos que el proveedor pide esperar antes de reintentar
+  (`retry-after`). Viaja en el evento de error y se conserva en el error del widget; no
+  dispara reintentos automáticos.
+
 ## Seguimiento del hilo (RF-F06/RF-F48)
 
 - **Umbral de seguimiento**: distancia máxima al final de la conversación que todavía se
