@@ -47,7 +47,7 @@ test("sin el doble, un test de ruta necesita las credenciales del proveedor", as
 	await withoutGroqKey(async () => {
 		await assert.rejects(
 			build(t, { pg: fakePg([]), embedContent: fakeEmbedContent() }),
-			/GROQ_API_KEY is required/,
+			/GROQ_API_KEY is required/
 		);
 	});
 });

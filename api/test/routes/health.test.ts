@@ -1,15 +1,15 @@
-import { test } from 'node:test'
-import * as assert from 'node:assert'
-import { build, testDependencies } from '../helper'
+import * as assert from "node:assert";
+import { test } from "node:test";
+import { build, testDependencies } from "../helper";
 
-test('health route returns correct response', async (t) => {
-  const app = await build(t, testDependencies())
+test("health route returns correct response", async (t) => {
+	const app = await build(t, testDependencies());
 
-  const res = await app.inject({
-    url: '/health'
-  })
+	const res = await app.inject({
+		url: "/health",
+	});
 
-  assert.equal(res.statusCode, 200)
+	assert.equal(res.statusCode, 200);
 
-  assert.deepStrictEqual(res.json(), { status: 'ok' })
-})
+	assert.deepStrictEqual(res.json(), { status: "ok" });
+});

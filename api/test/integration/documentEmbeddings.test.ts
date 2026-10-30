@@ -3,8 +3,8 @@ import { test } from "node:test";
 import fastify from "fastify";
 import db from "../../src/plugins/db";
 import { documentEmbeddingsService } from "../../src/services/documentEmbeddings";
-import { EMBEDDING_DIMENSION } from "../../src/services/embedding.config";
 import documentService from "../../src/services/documents";
+import { EMBEDDING_DIMENSION } from "../../src/services/embedding.config";
 import { vectorOf } from "../vector";
 
 /**
@@ -30,14 +30,14 @@ test("la dimensión configurada es la del esquema", async (t) => {
 		   FROM pg_attribute
 		  WHERE attrelid = 'document_chunks'::regclass
 		    AND attname = 'embedding'
-		    AND NOT attisdropped`,
+		    AND NOT attisdropped`
 	);
 
 	assert.equal(rows.length, 1, "no se encontró la columna embedding");
 	assert.equal(
 		EMBEDDING_DIMENSION,
 		rows[0].typmod,
-		"la dimensión del modelo tiene que ser la de la columna embedding",
+		"la dimensión del modelo tiene que ser la de la columna embedding"
 	);
 });
 
@@ -52,17 +52,14 @@ test("un vector entra y sale de PostgreSQL", async (t) => {
 
 	const content = "Test vector insert and read via documentService.";
 	const chunks = [content];
-	const embeddedChunks = await service.getDocumentEmbeddings(
-		"test-document-service.txt",
-		chunks,
-	);
+	const embeddedChunks = await service.getDocumentEmbeddings("test-document-service.txt", chunks);
 
 	for (const embeddedChunk of embeddedChunks) {
 		const embeddingArray = JSON.parse(embeddedChunk.embedding);
 		assert.strictEqual(
 			embeddingArray?.length,
 			dimension,
-			`Expected ${dimension} dimensions, got ${embeddingArray?.length}`,
+			`Expected ${dimension} dimensions, got ${embeddingArray?.length}`
 		);
 	}
 
@@ -84,7 +81,7 @@ test("un vector entra y sale de PostgreSQL", async (t) => {
 		assert.strictEqual(
 			retrieved.length,
 			dimension,
-			`Expected ${dimension} dimensions, got ${retrieved.length}`,
+			`Expected ${dimension} dimensions, got ${retrieved.length}`
 		);
 
 		// pgvector guarda `float4`, así que el viaje redondea: lo que se comprueba es
@@ -93,7 +90,7 @@ test("un vector entra y sale de PostgreSQL", async (t) => {
 		for (const [index, value] of retrieved.entries()) {
 			assert.ok(
 				Math.abs(value - saved[index]) < 1e-6,
-				`componente ${index}: ${value} != ${saved[index]}`,
+				`componente ${index}: ${value} != ${saved[index]}`
 			);
 		}
 	} finally {

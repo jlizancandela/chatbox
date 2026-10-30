@@ -29,6 +29,4 @@ export const computeDocumentVersion = ({
 	title,
 	embeddingSignature,
 }: DocumentVersionInput): string =>
-	createHash("sha256")
-		.update(`${content}\n${title}\n${embeddingSignature}`)
-		.digest("hex");
+	createHash("sha256").update(`${content}\n${title}\n${embeddingSignature}`).digest("hex");

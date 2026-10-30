@@ -1,13 +1,13 @@
 import assert from "node:assert";
 import { test } from "node:test";
 import fastify from "fastify";
-import { fakeGroq } from "../helper";
 import db from "../../src/plugins/db";
 import { chatService } from "../../src/services/chat";
 import { documentEmbeddingsService } from "../../src/services/documentEmbeddings";
+import documentService from "../../src/services/documents";
 import { embeddingService } from "../../src/services/embedding";
 import { EMBEDDING_DIMENSION } from "../../src/services/embedding.config";
-import documentService from "../../src/services/documents";
+import { fakeGroq } from "../helper";
 
 /**
  * La recuperación de punta a punta, con un embedder determinista.
@@ -20,18 +20,20 @@ import documentService from "../../src/services/documents";
 
 const KEYWORDS = ["reservas", "wordpress"];
 
-const keywordEmbedder = () => async (text: string): Promise<number[]> => {
-	const values = Array.from({ length: EMBEDDING_DIMENSION }, () => 0);
-	values[EMBEDDING_DIMENSION - 1] = 0.01;
+const keywordEmbedder =
+	() =>
+	async (text: string): Promise<number[]> => {
+		const values = Array.from({ length: EMBEDDING_DIMENSION }, () => 0);
+		values[EMBEDDING_DIMENSION - 1] = 0.01;
 
-	for (const [index, keyword] of KEYWORDS.entries()) {
-		if (text.toLowerCase().includes(keyword)) {
-			values[index] = 1;
+		for (const [index, keyword] of KEYWORDS.entries()) {
+			if (text.toLowerCase().includes(keyword)) {
+				values[index] = 1;
+			}
 		}
-	}
 
-	return values;
-};
+		return values;
+	};
 
 const SOURCE = "test-retrieval.txt";
 
@@ -58,7 +60,7 @@ test("una pregunta del corpus devuelve el fragmento correcto como primero", asyn
 		chunks: await embeddings.getDocumentEmbeddings(
 			SOURCE,
 			corpus.map((chunk) => chunk.text),
-			"Corpus de prueba",
+			"Corpus de prueba"
 		),
 	});
 
@@ -76,7 +78,7 @@ test("una pregunta del corpus devuelve el fragmento correcto como primero", asyn
 		assert.strictEqual(
 			sources[0].content,
 			corpus[0].text,
-			"el fragmento de reservas tiene que quedar primero",
+			"el fragmento de reservas tiene que quedar primero"
 		);
 	} finally {
 		await app.pg.query("DELETE FROM documents WHERE id = $1", [documentId]);

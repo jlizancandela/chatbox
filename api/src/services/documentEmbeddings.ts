@@ -1,5 +1,5 @@
 import type { DocumentChunk } from "../repositories/documents";
-import { embeddingService, type EmbedContentFn } from "./embedding";
+import { type EmbedContentFn, embeddingService } from "./embedding";
 
 /**
  * Los embeddings de un documento.
@@ -13,7 +13,7 @@ export const documentEmbeddingsService = (embedContent?: EmbedContentFn) => {
 	const getDocumentEmbeddings = async (
 		file: string,
 		chunks: string[],
-		title?: string,
+		title?: string
 	): Promise<DocumentChunk[]> => {
 		const embeddedChunks: DocumentChunk[] = [];
 

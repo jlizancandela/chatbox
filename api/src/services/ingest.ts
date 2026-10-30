@@ -1,5 +1,5 @@
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import path from "node:path";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import type { DocumentChunk } from "../repositories/documents";
 import { computeDocumentVersion, resolveDisplayTitle } from "./documentIdentity";
 import { embeddingSignature } from "./embedding.config";
@@ -13,11 +13,7 @@ import { embeddingSignature } from "./embedding.config";
 export type IngestDeps = {
 	read: (source: string) => Promise<string>;
 	hasVersion: (source: string, version: string) => Promise<boolean>;
-	embed: (
-		content: string,
-		chunks: string[],
-		title: string,
-	) => Promise<DocumentChunk[]>;
+	embed: (content: string, chunks: string[], title: string) => Promise<DocumentChunk[]>;
 	ingest: (input: {
 		content: string;
 		source: string;
@@ -52,10 +48,7 @@ const splitter = new RecursiveCharacterTextSplitter({
  * Cuando reutiliza, no pasa fragmentos: el servicio solo reactiva el documento y los
  * que ya tenía siguen en la base de datos.
  */
-export const ingestFile = async (
-	deps: IngestDeps,
-	source: string,
-): Promise<IngestResult> => {
+export const ingestFile = async (deps: IngestDeps, source: string): Promise<IngestResult> => {
 	const content = await deps.read(source);
 	const title = resolveDisplayTitle(source, path.parse(source).name);
 	const chunks = await splitter.splitText(content);

@@ -22,7 +22,7 @@ export const defaultRateLimitConfig: RateLimitConfig = {
 };
 
 export const createRateLimitMiddleware = (
-	config: RateLimitConfig = defaultRateLimitConfig,
+	config: RateLimitConfig = defaultRateLimitConfig
 ): FastifyPluginAsync =>
 	fp(async (fastify) => {
 		await fastify.register(rateLimit, {
