@@ -56,6 +56,10 @@ export type RequestTrace = {
 	url: string;
 	statusCode: number;
 	durationMs: number;
+	/** Los tokens que consumió el turno, cuando la petición fue una generación (#148). */
+	tokens?: number;
+	/** La sesión a la que se contabiliza el consumo (#148). */
+	sessionId?: string;
 };
 
 /**
@@ -68,6 +72,8 @@ export type FailureTrace = {
 	requestId?: string;
 	code: string;
 	status?: number;
+	/** La sesión a la que se atribuye el fallo (#148). */
+	sessionId?: string;
 };
 
 export type Logger = {

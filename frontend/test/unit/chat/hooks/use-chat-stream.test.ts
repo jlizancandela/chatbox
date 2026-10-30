@@ -103,6 +103,24 @@ describe("useChatStream runner", () => {
 		]);
 	});
 
+	it("sends the session id so the server can bill the conversation", async () => {
+		const chat = createChat();
+		const fetchImpl = vi.fn().mockResolvedValue(responseFor(sourceFrame(), doneFrame));
+		const runner = createChatStreamRunner({
+			apiUrl: "http://localhost:7000",
+			chat,
+			fetchImpl,
+			sessionId: "sesion-1",
+		});
+
+		await runner.run("Pregunta");
+
+		// Sin el identificador, el servidor no puede atribuir el consumo a nadie y el
+		// presupuesto por sesión no sirve de nada (#148).
+		const headers = (fetchImpl.mock.calls[0][1] as RequestInit).headers as Record<string, string>;
+		expect(headers["x-session-id"]).toBe("sesion-1");
+	});
+
 	it("keeps the question in the context when the assistant answers nothing", async () => {
 		const chat = createChat();
 		const runner = createRunner(

@@ -27,6 +27,11 @@ export type UseChatStreamOptions = {
 	onSources?: (historyLength: number) => void;
 	onActivityChange?: (active: boolean) => void;
 	onTurnEnd?: (event: TurnEnd) => void;
+	/**
+	 * El identificador de sesión. Viaja en cada petición para que el servidor pueda
+	 * contabilizar el consumo de esta conversación (#148).
+	 */
+	sessionId?: string;
 };
 
 export type UseChatStreamResult = {
@@ -256,6 +261,7 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 				body: request,
 				signal: turn.controller.signal,
 				fetchImpl: options.fetchImpl,
+				sessionId: options.sessionId,
 			});
 
 			if (!response.ok) {

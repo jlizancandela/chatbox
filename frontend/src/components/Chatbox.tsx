@@ -11,6 +11,7 @@ import { useAutoFocus } from "../chat/hooks/useAutoFocus";
 import { useChat } from "../chat/hooks/useChat";
 import { type TurnEnd, useChatStream } from "../chat/hooks/useChatStream";
 import { useKeyboardInset } from "../chat/hooks/useKeyboardInset";
+import { loadOrCreateSessionId, rotateSessionId } from "../chat/infrastructure/session";
 import { loadFromSessionStorage, saveToSessionStorage } from "../chat/infrastructure/storage";
 import { strings } from "../strings.es";
 import { ChatHeader } from "./ChatHeader";
@@ -196,9 +197,19 @@ export function Chatbox({
 	const jumping = useRef(false);
 	const sentContextLength = useRef(0);
 
+	/**
+	 * El identificador de sesión.
+	 *
+	 * Lo genera el cliente y viaja en cada petición para que el servidor pueda
+	 * contabilizar el consumo de esta conversación (#148). Empezar una conversación
+	 * nueva lo rota, y con él se reinicia el presupuesto.
+	 */
+	const [sessionId, setSessionId] = useState(loadOrCreateSessionId);
+
 	const { sendQuestion, retryQuestion, abort } = useChatStream({
 		apiUrl,
 		chat,
+		sessionId,
 		onSources: (historyLength) => setContextWasTrimmed(historyLength < sentContextLength.current),
 		onTurnEnd: (event) => {
 			if (closedWithoutAnswer(event)) {
@@ -365,6 +376,8 @@ export function Chatbox({
 		abort();
 		chat.reset();
 		saveToSessionStorage([], []);
+		// Una conversación nueva es una sesión nueva: el presupuesto se reinicia (#148).
+		setSessionId(rotateSessionId());
 		setLocalNotice("");
 		setContextWasTrimmed(false);
 		setAnnouncement(NO_ANNOUNCEMENT);

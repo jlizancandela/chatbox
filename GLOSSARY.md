@@ -108,8 +108,24 @@ en issues, specs o tests.
   que un control nuevo sin inventariar rompa la compilación. Se verifica en dos niveles
   —mecanismo en jsdom y resolución en Chromium— y no tiene nivel manual.
 
-## Respuesta fundamentada y atribución
+## Presupuesto de consumo (#148)
 
+- **Sesión**: conversación del visitante, identificada por un identificador que genera el
+  cliente y viaja en cada petición (`x-session-id`). Sin autenticación, el cliente lo
+  controla.
+- **Presupuesto de sesión**: tope de consumo —tokens y turnos— de una sesión. Al
+  agotarse, el servidor corta la conversación con su propio código y ofrece empezar
+  otra. Vive en memoria del proceso: un reinicio lo borra.
+- **Presupuesto por sesión no es seguridad**: el identificador lo controla el cliente,
+  así que rotarlo reinicia el presupuesto. Es **equidad entre visitantes**. El respaldo
+  real es el tope global de consumo.
+- **Corte por presupuesto**: fin de una conversación por agotarse su presupuesto. Es un
+  tope, no una avería: su mensaje ofrece una conversación nueva.
+- **Consumo real**: tokens que dice el proveedor, no una estimación. Los tokens servidos
+  desde el caché de prompt no cuentan contra el límite, y solo la cifra del proveedor lo
+  refleja.
+
+## Respuesta fundamentada y atribución
 - **Fragmento etiquetado**: fragmento recuperado que se entrega al modelo con un
   número y el título de su documento de origen (`[1] Currículum — ...`). El número
   ordena los fragmentos; el título dice de dónde sale el dato.

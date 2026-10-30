@@ -82,6 +82,12 @@ export const strings = {
 		 * más tarde sirve. No promete una hora concreta porque el reintento no la garantiza.
 		 */
 		QUOTA_EXHAUSTED: "El asistente está ocupado ahora mismo. Vuelve a intentarlo más tarde.",
+		/**
+		 * Presupuesto de la conversación agotado (#148). No es un fallo del servicio: es el
+		 * tope de esta conversación, y ofrece la salida —empezar una nueva—.
+		 */
+		SESSION_BUDGET_EXCEEDED:
+			"Esta conversación ha llegado a su límite. Empieza una nueva para seguir preguntando.",
 		INCOMPLETE_STREAM: "La respuesta se interrumpió.",
 		TIMEOUT: "No se pudo conectar. Comprueba tu conexión.",
 		QUESTION_INVALID: "No se pudo enviar esa pregunta.",

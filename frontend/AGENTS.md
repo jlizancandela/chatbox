@@ -158,7 +158,7 @@ La respuesta correcta es `text/event-stream` con esta secuencia:
 | `sources` | `{ sources, history }` | Guardar fuentes y sincronizar el contexto canónico. |
 | `token` | `{ token }` | Añadir texto a la respuesta en curso. |
 | `done` | `{}` | Cerrar el turno correctamente. |
-| `error` | `{ code, message, retryAfterSeconds? }` | Mostrar un error propio, nunca el mensaje interno. `QUOTA_EXHAUSTED` tiene texto propio; el resto cae en el genérico. |
+| `error` | `{ code, message, retryAfterSeconds? }` | Mostrar un error propio, nunca el mensaje interno. `QUOTA_EXHAUSTED` y `SESSION_BUDGET_EXCEEDED` tienen texto propio; el resto cae en el genérico. |
 
 Sin contexto suficiente, el API envía `sources: []` y `done`, sin tokens. El
 frontend debe mostrar el mensaje local definido por la especificación.
@@ -167,12 +167,20 @@ Los errores HTTP previos al stream pueden ser `400`, `413`, `429` o `5xx`. El
 frontend debe traducirlos a textos propios y no mostrar el JSON interno del
 API.
 
+Cabeceras que envía el widget:
+
+- `x-session-id`: el identificador de sesión. Lo genera el cliente y lo guarda en
+  `sessionStorage`; el API lo usa para contabilizar el consumo de la conversación
+  (#148). Empezar una conversación nueva lo rota.
+- `x-request-id`: opcional. Si viaja, el API lo respeta como identificador de
+  correlación; si no, lo genera (#146).
+
 Límites que deben mantenerse alineados con el API:
 
 - Pregunta: máximo 1000 caracteres.
-- Mensaje de historial: máximo 2000 caracteres.
-- Historial: máximo 20 mensajes.
-- Historial total: máximo 8000 caracteres.
+- Mensaje de historial: máximo 1000 caracteres.
+- Historial: máximo 12 mensajes.
+- Historial total: máximo 4000 caracteres.
 
 ## Decisiones técnicas
 
