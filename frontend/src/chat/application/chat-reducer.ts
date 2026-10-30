@@ -1,7 +1,16 @@
-import { type ConversationState, mergeContext } from "../domain/conversation";
-import type { ChatError, ChatMessage, ChatSource, TurnState } from "../types";
+import {
+	type ConversationState,
+	dropClosedTurn,
+	isTurnOpen,
+	mergeContext,
+} from "../domain/conversation";
+import type { ChatError, ChatMessage, ChatSource, TurnState, VisibleMessage } from "../types";
 
 export type ChatState = ConversationState & {
+	/**
+	 * La pregunta del turno abierto, o la del último turno cerrado: es lo que repite el
+	 * botón de reintentar. Se sobrescribe al empezar el siguiente turno (#145).
+	 */
 	currentQuestion: string | null;
 	currentResponse: string;
 	sources: ChatSource[];
@@ -16,7 +25,7 @@ export type ChatAction =
 	| { type: "token-received"; token: string }
 	| { type: "turn-completed" }
 	| { type: "turn-failed"; error: ChatError; response?: string }
-	| { type: "turn-aborted" }
+	| { type: "turn-aborted"; response?: string }
 	| { type: "state-restored"; state: ConversationState }
 	| { type: "conversation-reset" };
 
@@ -29,6 +38,54 @@ export const createInitialChatState = (initial: Partial<ConversationState> = {})
 	turnState: "idle",
 	error: null,
 });
+
+type TurnOutcome = {
+	turnState: TurnState;
+	error: ChatError | null;
+};
+
+/**
+ * Cierra un turno con una sola regla (#145): la pregunta entra **siempre** en el contexto y
+ * la respuesta entra solo si tiene texto. Así lo que se guarda es lo que se ve, y un turno
+ * vacío o interrumpido no rompe el hilo de la conversación.
+ *
+ * La pregunta no se limpia porque el reintento la necesita: el intento que se repite pasa
+ * por `turn-retried`, que deshace lo que este cierre dejó escrito.
+ */
+const closeTurn = (state: ChatState, answer: string, outcome: TurnOutcome): ChatState => {
+	const closed: ChatState = {
+		...state,
+		currentResponse: "",
+		sources: [],
+		turnState: outcome.turnState,
+		error: outcome.error,
+	};
+
+	if (!isTurnOpen(state.turnState) || state.currentQuestion === null) {
+		return closed;
+	}
+
+	const sources = state.sources.length > 0 ? state.sources : undefined;
+	const answered = answer.length > 0;
+	const question: ChatMessage = { role: "user", content: state.currentQuestion };
+	const messages: VisibleMessage[] = answered
+		? [...state.messages, { role: "assistant", content: answer, ...(sources ? { sources } : {}) }]
+		: state.messages;
+	// El contexto es lo que se envía al API: solo rol y contenido. Las fuentes se quedan en
+	// la conversación, que es donde se ven.
+	const context: ChatMessage[] = answered
+		? [...state.context, question, { role: "assistant", content: answer }]
+		: [...state.context, question];
+
+	return { ...closed, messages, context };
+};
+
+/**
+ * Al reintentar solo se retira la respuesta confirmada: la pregunta visible la puso
+ * `turn-started` y se queda en el hilo mientras el nuevo intento avanza.
+ */
+const withoutCommittedAnswer = (messages: VisibleMessage[]): VisibleMessage[] =>
+	messages.at(-1)?.role === "assistant" ? messages.slice(0, -1) : messages;
 
 export const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
 	switch (action.type) {
@@ -46,6 +103,8 @@ export const chatReducer = (state: ChatState, action: ChatAction): ChatState => 
 		case "turn-retried":
 			return {
 				...state,
+				messages: withoutCommittedAnswer(state.messages),
+				context: dropClosedTurn(state.context, state.currentQuestion),
 				currentResponse: "",
 				sources: [],
 				turnState: "connecting",
@@ -67,48 +126,20 @@ export const chatReducer = (state: ChatState, action: ChatAction): ChatState => 
 				turnState: "streaming",
 			};
 
-		case "turn-completed": {
-			const hasCompletedResponse =
-				state.currentQuestion !== null && state.currentResponse.length > 0;
-			const sources = state.sources.length > 0 ? state.sources : undefined;
-			const assistantMessage = hasCompletedResponse
-				? {
-						role: "assistant" as const,
-						content: state.currentResponse,
-						...(sources ? { sources } : {}),
-					}
-				: null;
-
-			return {
-				...state,
-				messages: assistantMessage ? [...state.messages, assistantMessage] : state.messages,
-				// El contexto es lo que se envía al API: solo rol y contenido. Las fuentes
-				// se quedan en la conversación, que es donde se ven.
-				context:
-					assistantMessage && state.currentQuestion
-						? [
-								...state.context,
-								{ role: "user", content: state.currentQuestion },
-								{ role: "assistant", content: state.currentResponse },
-							]
-						: state.context,
-				currentQuestion: null,
-				currentResponse: "",
-				turnState: "idle",
-				error: null,
-			};
-		}
+		case "turn-completed":
+			return closeTurn(state, state.currentResponse, { turnState: "idle", error: null });
 
 		case "turn-failed":
-			return {
-				...state,
-				currentResponse: action.response ?? state.currentResponse,
+			return closeTurn(state, action.response ?? state.currentResponse, {
 				turnState: "error",
 				error: action.error,
-			};
+			});
 
 		case "turn-aborted":
-			return { ...state, turnState: "aborted" };
+			return closeTurn(state, action.response ?? state.currentResponse, {
+				turnState: "aborted",
+				error: null,
+			});
 
 		case "state-restored":
 			return createInitialChatState(action.state);

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
-import { buildChatRequest } from "../domain/conversation";
+import { buildChatRequest, dropClosedTurn } from "../domain/conversation";
 import { chatErrors, isAbortError } from "../infrastructure/chat-errors";
 import type { ChatEvent } from "../infrastructure/sse";
 import { readChatEvents, requestChatStream } from "../infrastructure/stream-transport";
@@ -104,9 +104,9 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 	};
 
 	const enqueueToken = (token: string): void => {
-		// El texto anunciado se acumula aquí, antes de cualquier `requestFrame`: leerlo del
-		// estado en `done` ya no es posible porque el dispatch aún no ha re-renderizado.
-		if (active) active.assistantText += token;
+		// El texto se encola y se pinta en el siguiente frame. Lo que se guarda al cerrar el
+		// turno es lo pintado, así que `assistantText` se acumula al volcar el búfer, no al
+		// encolar: un token a medio camino de pintarse todavía no se ha visto (#145).
 		tokenBuffer?.enqueue(token);
 	};
 
@@ -118,13 +118,19 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 
 	// Fallar o abortar son siempre la misma pareja: cambiar el estado del turno y emitir su
 	// desenlace. Que vivan juntos es lo que hace cumplible el invariante de una salida, un evento.
+	//
+	// Las dos guardan el mismo texto —el que se pintó—, pero no lo vacían igual: abortar
+	// descarta el frame pendiente (el token a medio pintar se pierde, porque la persona pidió
+	// parar), mientras que fallar lo vuelca para que no se pierda lo ya generado.
 	const failWith = (error: ChatError): void => {
+		flushTokens();
 		options.chat.failTurn(error, active?.assistantText);
 		endTurn({ kind: "failed", error });
 	};
 
+	// Abortar y fallar se guardan igual: lo que se mostró se confirma como mensaje (#145).
 	const abortWith = (): void => {
-		options.chat.abortTurn();
+		options.chat.abortTurn(active?.assistantText);
 		endTurn({ kind: "aborted" });
 	};
 
@@ -208,7 +214,12 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 
 		let request: ReturnType<typeof buildChatRequest>;
 		try {
-			request = buildChatRequest(text, options.chat.state.context);
+			// Reintentar repite la misma pregunta: el intento fallido que se acaba de cerrar
+			// no puede viajar otra vez en el historial (#145).
+			const history = retry
+				? dropClosedTurn(options.chat.state.context, text)
+				: options.chat.state.context;
+			request = buildChatRequest(text, history);
 		} catch {
 			failWith(chatErrors.invalidQuestion());
 			return;
@@ -226,7 +237,11 @@ export const createChatStreamRunner = (initialOptions: RunnerOptions): ChatStrea
 		};
 		active = turn;
 		tokenBuffer = createTokenBuffer({
-			onFlush: (tokens) => options.chat.receiveToken(tokens),
+			onFlush: (tokens) => {
+				// Lo pintado es lo que el turno guarda: aquí nace el texto confirmado.
+				if (active) active.assistantText += tokens;
+				options.chat.receiveToken(tokens);
+			},
 			requestFrame: (callback) => (options.requestFrame ?? defaultRequestFrame)(() => callback(0)),
 			cancelFrame: options.cancelFrame ?? defaultCancelFrame,
 		});

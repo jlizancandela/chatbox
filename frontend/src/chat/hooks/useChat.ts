@@ -11,7 +11,7 @@ export type ChatController = {
 	receiveToken: (token: string) => void;
 	completeTurn: () => void;
 	failTurn: (error: ChatError, response?: string) => void;
-	abortTurn: () => void;
+	abortTurn: (response?: string) => void;
 	restore: (state: ConversationState) => void;
 	reset: () => void;
 };
@@ -27,7 +27,7 @@ export const useChat = (initial: Partial<ConversationState> = {}): ChatControlle
 		receiveToken: (token) => dispatch({ type: "token-received", token }),
 		completeTurn: () => dispatch({ type: "turn-completed" }),
 		failTurn: (error, response) => dispatch({ type: "turn-failed", error, response }),
-		abortTurn: () => dispatch({ type: "turn-aborted" }),
+		abortTurn: (response) => dispatch({ type: "turn-aborted", response }),
 		restore: (conversation) => dispatch({ type: "state-restored", state: conversation }),
 		reset: () => dispatch({ type: "conversation-reset" }),
 	};

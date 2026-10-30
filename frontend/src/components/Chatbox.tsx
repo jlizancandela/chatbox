@@ -3,7 +3,7 @@ import "./Chatbox.css";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
 import { ExternalLink } from "../chat/components/ExternalLink";
 import { toAnnouncementText } from "../chat/domain/announcement";
-import { trimHistory } from "../chat/domain/conversation";
+import { isTurnOpen, trimHistory } from "../chat/domain/conversation";
 import { REDUCED_MOTION_QUERY, type ScrollIntent, scrollBehavior } from "../chat/domain/motion";
 import { isAwayFromEnd } from "../chat/domain/scroll";
 import { sourceTitles } from "../chat/domain/sources";
@@ -214,10 +214,7 @@ export function Chatbox({
 		},
 	});
 
-	const isBusy = ["connecting", "generating", "streaming"].includes(chat.state.turnState);
-	const isAborted = chat.state.turnState === "aborted";
-	const hasFailedResponse =
-		chat.state.turnState === "error" && chat.state.currentResponse.length > 0;
+	const isBusy = isTurnOpen(chat.state.turnState);
 	// ¿Lo que la región dice ya está en la conversación? El desenlace de un turno
 	// completado se ve en la burbuja (RF-F46) y el aviso de escritura se ve en el
 	// bocadillo (RF-F47). Cuando es así, la región lo anuncia igual, pero no lo pinta
@@ -436,7 +433,7 @@ export function Chatbox({
 						<ChatMessages
 							messages={chat.state.messages}
 							currentResponse={chat.state.currentResponse}
-							isBusy={isBusy || isAborted || hasFailedResponse}
+							isBusy={isBusy}
 							listRef={messagesListRef}
 						/>
 					) : (

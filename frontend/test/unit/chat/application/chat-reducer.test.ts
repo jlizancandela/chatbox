@@ -68,26 +68,96 @@ describe("chatReducer", () => {
 		expect(state.context[1]).toEqual({ role: "assistant", content: "Usa Preact." });
 	});
 
-	it("does not commit a turn without a response", () => {
+	it("keeps the question in the context when the turn ends without an answer", () => {
 		const state = chatReducer(started(), { type: "turn-completed" });
 
-		expect(state.messages).toHaveLength(1);
-		expect(state.context).toEqual([]);
+		// La pregunta sigue contando aunque el asistente no tenga nada que decir: la
+		// siguiente pregunta conserva su referente (#145).
+		expect(state.messages).toEqual([{ role: "user", content: "¿Qué usa Jorge?" }]);
+		expect(state.context).toEqual([{ role: "user", content: "¿Qué usa Jorge?" }]);
+		expect(state.currentResponse).toBe("");
 	});
 
-	it("keeps incomplete responses out of context on error or abort", () => {
-		const errored = chatReducer(started(), {
+	it("commits the partial answer when the turn is aborted", () => {
+		let state = started();
+		state = chatReducer(state, { type: "token-received", token: "Usa " });
+		state = chatReducer(state, { type: "token-received", token: "Preact" });
+		state = chatReducer(state, { type: "turn-aborted", response: "Usa Preact" });
+
+		expect(state.turnState).toBe("aborted");
+		expect(state.messages).toEqual([
+			{ role: "user", content: "¿Qué usa Jorge?" },
+			{ role: "assistant", content: "Usa Preact" },
+		]);
+		expect(state.context).toEqual([
+			{ role: "user", content: "¿Qué usa Jorge?" },
+			{ role: "assistant", content: "Usa Preact" },
+		]);
+		expect(state.currentResponse).toBe("");
+	});
+
+	it("stores the same turn whether it fails or is aborted", () => {
+		const failed = chatReducer(started(), {
 			type: "turn-failed",
 			error: { code: "STREAM_ERROR", message: "No se pudo completar la respuesta." },
 			response: "Parcial",
 		});
-		expect(errored.turnState).toBe("error");
-		expect(errored.currentResponse).toBe("Parcial");
-		expect(errored.context).toEqual([]);
+		const aborted = chatReducer(started(), { type: "turn-aborted", response: "Parcial" });
 
-		const aborted = chatReducer(started(), { type: "turn-aborted" });
+		expect(failed.messages).toEqual(aborted.messages);
+		expect(failed.context).toEqual(aborted.context);
+		expect(failed.context).toEqual([
+			{ role: "user", content: "¿Qué usa Jorge?" },
+			{ role: "assistant", content: "Parcial" },
+		]);
+		expect(failed.turnState).toBe("error");
 		expect(aborted.turnState).toBe("aborted");
-		expect(aborted.context).toEqual([]);
+	});
+
+	it("does not invent an empty assistant message when a turn fails", () => {
+		const state = chatReducer(started(), {
+			type: "turn-failed",
+			error: { code: "HTTP_SERVER", message: "No se pudo completar la respuesta." },
+		});
+
+		expect(state.messages).toEqual([{ role: "user", content: "¿Qué usa Jorge?" }]);
+		expect(state.context).toEqual([{ role: "user", content: "¿Qué usa Jorge?" }]);
+		expect(state.currentResponse).toBe("");
+	});
+
+	it("does not commit anything when no turn was open", () => {
+		const state = chatReducer(createInitialChatState(), {
+			type: "turn-failed",
+			error: { code: "QUESTION_INVALID", message: "La pregunta no es válida." },
+		});
+
+		expect(state.messages).toEqual([]);
+		expect(state.context).toEqual([]);
+		expect(state.turnState).toBe("error");
+	});
+
+	it("retries a failed turn without duplicating the question", () => {
+		let state = started();
+		state = chatReducer(state, { type: "token-received", token: "Parcial" });
+		state = chatReducer(state, {
+			type: "turn-failed",
+			error: { code: "STREAM_ERROR", message: "No se pudo completar la respuesta." },
+			response: "Parcial",
+		});
+		state = chatReducer(state, { type: "turn-retried" });
+		state = chatReducer(state, { type: "token-received", token: "Completa" });
+		state = chatReducer(state, { type: "turn-completed" });
+
+		// El intento fallido se reemplaza por el nuevo: no quedan dos preguntas iguales ni
+		// dos respuestas para el mismo turno (#145).
+		expect(state.messages).toEqual([
+			{ role: "user", content: "¿Qué usa Jorge?" },
+			{ role: "assistant", content: "Completa" },
+		]);
+		expect(state.context).toEqual([
+			{ role: "user", content: "¿Qué usa Jorge?" },
+			{ role: "assistant", content: "Completa" },
+		]);
 	});
 
 	it("restores and resets state", () => {

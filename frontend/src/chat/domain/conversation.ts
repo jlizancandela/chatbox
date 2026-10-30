@@ -1,10 +1,19 @@
-import type { ChatMessage, VisibleMessage } from "../types";
+import type { ChatMessage, TurnState, VisibleMessage } from "../types";
 import { isChatSource } from "./sources";
 
 export const HISTORY_MAX_MESSAGES = 20;
 export const HISTORY_MAX_MESSAGE_CHARS = 2000;
 export const HISTORY_MAX_TOTAL_CHARS = 8000;
 export const QUESTION_MAX_CHARS = 1000;
+
+/** Los estados en los que el turno todavía está en marcha. */
+const OPEN_TURN_STATES: readonly TurnState[] = ["connecting", "generating", "streaming"];
+
+/**
+ * ¿Hay un turno en marcha? Es la misma señal que usa el widget para el aviso de escritura,
+ * así que vive en el dominio: es una regla sobre `TurnState`, no una decisión del reducer.
+ */
+export const isTurnOpen = (turnState: TurnState): boolean => OPEN_TURN_STATES.includes(turnState);
 
 export type ChatLimits = {
 	maxMessages: number;
@@ -97,6 +106,33 @@ export const trimHistory = (
 
 export const mergeContext = (sourcesHistory: readonly ChatMessage[]): ChatMessage[] =>
 	sourcesHistory.filter(isChatMessage).map(copyMessage);
+
+/**
+ * Quita del historial el turno que acaba de cerrarse: la respuesta que lo acompañó, si la
+ * hubo, y la pregunta que lo abrió. Reintentar vuelve a enviar la misma pregunta, así que
+ * su rastro no puede quedarse dos veces (#145).
+ */
+export const dropClosedTurn = (
+	context: readonly ChatMessage[],
+	question: string | null
+): ChatMessage[] => {
+	if (question === null) {
+		return context.map(copyMessage);
+	}
+
+	const last = context.at(-1);
+	const before = context.at(-2);
+
+	if (before?.role === "user" && before.content === question && last?.role === "assistant") {
+		return context.slice(0, -2).map(copyMessage);
+	}
+
+	if (last?.role === "user" && last.content === question) {
+		return context.slice(0, -1).map(copyMessage);
+	}
+
+	return context.map(copyMessage);
+};
 
 export const buildChatRequest = (
 	text: string,

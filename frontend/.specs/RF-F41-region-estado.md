@@ -178,6 +178,12 @@ detenida"*) porque hoy no existe copy de aborto. Recordar que en un aborto el te
 **desaparece** de la vista (`ChatMessages` solo muestra `currentResponse` mientras hay
 turno activo): el anuncio no debe prometer un texto que ya no está en pantalla.
 
+> *Enmienda (2026-10-30, issue #145):* el parcial ya **no** desaparece al abortar: se
+> confirma como mensaje y queda en el hilo y en el contexto (ver
+> `145-turno-vacio-y-abort.md`). El texto de la región no cambia —sigue siendo
+> `strings.messages.stopped`—, pero ahora sí hay un texto visible que lo acompaña. La
+> frase anterior describe el comportamiento que había antes de esa issue.
+
 ## Alternativas rechazadas
 
 - **Derivar el anuncio del estado** en un `useEffect`: es el diseño actual. Es el que
@@ -210,6 +216,10 @@ Dos niveles, con el nivel declarado en cada assert (ver
   la secuencia de textos en un turno completo; `noContext` anunciado; aborto anunciado;
   **montaje con `sessionStorage` prellenado no anuncia**; el contador no es región viva;
   proyección de texto plano.
+  > *Enmienda (2026-10-30, issue #145):* un turno detenido o fallido ya no se queda con el
+  > texto a medias: su respuesta parcial se confirma como mensaje y permanece en el hilo.
+  > La referencia para contrastar lo que se oye sigue siendo la burbuja, porque ahora lo
+  > pintado y lo guardado coinciden (ver `145-turno-vacio-y-abort.md`).
 - **Navegador / Chromium** (resolución): la secuencia real de `.chatbox__status` con el
   API mockeado por SSE, y una pasada de `axe` sobre el widget en todos sus estados y en
   los dos esquemas de color. Sigue sin probar que un lector de pantalla hable.

@@ -200,6 +200,12 @@ const MODULE_REFERENCE_TYPES = new Set<NodeType>([
 const JUSTIFIED_WITHOUT_COPY: Record<string, string> = {
 	user: "rol declarado en `chat/types.ts` y en `strings.messages.author`; el código solo compara con `assistant`",
 	idle: "estado declarado en `chat-reducer`; desde RF-F41 ningún componente lo nombra porque la región se deduce de eventos",
+	connecting:
+		"estado de turno en curso: declarado en `chat/domain/conversation.ts` (`isTurnOpen`), fuera de `src/components/`, que es el alcance de este escáner",
+	generating:
+		"estado de turno en curso: declarado en `chat/domain/conversation.ts` (`isTurnOpen`), fuera de `src/components/`, que es el alcance de este escáner",
+	streaming:
+		"estado de turno en curso: declarado en `chat/domain/conversation.ts` (`isTurnOpen`), fuera de `src/components/`, que es el alcance de este escáner",
 	"inline-link":
 		"identidad de control declarada en `chat/components/ExternalLink.tsx` (RF-F43); ese componente vive fuera de `src/components/`, que es el alcance de este escáner",
 	"(prefers-reduced-motion: reduce)":
