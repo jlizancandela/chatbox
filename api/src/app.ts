@@ -2,6 +2,7 @@ import { join } from "node:path";
 import AutoLoad from "@fastify/autoload";
 import type { FastifyPluginAsync } from "fastify";
 import type { AppOptions } from "./dependencies";
+import { loggerOptions } from "./plugins/logging";
 
 /**
  * La aplicación se construye aquí, y aquí es donde se inyectan los proveedores de
@@ -39,3 +40,13 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify, opts): Promise<void>
 export default app;
 export type { AppDependencies, AppOptions } from "./dependencies";
 export { app };
+
+/**
+ * Las opciones del servidor.
+ *
+ * `fastify-cli` las lee de aquí al construir la instancia, así que es el sitio donde
+ * se configura el logger: sin esto, el servidor no registra nada (#146).
+ */
+export const options = {
+	logger: loggerOptions(),
+};

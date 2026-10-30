@@ -52,12 +52,23 @@ migración nueva. Ver `docs/decisions/015-migraciones-publicadas-no-se-borran.md
 - `pnpm dev` — arranca en modo dev (puerto 7000)
 - `pnpm start` — producción
 - `pnpm test` — build + tests (node --test + ts-node + c8)
+- `pnpm lint` — Biome (formato y reglas); también corre dentro de `pnpm verify`
 - `pnpm db:migrate` — aplica migraciones (requiere DATABASE_URL)
 
 ## Variables de entorno (api/.env, gitignored)
 DATABASE_URL, GROQ_API_KEY, GROQ_MODEL_DEFAULT, CORS_ORIGIN,
-EMBEDDING_CACHE_DIR (modelo local; la imagen lo trae en `/app/model`).
+EMBEDDING_CACHE_DIR (modelo local; la imagen lo trae en `/app/model`),
+LOG_LEVEL (nivel del logger: `info` por defecto; un nivel inválido cae en `info`).
 Compose: POSTGRES_USER/PASSWORD/DB.
+
+## Registro (logging)
+El logger es el de Fastify (Pino), configurado en `api/src/app.ts` y en
+`api/src/plugins/logging.ts`. Cada petición deja una traza JSON con su identificador
+de correlación (`x-request-id`, que el servidor genera y respeta si el cliente ya lo
+envía), método, ruta, código de estado y duración — nunca el cuerpo, el historial ni
+el contenido del corpus. Los fallos del proveedor se registran con su clasificación
+(`QUOTA_EXHAUSTED` o `GENERATION_FAILED`) y nunca con las claves. Ver
+`api/.specs/146-observabilidad-logging.md`.
 
 ## Estado del proyecto
 Ver `api/TODO.md` para el estado actual del MVP.

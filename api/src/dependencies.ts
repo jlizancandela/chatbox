@@ -2,6 +2,7 @@ import type { AutoloadPluginOptions } from "@fastify/autoload";
 import type { PostgresDb } from "@fastify/postgres";
 import type { FastifyServerOptions } from "fastify";
 import type Groq from "groq-sdk";
+import type { Logger } from "./infrastructure/logging";
 import type { EmbedContentFn } from "./services/embedding";
 
 /**
@@ -27,6 +28,11 @@ export type AppDependencies = {
 	groqClient?: Groq;
 	/** El proveedor de embeddings. Sustituye a EmbeddingGemma en proceso. */
 	embedContent?: EmbedContentFn;
+	/**
+	 * El logger. Sustituye al de Fastify: es lo que permite a los tests afirmar sobre
+	 * lo que se registró sin escribir en la salida de la suite (#146).
+	 */
+	logger?: Logger;
 };
 
 export interface AppOptions extends FastifyServerOptions, Partial<AutoloadPluginOptions> {
