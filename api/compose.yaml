@@ -42,8 +42,15 @@ services:
       # Los pesos viajan en la imagen. Se fija aquí porque `env_file` tiene prioridad
       # sobre el ENV del Dockerfile y en local la ruta es otra.
       EMBEDDING_CACHE_DIR: /app/model
+    # El puerto se ata a la interfaz de bucle, no a todas. Sin esto, cualquiera que
+    # alcance el host entra directo a la API: se salta el proxy inverso, con su TLS y su
+    # protección, y el límite por IP y el `trustProxy` dejan de tener sentido (#143).
+    #
+    # En el servidor, el patrón de los demás servicios es no publicar nada: el proxy
+    # llega al contenedor por la red externa. Aquí se ata a `127.0.0.1` para que en
+    # local siga siendo alcanzable sin abrirla al mundo.
     ports:
-      - "7000:7000"
+      - "127.0.0.1:7000:7000"
     # EmbeddingGemma q4 mide ~620 MB de RSS en el contenedor. El límite deja aire
     # para el pico de carga y evita que un fallo del modelo arrastre al resto.
     mem_limit: 1g
