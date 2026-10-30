@@ -62,6 +62,21 @@ describe("chat error translation", () => {
 		});
 	});
 
+	it("answers an exhausted session budget with its own message", () => {
+		// El corte por presupuesto no es una avería: es el tope de esta conversación, y
+		// su texto ofrece la salida —empezar una nueva— (#148).
+		expect(
+			chatErrors.streamEvent({
+				type: "error",
+				code: "SESSION_BUDGET_EXCEEDED",
+				message: "internal detail",
+			})
+		).toEqual({
+			code: "SESSION_BUDGET_EXCEEDED",
+			message: strings.errors.SESSION_BUDGET_EXCEEDED,
+		});
+	});
+
 	it.each([
 		["network", "NETWORK_ERROR"],
 		["stream", "STREAM_ERROR"],

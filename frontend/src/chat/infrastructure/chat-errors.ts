@@ -30,9 +30,22 @@ export const chatErrors = {
 	},
 	network: (): ChatError => error("NETWORK_ERROR"),
 	stream: (): ChatError => error("STREAM_ERROR"),
-	/** El evento `error` del stream, traducido por su código: cuota vs fallo genérico. */
-	streamEvent: (event: ErrorEvent): ChatError =>
-		event.code === "QUOTA_EXHAUSTED" ? quota(event.retryAfterSeconds) : error("STREAM_ERROR"),
+	/**
+	 * El evento `error` del stream, traducido por su código: cuota, presupuesto de la
+	 * conversación o fallo genérico. El corte por presupuesto es un tope, no una avería,
+	 * y su texto ofrece la salida (#148).
+	 */
+	streamEvent: (event: ErrorEvent): ChatError => {
+		if (event.code === "QUOTA_EXHAUSTED") {
+			return quota(event.retryAfterSeconds);
+		}
+
+		if (event.code === "SESSION_BUDGET_EXCEEDED") {
+			return error("SESSION_BUDGET_EXCEEDED");
+		}
+
+		return error("STREAM_ERROR");
+	},
 	incomplete: (): ChatError => error("INCOMPLETE_STREAM"),
 	timeout: (): ChatError => error("TIMEOUT"),
 	invalidQuestion: (): ChatError => error("QUESTION_INVALID"),

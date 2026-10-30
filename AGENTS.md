@@ -70,6 +70,16 @@ el contenido del corpus. Los fallos del proveedor se registran con su clasificac
 (`QUOTA_EXHAUSTED` o `GENERATION_FAILED`) y nunca con las claves. Ver
 `api/.specs/146-observabilidad-logging.md`.
 
+## Presupuesto por sesión
+El servidor contabiliza los tokens reales de cada turno (la cifra que da el proveedor)
+por sesión, y corta cuando se agota el presupuesto. El identificador de sesión lo
+genera el cliente y viaja en `x-session-id`; sin él no hay consumo que contabilizar.
+Los topes son `SESSION_BUDGET_MAX_TOKENS` y `SESSION_BUDGET_MAX_TURNS`. El corte tiene
+su propio código (`SESSION_BUDGET_EXCEEDED`) y su mensaje ofrece empezar una
+conversación nueva, que reinicia el presupuesto. El presupuesto por sesión es
+**equidad, no seguridad**: el identificador lo controla el cliente. Ver
+`api/.specs/148-presupuesto-por-sesion.md`.
+
 ## Estado del proyecto
 Ver `api/TODO.md` para el estado actual del MVP.
 

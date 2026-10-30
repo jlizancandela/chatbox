@@ -49,7 +49,7 @@ export type DoneEvent = {
  * Por qué falló el stream, tal como lo clasifica el servidor. Son valores de contrato, no
  * texto: el mensaje que ve el visitante lo elige el cliente (RF-F14).
  */
-export type StreamErrorCode = "GENERATION_FAILED" | "QUOTA_EXHAUSTED";
+export type StreamErrorCode = "GENERATION_FAILED" | "QUOTA_EXHAUSTED" | "SESSION_BUDGET_EXCEEDED";
 
 export type ErrorEvent = {
 	type: "error";

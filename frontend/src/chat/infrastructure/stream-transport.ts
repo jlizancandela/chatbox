@@ -1,3 +1,4 @@
+import { SESSION_HEADER } from "./session";
 import type { ChatEvent } from "./sse";
 import { createSSEParser } from "./sse";
 
@@ -6,6 +7,8 @@ export type ChatStreamRequest = {
 	body: unknown;
 	signal: AbortSignal;
 	fetchImpl?: typeof fetch;
+	/** El identificador de sesión, para que el servidor pueda contabilizar el consumo (#148). */
+	sessionId?: string;
 };
 
 export const requestChatStream = async ({
@@ -13,10 +16,14 @@ export const requestChatStream = async ({
 	body,
 	signal,
 	fetchImpl = fetch,
+	sessionId,
 }: ChatStreamRequest): Promise<Response> =>
 	fetchImpl(`${apiUrl}/api/chat`, {
 		method: "POST",
-		headers: { "Content-Type": "application/json" },
+		headers: {
+			"Content-Type": "application/json",
+			...(sessionId ? { [SESSION_HEADER]: sessionId } : {}),
+		},
 		body: JSON.stringify(body),
 		signal,
 	});

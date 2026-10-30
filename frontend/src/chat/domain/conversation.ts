@@ -1,9 +1,21 @@
 import type { ChatMessage, TurnState, VisibleMessage } from "../types";
 import { isChatSource } from "./sources";
 
-export const HISTORY_MAX_MESSAGES = 20;
-export const HISTORY_MAX_MESSAGE_CHARS = 2000;
-export const HISTORY_MAX_TOTAL_CHARS = 8000;
+/**
+ * Los límites del historial que se reenvía.
+ *
+ * Bajan de 20 a 12 mensajes y de 8.000 a 4.000 caracteres (#148). El historial se
+ * reenvía **completo** en cada turno, así que es la palanca que más pesa en el coste:
+ * con el tope anterior, un turno con el historial lleno costaba ~2.160 tokens; con
+ * este, ~1.430.
+ *
+ * Tienen que coincidir con los del API (`api/.env.example`): si el cliente deja pasar
+ * más historial del que el servidor recorta, el recorte ocurre tarde y el visitante lo
+ * nota como "el contexto se cortó".
+ */
+export const HISTORY_MAX_MESSAGES = 12;
+export const HISTORY_MAX_MESSAGE_CHARS = 1000;
+export const HISTORY_MAX_TOTAL_CHARS = 4000;
 export const QUESTION_MAX_CHARS = 1000;
 
 /** Los estados en los que el turno todavía está en marcha. */

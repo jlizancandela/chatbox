@@ -8,8 +8,10 @@ import "../../plugins/db";
 import "../../plugins/embedding";
 import "../../plugins/groq";
 import "../../plugins/logging";
+import "../../plugins/session-budget";
 import { chatOptions } from "../../schemas/chat";
 import { type ChatEvent, chatService, generationErrorEvent } from "../../services/chat";
+import { BUDGET_SESSION_HEADER } from "../../services/sessionBudget";
 
 const SSE_HEADERS = {
 	"content-type": "text/event-stream",
@@ -65,11 +67,30 @@ export const toSSE = async function* (events: AsyncIterable<ChatEvent>): AsyncIt
 const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 	await fastify.register(rateLimitMiddleware);
 
+	/**
+	 * Empezar una conversación nueva reinicia el presupuesto de la sesión.
+	 *
+	 * Es la salida del corte: sin ella, quedarse sin presupuesto sería un callejón
+	 * sin salida (#148).
+	 */
+	fastify.post("/chat/session/reset", async (request, reply) => {
+		const sessionId = request.headers[BUDGET_SESSION_HEADER];
+
+		if (typeof sessionId === "string" && sessionId.trim().length > 0) {
+			fastify.budget.reset(sessionId.trim());
+		}
+
+		return reply.code(204).send();
+	});
+
 	fastify.post("/chat", chatOptions, async (request, reply) => {
 		const { question, history = [] } = request.body as {
 			question: string;
 			history?: ChatEvent extends { type: "sources"; history: infer H } ? H : never;
 		};
+
+		const sessionHeader = request.headers[BUDGET_SESSION_HEADER];
+		const sessionId = typeof sessionHeader === "string" ? sessionHeader.trim() : "";
 
 		if (question.trim().length === 0 || question.trim().length > 1000) {
 			return reply.code(400).send({
@@ -86,6 +107,7 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 			modelDefault: fastify.groq.options.modelDefault,
 			embedText: fastify.embedding.embedText,
 			logger: fastify.logger,
+			budget: fastify.budget,
 		});
 
 		const controller = new AbortController();
@@ -110,6 +132,7 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 					chat.askStream(question, {
 						history,
 						signal: controller.signal,
+						sessionId,
 					})
 				)
 			)

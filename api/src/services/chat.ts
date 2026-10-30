@@ -3,6 +3,7 @@ import type { FailureTrace, Logger } from "../infrastructure/logging";
 import { findChunksByEmbedding, type QueryClient } from "../repositories/documents";
 import { chatConfig, type GenerationConfig } from "./chat.config";
 import type { EmbedTextFn } from "./embedding";
+import type { SessionBudget } from "./sessionBudget";
 
 export type ChatSource = {
 	documentId: string;
@@ -17,8 +18,13 @@ export type ChatSource = {
  *
  * El cliente decide el texto; el servidor solo clasifica. `QUOTA_EXHAUSTED` se separa del
  * resto porque la respuesta correcta no es "algo se rompió" sino "vuelve más tarde" (#144).
+ * `SESSION_BUDGET_EXCEEDED` se separa de ambos porque es un corte del servidor, no un
+ * fallo: la conversación de quien la pide se acabaron (#148).
  */
-export type GenerationErrorCode = "GENERATION_FAILED" | "QUOTA_EXHAUSTED";
+export type GenerationErrorCode =
+	| "GENERATION_FAILED"
+	| "QUOTA_EXHAUSTED"
+	| "SESSION_BUDGET_EXCEEDED";
 
 export type ChatEvent =
 	| { type: "sources"; sources: ChatSource[]; history: ChatMessage[] }
@@ -44,6 +50,7 @@ export type ChatMessage = {
 
 type CompletionChunk = {
 	choices?: Array<{ delta?: { content?: string | null } }>;
+	usage?: { total_tokens?: number };
 };
 
 type AskStreamDeps = {
@@ -58,11 +65,15 @@ type AskStreamDeps = {
 	generation: GenerationConfig;
 	/** Dónde se registran los fallos clasificados (#146). */
 	logger?: Logger;
+	/** El presupuesto por sesión, si lo hay (#148). */
+	budget?: SessionBudget;
 };
 
 export type AskStreamOptions = {
 	history: ChatMessage[];
 	signal?: AbortSignal;
+	/** El identificador de sesión, para contabilizar el consumo (#148). */
+	sessionId?: string;
 };
 
 const GENERIC_ERROR_MESSAGE = "An unexpected error occurred while generating the answer";
@@ -140,6 +151,34 @@ export const generationErrorEvent = (error?: unknown): ChatEvent => ({
 	message: GENERIC_ERROR_MESSAGE,
 	...classifyGenerationError(error),
 });
+
+/**
+ * El evento de error cuando se agota el presupuesto de la sesión.
+ *
+ * El mensaje es distinto a propósito: el visitante necesita saber que **su**
+ * conversación se acabó y que puede empezar otra, no que el servidor está roto (#148).
+ */
+export const sessionBudgetErrorEvent = (reason: "tokens" | "turns"): ChatEvent => ({
+	type: "error",
+	code: "SESSION_BUDGET_EXCEEDED",
+	message:
+		reason === "turns"
+			? "This conversation has reached its question limit. Start a new conversation to keep asking."
+			: "This conversation has reached its token budget. Start a new conversation to keep asking.",
+});
+
+/**
+ * El consumo que dice el proveedor.
+ *
+ * La cifra llega en el último fragmento del stream. Se cuenta la que da el proveedor y
+ * no una estimación por caracteres: los tokens servidos desde el caché de prompt no
+ * cuentan contra el límite, y solo la cifra del proveedor lo refleja (#148).
+ */
+const usageOf = (chunk: CompletionChunk): number => {
+	const total = chunk.usage?.total_tokens;
+
+	return typeof total === "number" && total > 0 ? total : 0;
+};
 
 const systemPrompt = (context: string): string =>
 	`Respondes preguntas sobre Jorge Lizan Candela, desarrollador web.
@@ -266,9 +305,20 @@ export const createAskStream = ({
 	historyLimits,
 	generation,
 	logger,
+	budget,
 }: AskStreamDeps) =>
 	async function* askStream(question: string, options: AskStreamOptions): AsyncIterable<ChatEvent> {
-		const { history: rawHistory, signal } = options;
+		const { history: rawHistory, signal, sessionId } = options;
+
+		// El presupuesto se comprueba **antes** de llamar al proveedor: un corte que ya
+		// gastó la llamada no ahorra nada (#148).
+		const exceeded = budget && sessionId ? budget.exceeded(sessionId) : "none";
+
+		if (exceeded !== "none") {
+			logger?.failure({ code: "SESSION_BUDGET_EXCEEDED", ...(sessionId ? { sessionId } : {}) });
+			yield sessionBudgetErrorEvent(exceeded);
+			return;
+		}
 
 		// Trim server-side; the trimmed version is the canonical one.
 		const history = trimHistory(rawHistory, historyLimits);
@@ -307,11 +357,33 @@ export const createAskStream = ({
 				{ signal }
 			)) as AsyncIterable<CompletionChunk>;
 
+			let consumedTokens = 0;
+
 			for await (const chunk of completion) {
 				const delta = chunk.choices?.[0]?.delta?.content;
 				if (typeof delta === "string" && delta.length > 0) {
 					yield { type: "token", token: delta };
 				}
+
+				// El consumo se cuenta al final del turno, con la cifra del proveedor. Un
+				// turno que termina sin texto también cuenta: el gasto se produjo igual (#148).
+				const reported = usageOf(chunk);
+				if (reported > 0) {
+					consumedTokens = reported;
+				}
+			}
+
+			if (budget && sessionId) {
+				budget.record(sessionId, consumedTokens);
+				logger?.request({
+					requestId: sessionId,
+					method: "chat",
+					url: "/api/chat",
+					statusCode: 200,
+					durationMs: 0,
+					tokens: consumedTokens,
+					sessionId,
+				});
 			}
 
 			yield { type: "done" };
@@ -341,6 +413,8 @@ export type ChatServiceDeps = {
 	embedText: EmbedTextFn;
 	/** Dónde se registran los fallos clasificados (#146). */
 	logger?: Logger;
+	/** El presupuesto por sesión (#148). */
+	budget?: SessionBudget;
 };
 
 export const chatService = ({
@@ -349,6 +423,7 @@ export const chatService = ({
 	modelDefault,
 	embedText,
 	logger,
+	budget,
 }: ChatServiceDeps) => {
 	const retrieve = async (question: string): Promise<ChatSource[]> => {
 		const sqlEmbedding = await embedText(question, { purpose: "query" });
@@ -387,6 +462,7 @@ export const chatService = ({
 			historyLimits: chatConfig.historyLimits,
 			generation: chatConfig.generation,
 			logger,
+			budget,
 		}),
 		retrieve,
 	};
