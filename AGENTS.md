@@ -8,7 +8,8 @@ fundamentadas con Groq.
 ## Stack
 - API: Fastify 5 + TypeScript estricto (bootstrapped con Fastify-CLI)
 - Datos: PostgreSQL + extensión pgvector
-- Embeddings: Google Gemini `gemini-embedding-001` (768 dimensiones)
+- Embeddings: EmbeddingGemma 300M en ONNX `q4`, en proceso con
+  `@huggingface/transformers` (768 dimensiones, L2 normalizado)
 - Generación: Groq (`openai/gpt-oss-20b`)
 - Chunking: `@langchain/textsplitters`
 - Migraciones: node-pg-migrate
@@ -49,8 +50,9 @@ Ver `api/database/erd.md`. Migraciones en `api/database/migrations/`.
 - `pnpm db:migrate` — aplica migraciones (requiere DATABASE_URL)
 
 ## Variables de entorno (api/.env, gitignored)
-DATABASE_URL, GEMINI_API_KEY, GEMINI_EMBEDDING_MODEL, GEMINI_VECTOR_DIMENSION,
-GROQ_API_KEY, GROQ_MODEL_DEFAULT, CORS_ORIGIN. Compose: POSTGRES_USER/PASSWORD/DB.
+DATABASE_URL, GROQ_API_KEY, GROQ_MODEL_DEFAULT, CORS_ORIGIN,
+EMBEDDING_CACHE_DIR (modelo local; la imagen lo trae en `/app/model`).
+Compose: POSTGRES_USER/PASSWORD/DB.
 
 ## Estado del proyecto
 Ver `api/TODO.md` para el estado actual del MVP.

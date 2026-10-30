@@ -7,7 +7,7 @@ import { embeddingSignature } from "./embedding.config";
 /**
  * Lo que la ingesta necesita del exterior.
  *
- * Se inyecta para poder probarla sin PostgreSQL y sin Gemini: los dos son caros y uno
+ * Se inyecta para poder probarla sin PostgreSQL y sin modelo: los dos son caros y uno
  * de ellos cobra por llamada.
  */
 export type IngestDeps = {

@@ -10,7 +10,7 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Mantener un formato JSON estable para errores públicos.
 - [x] Cambiar la columna de embeddings de `vector(384)` a `vector(768)`.
 - [x] Convertir el esquema en una migración reproducible para bases existentes.
-- [x] Configurar y validar las credenciales y modelos de Gemini y Groq.
+- [x] Configurar y validar la credencial de Groq y el modelo de embeddings local.
 - [x] Configurar la dimensión de embeddings y el valor top-k.
 - [x] Verificar la inserción y lectura de un vector de 768 dimensiones. <- Test de integración 
 
@@ -18,7 +18,7 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 
 - [x] Crear un comando CLI para archivos Markdown y texto plano.
 - [x] Implementar chunking simple con un solapamiento pequeño.
-- [x] Generar embeddings con `gemini-embedding-001` a 768 dimensiones.
+- [x] Generar embeddings con EmbeddingGemma en proceso a 768 dimensiones.
 - [x] Guardar fuente, texto y vector en PostgreSQL.
 - [x] Informar cantidades procesadas y errores.
 - [x] Verificar que un documento queda disponible para búsqueda vectorial.
@@ -27,7 +27,7 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 
 - [x] Crear `POST /api/chat` con validación JSON básica.
 - [x] Añadir una longitud máxima para la pregunta.
-- [x] Generar el embedding de la pregunta con Gemini.
+- [x] Generar el embedding de la pregunta con EmbeddingGemma en proceso.
 - [x] Implementar la búsqueda vectorial top-k.
 - [x] Definir cuándo el contexto recuperado es insuficiente.
 - [x] Integrar Groq usando únicamente la pregunta y el contexto recuperado.

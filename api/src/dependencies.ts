@@ -5,7 +5,8 @@ import type Groq from "groq-sdk";
 import type { EmbedContentFn } from "./services/embedding";
 
 /**
- * Los proveedores de fuera de la aplicación: base de datos, generación y embeddings.
+ * Los proveedores de la aplicación: base de datos, generación y embeddings. Los
+ * embeddings corren en el proceso; el seam existe para inyectar un doble en tests.
  *
  * Este es **el** punto de inyección de la API. Los plugins de `src/plugins` leen estas
  * dependencias de las opciones de construcción y las decoran en la instancia; las
@@ -24,7 +25,7 @@ export type AppDependencies = {
 	pg?: PostgresDb & Record<string, PostgresDb>;
 	/** El cliente de generación. Sustituye al de `groq-sdk`. */
 	groqClient?: Groq;
-	/** La llamada al proveedor de embeddings. Sustituye a `gemini-embedding-001`. */
+	/** El proveedor de embeddings. Sustituye a EmbeddingGemma en proceso. */
 	embedContent?: EmbedContentFn;
 };
 

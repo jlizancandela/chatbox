@@ -39,8 +39,14 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-chatbox}
       PORT: "7000"
       NODE_ENV: production
+      # Los pesos viajan en la imagen. Se fija aquí porque `env_file` tiene prioridad
+      # sobre el ENV del Dockerfile y en local la ruta es otra.
+      EMBEDDING_CACHE_DIR: /app/model
     ports:
       - "7000:7000"
+    # EmbeddingGemma q4 mide ~620 MB de RSS en el contenedor. El límite deja aire
+    # para el pico de carga y evita que un fallo del modelo arrastre al resto.
+    mem_limit: 1g
 
 volumes:
   pgvector-data:

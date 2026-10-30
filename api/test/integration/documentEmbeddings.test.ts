@@ -3,24 +3,21 @@ import { test } from "node:test";
 import fastify from "fastify";
 import db from "../../src/plugins/db";
 import { documentEmbeddingsService } from "../../src/services/documentEmbeddings";
-import { embeddingConfig } from "../../src/services/embedding.config";
+import { EMBEDDING_DIMENSION } from "../../src/services/embedding.config";
 import documentService from "../../src/services/documents";
+import { vectorOf } from "../vector";
 
 /**
  * El vector entra y sale de PostgreSQL.
  *
- * El embedding es de mentira —un vector determinista de la dimensión configurada—:
- * lo que se comprueba aquí es el viaje por pgvector, no lo que devuelva Gemini. La
- * dimensión es la de la configuración, y el primer test la contrasta con la del
- * esquema: si las dos se desincronizan, la inserción falla y el esquema se lleva la
- * mano.
+ * El embedding es de mentira —un vector determinista de la dimensión del esquema—:
+ * lo que se comprueba aquí es el viaje por pgvector, no lo que devuelva el modelo. La
+ * dimensión se contrasta con la del esquema: si las dos se desincronizan, la inserción
+ * falla y el esquema se lleva la mano.
  *
- * Este es el único test que necesita una base de datos de verdad. Ni Groq ni Gemini:
- * la red no aparece por ninguna parte.
+ * Este test y el de recuperación son los únicos que necesitan una base de datos de
+ * verdad. Ni Groq ni el modelo de embeddings: la red no aparece por ninguna parte.
  */
-
-const vectorOf = (dimension: number): number[] =>
-	Array.from({ length: dimension }, (_, index) => (index % 10) / 10);
 
 test("la dimensión configurada es la del esquema", async (t) => {
 	const app = fastify();
@@ -38,9 +35,9 @@ test("la dimensión configurada es la del esquema", async (t) => {
 
 	assert.equal(rows.length, 1, "no se encontró la columna embedding");
 	assert.equal(
-		embeddingConfig.geminiVectorDimension,
+		EMBEDDING_DIMENSION,
 		rows[0].typmod,
-		"la dimensión configurada tiene que ser la de la columna embedding",
+		"la dimensión del modelo tiene que ser la de la columna embedding",
 	);
 });
 
@@ -50,10 +47,8 @@ test("un vector entra y sale de PostgreSQL", async (t) => {
 	await app.ready();
 	t.after(() => void app.close());
 
-	const dimension = embeddingConfig.geminiVectorDimension;
-	const service = documentEmbeddingsService(async () => ({
-		embeddings: [{ values: vectorOf(dimension) }],
-	}));
+	const dimension = EMBEDDING_DIMENSION;
+	const service = documentEmbeddingsService(async () => vectorOf(dimension));
 
 	const content = "Test vector insert and read via documentService.";
 	const chunks = [content];
@@ -91,7 +86,16 @@ test("un vector entra y sale de PostgreSQL", async (t) => {
 			dimension,
 			`Expected ${dimension} dimensions, got ${retrieved.length}`,
 		);
-		assert.deepStrictEqual(retrieved, JSON.parse(embeddedChunks[0].embedding));
+
+		// pgvector guarda `float4`, así que el viaje redondea: lo que se comprueba es
+		// que el vector vuelve, no que conserve la precisión de un `double` de JS.
+		const saved = JSON.parse(embeddedChunks[0].embedding);
+		for (const [index, value] of retrieved.entries()) {
+			assert.ok(
+				Math.abs(value - saved[index]) < 1e-6,
+				`componente ${index}: ${value} != ${saved[index]}`,
+			);
+		}
 	} finally {
 		await app.pg.query("DELETE FROM documents WHERE id = $1", [documentId]);
 	}

@@ -4,7 +4,7 @@ import type { DocumentChunk } from "../../src/repositories/documents";
 import { ingestFile, type IngestDeps } from "../../src/services/ingest";
 
 /**
- * La ingesta, con PostgreSQL y Gemini de mentira.
+ * La ingesta, con PostgreSQL y el modelo de mentira.
  *
  * Lo que se comprueba aquí es la decisión que cuesta dinero: si la versión ya está, no
  * se pide ni un embedding.

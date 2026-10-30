@@ -121,9 +121,14 @@ export const createGenerationConfig = (
 export const createTopK = (env: NodeJS.ProcessEnv = process.env): number =>
 	readPositiveInt(env, "RETRIEVAL_TOP_K", 5);
 
+/**
+ * Umbral de **distancia** coseno. `0.8` está calibrado sobre EmbeddingGemma: las
+ * cuatro preguntas del widget quedan por debajo y las preguntas ajenas, en su mayoría,
+ * por encima. Cambiar de modelo obliga a recalibrarlo.
+ */
 export const chatConfig: ChatConfig = {
 	similarityThreshold: parseFloat(
-		process.env.SIMILARITY_THRESHOLD ?? "0.5",
+		process.env.SIMILARITY_THRESHOLD ?? "0.8",
 	),
 	topK: createTopK(),
 	generation: createGenerationConfig(),

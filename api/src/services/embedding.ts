@@ -1,29 +1,17 @@
-import { GoogleGenAI } from "@google/genai";
 import pgvector from "pgvector/pg";
 import {
-	EMBEDDING_TASK,
-	assertEmbeddingConfig,
-	embeddingConfig,
+	EMBEDDING_DIMENSION,
+	QUERY_PROMPT,
 	type EmbedPurpose,
+	documentPrompt,
 } from "./embedding.config";
+import { loadLocalEmbedding } from "./embeddingModel";
 
-export type EmbedContentParams = {
-	model: string;
-	contents: string;
-	config: {
-		outputDimensionality: number;
-		taskType: string;
-		title?: string;
-	};
-};
-
-export type EmbedContentResponse = {
-	embeddings?: Array<{ values?: number[] }>;
-};
-
-export type EmbedContentFn = (
-	params: EmbedContentParams,
-) => Promise<EmbedContentResponse>;
+/**
+ * Lo que devuelve el proveedor de embeddings: los componentes del vector, sin
+ * prefijos y sin normalizar. El servicio se encarga de las dos cosas.
+ */
+export type EmbedContentFn = (text: string) => Promise<number[]>;
 
 export type EmbedTextOptions = {
 	purpose: EmbedPurpose;
@@ -31,57 +19,88 @@ export type EmbedTextOptions = {
 	context?: string;
 };
 
+/**
+ * La interfaz que consume el resto de la aplicación: texto y opciones dentro, vector
+ * serializado para pgvector fuera. Ni la ingesta ni el chat saben qué modelo hay
+ * detrás ni cómo se llama.
+ */
 export type EmbedTextFn = (
 	text: string,
 	options: EmbedTextOptions,
 ) => Promise<string>;
 
+export type EmbeddingService = {
+	embedText: EmbedTextFn;
+	/** Se resuelve cuando el modelo terminó de cargar. */
+	ready: Promise<void>;
+};
+
 /**
- * La llamada al proveedor real de embeddings.
- *
- * Solo se construye cuando no se inyecta otra: un test que doble el proveedor no
- * necesita credenciales, y una aplicación en producción sí.
+ * El prefijo que espera EmbeddingGemma. Una consulta y un documento no se codifican
+ * igual: sin esta distinción el vector de la pregunta no cae cerca de su fragmento.
  */
-const createRealEmbedContent = (): EmbedContentFn => {
-	assertEmbeddingConfig();
+const prompt = (text: string, { purpose, title }: EmbedTextOptions): string =>
+	purpose === "query"
+		? `${QUERY_PROMPT}${text}`
+		: `${documentPrompt(title)}${text}`;
 
-	const genAI = new GoogleGenAI({ apiKey: embeddingConfig.geminiApiKey });
+/**
+ * L2 normaliza el vector antes de guardarlo. El modelo ya devuelve vectores
+ * normalizados, pero el contrato es del servicio, no del modelo: un cambio de pesos
+ * no puede dejar el corpus en otra escala sin que nadie lo note.
+ */
+const normalize = (values: number[]): number[] => {
+	let squaredNorm = 0;
+	for (const value of values) {
+		squaredNorm += value * value;
+	}
 
-	return (params: EmbedContentParams) => genAI.models.embedContent(params);
+	if (!Number.isFinite(squaredNorm) || squaredNorm === 0) {
+		throw new Error("The embedding model returned a zero or non-finite vector");
+	}
+
+	const norm = Math.sqrt(squaredNorm);
+	return values.map((value) => value / norm);
 };
 
 /**
  * El servicio de embeddings.
  *
- * `embedContent` es el colaborador: si viene, se usa; si no, se construye el cliente
- * de verdad. Quien lo llama decide — la aplicación lo decora en la instancia, la
+ * `embedContent` es el colaborador: si viene, se usa; si no, se carga EmbeddingGemma
+ * en el proceso. Quien lo llama decide —la aplicación lo decora en la instancia, la
  * ingesta lo cablea en el CLI— y así el servicio no sabe nada de quién lo usa.
  */
-export const embeddingService = (embedContent?: EmbedContentFn) => {
-	const embed = embedContent ?? createRealEmbedContent();
+export const embeddingService = (
+	embedContent?: EmbedContentFn,
+): EmbeddingService => {
+	let embed = embedContent;
+
+	const ready: Promise<void> =
+		embedContent !== undefined
+			? Promise.resolve()
+			: loadLocalEmbedding().then((loaded) => {
+					embed = loaded;
+				});
 
 	const embedText = async (
 		text: string,
 		options: EmbedTextOptions,
 	): Promise<string> => {
-		const response = await embed({
-			model: embeddingConfig.geminiEmbeddingModel,
-			contents: text,
-			config: {
-				outputDimensionality: embeddingConfig.geminiVectorDimension,
-				taskType: EMBEDDING_TASK[options.purpose],
-				...(options.title ? { title: options.title } : {}),
-			},
-		});
+		await ready;
 
-		const embedding = response.embeddings?.[0]?.values;
-		if (!embedding) {
+		if (!embed) {
+			throw new Error("The embedding model is not available");
+		}
+
+		const values = await embed(prompt(text, options));
+
+		if (values.length !== EMBEDDING_DIMENSION) {
 			throw new Error(
-				`No embedding generated for ${options.context ?? options.purpose}`,
+				`The embedding model returned ${values.length} dimensions; the schema expects ${EMBEDDING_DIMENSION}`,
 			);
 		}
 
-		const sqlEmbedding = pgvector.toSql(embedding);
+		const sqlEmbedding = pgvector.toSql(normalize(values));
 		if (!sqlEmbedding) {
 			throw new Error(`Could not serialize embedding for ${options.purpose}`);
 		}
@@ -89,5 +108,5 @@ export const embeddingService = (embedContent?: EmbedContentFn) => {
 		return sqlEmbedding;
 	};
 
-	return { embedText };
+	return { embedText, ready };
 };

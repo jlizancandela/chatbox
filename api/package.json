@@ -15,6 +15,7 @@
     "build:ts": "tsc",
     "db:migrate": "node-pg-migrate up --migrations-dir database/migrations --migrations-table pgmigrations",
     "ingest": "npm run build:ts && node --env-file=.env dist/cli/ingest.js",
+    "embeddings:fetch": "npm run build:ts && node --env-file-if-exists=.env dist/cli/fetchEmbeddingModel.js",
     "watch:ts": "tsc -w",
     "dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
     "dev:start": "fastify start -a 0.0.0.0 -p 7000 --ignore-watch=.ts$ -w -l warn -P dist/app.js"
@@ -28,7 +29,7 @@
     "@fastify/postgres": "^6.1.0",
     "@fastify/rate-limit": "^11.2.0",
     "@fastify/sensible": "^6.0.0",
-    "@google/genai": "^2.17.0",
+    "@huggingface/transformers": "^4.3.2",
     "@langchain/textsplitters": "^1.0.1",
     "fastify": "^5.0.0",
     "fastify-cli": "^8.0.0",

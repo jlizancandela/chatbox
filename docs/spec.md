@@ -242,7 +242,7 @@ sin ser una cuenta de usuario ni una conversación permanente.
 El MVP se considera completo cuando se verifican todos estos puntos:
 
 - Los embeddings reales se almacenan y consultan mediante `pgvector`.
-- Documentos y preguntas comparten `gemini-embedding-001` y 768 dimensiones.
+- Documentos y preguntas comparten EmbeddingGemma y 768 dimensiones.
 - Las respuestas con contexto se generan con Groq, emiten sus fuentes y tokens
   mediante SSE, y terminan con `done`.
 - Las preguntas sin contexto no producen respuestas inventadas.

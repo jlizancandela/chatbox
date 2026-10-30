@@ -1,7 +1,7 @@
 /**
  * El guardián de red de la suite.
  *
- * Los tests no hablan con el exterior: ni con Gemini, ni con Groq. Este módulo se
+ * Los tests no hablan con el exterior: ni con el modelo de embeddings, ni con Groq. Este módulo se
  * carga **antes** de cada archivo de test (`-r ./test/setup.ts`) y convierte `fetch`
  * en una puerta que solo se abre al bucle local: el proveedor se inyecta por el seam
  * de la aplicación, no se alcanza por la red.
@@ -10,7 +10,7 @@
  * instante y con un mensaje claro —en vez de quedarse colgado hasta que la red
  * agota el tiempo— y la suite no gasta la cuota del proveedor.
  *
- * Se vigila `fetch` porque por ahí piden los dos SDK que usamos —Gemini y Groq—, que
+ * Se vigila `fetch` porque por ahí piden los SDK que usamos —el modelo de embeddings y Groq—, que
  * capturan la función global al construir el cliente. Un transporte distinto sería
  * invisible para este guardián.
  *

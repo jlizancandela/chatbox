@@ -2,7 +2,9 @@
 
 ## Estado
 
-Aceptada (2026-10-30).
+Aceptada (2026-10-30). La parte de embeddings la sustituye la Decisión 013: el
+proveedor ya no es Gemini, pero el seam y la suite hermética siguen vigentes. Las
+referencias a `GEMINI_API_KEY` de este documento describen el estado anterior.
 
 ## Contexto
 
