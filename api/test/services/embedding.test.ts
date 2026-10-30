@@ -1,6 +1,9 @@
 import assert from "node:assert";
 import { test } from "node:test";
-import { embeddingSignature } from "../../src/services/embedding.config";
+import {
+	assertEmbeddingConfig,
+	embeddingSignature,
+} from "../../src/services/embedding.config";
 import {
 	embeddingService,
 	type EmbedContentParams,
@@ -39,5 +42,32 @@ test("la firma de embeddings incluye el tipo de tarea de documento", () => {
 	assert.ok(
 		embeddingSignature.includes("RETRIEVAL_DOCUMENT"),
 		"cambiar el tipo de tarea debe invalidar el corpus",
+	);
+});
+
+/**
+ * El otro lado del seam: sin proveedor inyectado, el real es obligatorio. Cuando la
+ * clave falta, el servicio se niega a construirse en vez de fallar en la primera
+ * pregunta.
+ */
+test("sin clave, la configuración del proveedor real no vale", () => {
+	assert.throws(
+		() =>
+			assertEmbeddingConfig({
+				geminiApiKey: "",
+				geminiEmbeddingModel: "gemini-embedding-001",
+				geminiVectorDimension: 768,
+			}),
+		/GEMINI_API_KEY is required/,
+	);
+});
+
+test("con clave, la configuración del proveedor real vale", () => {
+	assert.doesNotThrow(() =>
+		assertEmbeddingConfig({
+			geminiApiKey: "test-key",
+			geminiEmbeddingModel: "gemini-embedding-001",
+			geminiVectorDimension: 768,
+		}),
 	);
 });

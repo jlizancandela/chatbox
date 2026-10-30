@@ -1,39 +1,22 @@
-import { request } from 'node:http'
-import { test } from 'node:test'
-import * as assert from 'node:assert'
-import type Groq from 'groq-sdk'
-import { build } from '../helper'
-import { CHAT_BODY_LIMIT_BYTES } from '../../src/schemas/chat'
+import { request } from "node:http";
+import { test } from "node:test";
+import * as assert from "node:assert";
+import {
+  CHUNK,
+  build,
+  fakeGroq,
+  fakePg,
+  parseSSE,
+  testDependencies,
+} from "../helper";
+import { BURST_MAX } from "../../src/middleware/rate-limit";
+import { CHAT_BODY_LIMIT_BYTES } from "../../src/schemas/chat";
 
-type SSEFrame = {
-  event: string
-  data: unknown
-}
-
-function parseSSE (payload: string): SSEFrame[] {
-  const frames: SSEFrame[] = []
-  let current: { event?: string; data?: string } = {}
-
-  for (const line of payload.split('\n')) {
-    if (line === '') {
-      if (current.event !== undefined && current.data !== undefined) {
-        frames.push({
-          event: current.event,
-          data: JSON.parse(current.data)
-        })
-      }
-      current = {}
-      continue
-    }
-    if (line.startsWith('event:')) current.event = line.slice(6).trim()
-    else if (line.startsWith('data:')) current.data = line.slice(5).trim()
-  }
-
-  return frames
-}
-
-test('chat stream returns empty sources and done for an unrelated question', async (t) => {
-  const app = await build(t)
+test('chat stream returns empty sources and done when no chunk matches', async (t) => {
+  const app = await build(t, testDependencies({
+    pg: fakePg([]),
+    groqClient: fakeGroq(['No debería llegar aquí']).client
+  }))
 
   const res = await app.inject({
     method: 'POST',
@@ -55,7 +38,10 @@ test('chat stream returns empty sources and done for an unrelated question', asy
 })
 
 test('chat stream returns sources, tokens and done for a relevant question', async (t) => {
-  const app = await build(t)
+  const app = await build(t, testDependencies({
+    pg: fakePg([CHUNK]),
+    groqClient: fakeGroq(['Jorge', ' ', 'usa', ' React']).client
+  }))
 
   const res = await app.inject({
     method: 'POST',
@@ -108,16 +94,12 @@ test('chat stream returns sources, tokens and done for a relevant question', asy
 })
 
 test('chat stream emits a generic error when Groq fails after sources', async (t) => {
-  const app = await build(t)
-  app.groq.client = {
-    chat: {
-      completions: {
-        create: async () => {
-          throw new Error('provider secret that must not leak')
-        }
-      }
-    }
-  } as unknown as Groq
+  const app = await build(t, testDependencies({
+    pg: fakePg([CHUNK]),
+    groqClient: fakeGroq([], {
+      failWith: new Error('provider secret that must not leak')
+    }).client
+  }))
 
   const res = await app.inject({
     method: 'POST',
@@ -140,36 +122,15 @@ test('chat stream emits a generic error when Groq fails after sources', async (t
 })
 
 test('chat stream aborts Groq when the HTTP client disconnects', async (t) => {
-  const app = await build(t)
-  let groqSignal: AbortSignal | undefined
-  let resolveGroqStarted: (() => void) | undefined
-  const groqStarted = new Promise<void>((resolve) => {
-    resolveGroqStarted = resolve
+  // El stream se deja largo a propósito: si el doble terminase al instante, la generación
+  // habría acabado antes de que el cliente se fuese y el abort no tendría nada que cortar.
+  const groq = fakeGroq(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l'], {
+    delayMs: 100
   })
-
-  app.groq.client = {
-    chat: {
-      completions: {
-        create: async (
-          _params: Record<string, unknown>,
-          options?: { signal?: AbortSignal | null }
-        ) => {
-          groqSignal = options?.signal ?? undefined
-          resolveGroqStarted?.()
-
-          return (async function* () {
-            await new Promise<void>((resolve) => {
-              if (groqSignal?.aborted) {
-                resolve()
-                return
-              }
-              groqSignal?.addEventListener('abort', () => resolve(), { once: true })
-            })
-          })()
-        }
-      }
-    }
-  } as unknown as Groq
+  const app = await build(t, testDependencies({
+    pg: fakePg([CHUNK]),
+    groqClient: groq.client
+  }))
 
   await app.listen({ host: '127.0.0.1', port: 0 })
   const address = app.server.address()
@@ -198,13 +159,12 @@ test('chat stream aborts Groq when the HTTP client disconnects', async (t) => {
   }))
 
   await sourcesReceived
-  await groqStarted
   clientRequest.destroy()
 
   await new Promise<void>((resolve, reject) => {
     const deadline = setTimeout(() => reject(new Error('Groq signal was not aborted')), 1000)
     const check = () => {
-      if (groqSignal?.aborted) {
+      if (groq.signal()?.aborted) {
         clearTimeout(deadline)
         resolve()
       } else {
@@ -213,12 +173,10 @@ test('chat stream aborts Groq when the HTTP client disconnects', async (t) => {
     }
     check()
   })
-
-  await app.close()
 })
 
 test('chat route rejects a whitespace-only question', async (t) => {
-  const app = await build(t)
+  const app = await build(t, testDependencies())
 
   const res = await app.inject({
     method: 'POST',
@@ -238,7 +196,7 @@ test('chat route rejects a whitespace-only question', async (t) => {
 })
 
 test('chat route rejects a question longer than 1000 characters', async (t) => {
-  const app = await build(t)
+  const app = await build(t, testDependencies())
 
   const res = await app.inject({
     method: 'POST',
@@ -263,7 +221,7 @@ for (const [name, payload] of [
   ['empty question', { question: '' }]
 ] as const) {
   test(`chat route rejects ${name}`, async (t) => {
-    const app = await build(t)
+    const app = await build(t, testDependencies())
 
     const res = await app.inject({
       method: 'POST',
@@ -282,7 +240,7 @@ for (const [name, payload] of [
 }
 
 test('chat route rejects malformed JSON', async (t) => {
-  const app = await build(t)
+  const app = await build(t, testDependencies())
 
   const res = await app.inject({
     method: 'POST',
@@ -301,7 +259,7 @@ test('chat route rejects malformed JSON', async (t) => {
 })
 
 test('chat route rejects a request body larger than the configured limit', async (t) => {
-  const app = await build(t)
+  const app = await build(t, testDependencies())
 
   const res = await app.inject({
     method: 'POST',
@@ -318,4 +276,33 @@ test('chat route rejects a request body larger than the configured limit', async
       message: 'Request body is too large'
     }
   })
+})
+
+test('chat route applies the burst rate limit', async (t) => {
+  // La ráfaga son 20 peticiones por minuto: la 21 sale 429. Sin este test, quitar
+  // `fastify.register(rateLimitMiddleware)` de la ruta no rompe nada y la ráfaga
+  // quedaría inerte en silencio — verde sin proteger nada.
+  const app = await build(t, testDependencies())
+
+  for (let i = 0; i < BURST_MAX; i++) {
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/chat',
+      payload: { question: 'hola' }
+    })
+
+    assert.equal(res.statusCode, 200, `petición ${i + 1} dentro de la ráfaga`)
+  }
+
+  const limited = await app.inject({
+    method: 'POST',
+    url: '/api/chat',
+    payload: { question: 'hola' }
+  })
+
+  assert.equal(limited.statusCode, 429)
+  const body = limited.json()
+  assert.equal(body.error.code, 'RATE_LIMIT_EXCEEDED')
+  assert.match(body.error.message, /^Rate limit exceeded, retry in \d+ (second|minute)/)
+  assert.ok(Number(limited.headers['retry-after']) >= 1)
 })

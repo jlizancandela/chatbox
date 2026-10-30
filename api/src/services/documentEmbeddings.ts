@@ -1,8 +1,14 @@
 import type { DocumentChunk } from "../repositories/documents";
-import { embeddingService } from "./embedding";
+import { embeddingService, type EmbedContentFn } from "./embedding";
 
-export const documentEmbeddingsService = () => {
-	const { embedText } = embeddingService();
+/**
+ * Los embeddings de un documento.
+ *
+ * `embedContent` es el colaborador: si viene, se usa; si no, se construye el cliente
+ * de verdad. La ingesta lo cablea con el proveedor real y los tests con un doble.
+ */
+export const documentEmbeddingsService = (embedContent?: EmbedContentFn) => {
+	const { embedText } = embeddingService(embedContent);
 
 	const getDocumentEmbeddings = async (
 		file: string,

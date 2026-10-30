@@ -26,7 +26,12 @@ fundamentadas con Groq.
 
 ## Layout del código (api/src)
 Cargado automáticamente por @fastify/autoload desde `app.ts`:
-- `plugins/` — db (pg), groq, errors (handler JSON), schemas, sensible, support
+- `dependencies.ts` — el punto **único** de inyección de los proveedores externos al
+  construir la aplicación (base de datos, generación, embeddings). Los plugins los
+  reciben en las opciones de construcción y los decoran en la instancia; en producción
+  no se pasa nada y se usan los reales. Es el seam que usan los tests para correr sin
+  red ni credenciales. Ver `docs/decisions/012-seam-de-proveedores-y-suite-hermetica.md`.
+- `plugins/` — db (pg), groq, embedding, errors (handler JSON), schemas, sensible, support
 - `routes/` — `root.ts` (`GET /`, `GET /health`) y `routes/api/index.ts` (`POST /chat`)
 - `services/` — lógica de negocio (`documents`, `documentEmbeddings`)
 - `repositories/` — SQL puro (`documents`)

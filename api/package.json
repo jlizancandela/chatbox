@@ -8,7 +8,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm run build:ts && tsc -p test/tsconfig.json && c8 node --test --env-file=.env -r ts-node/register \"test/**/*.ts\"",
+    "test:run": "node --test --env-file-if-exists=.env -r ts-node/register -r ./test/setup.ts \"test/**/*.test.ts\"",
+    "test": "npm run build:ts && tsc -p test/tsconfig.json && c8 npm run test:run",
+    "verify": "npm run build:ts && tsc -p test/tsconfig.json && npm run test:run",
     "start": "npm run build:ts && fastify start -l warn dist/app.js",
     "build:ts": "tsc",
     "db:migrate": "node-pg-migrate up --migrations-dir database/migrations --migrations-table pgmigrations",
