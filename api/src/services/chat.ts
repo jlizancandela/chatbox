@@ -4,7 +4,7 @@ import {
 	type QueryClient,
 } from "../repositories/documents";
 import { chatConfig, type GenerationConfig } from "./chat.config";
-import { embeddingService } from "./embedding";
+import type { EmbedTextFn } from "./embedding";
 
 export type ChatSource = {
 	documentId: string;
@@ -233,13 +233,27 @@ export const createAskStream =
 		}
 	};
 
-export const chatService = (
-	pg: QueryClient,
-	groqClient: Groq,
-	modelDefault: string,
-) => {
+/**
+ * Lo que el servicio necesita de fuera.
+ *
+ * El embedding llega como colaborador y no se construye dentro: quien llama decide
+ * si el proveedor es el real o un doble. Así el servicio se puede probar sin red
+ * sin abrirle la puerta a que se vuelva a construir por dentro.
+ */
+export type ChatServiceDeps = {
+	pg: QueryClient;
+	groqClient: Groq;
+	modelDefault: string;
+	embedText: EmbedTextFn;
+};
+
+export const chatService = ({
+	pg,
+	groqClient,
+	modelDefault,
+	embedText,
+}: ChatServiceDeps) => {
 	const retrieve = async (question: string): Promise<ChatSource[]> => {
-		const { embedText } = embeddingService();
 		const sqlEmbedding = await embedText(question, { purpose: "query" });
 
 		const relevantChunks = await findChunksByEmbedding(

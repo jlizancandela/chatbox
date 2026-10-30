@@ -1,9 +1,9 @@
 import { test } from 'node:test'
 import * as assert from 'node:assert'
-import { build } from '../helper'
+import { build, testDependencies } from '../helper'
 
 test('health route returns correct response', async (t) => {
-  const app = await build(t)
+  const app = await build(t, testDependencies())
 
   const res = await app.inject({
     url: '/health'

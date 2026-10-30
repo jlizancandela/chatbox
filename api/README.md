@@ -31,7 +31,7 @@ ignorado por Git y no debe versionarse ni compartirse.
 | `DATABASE_URL` | Sí | Sí | — | Conexión de la API a PostgreSQL. |
 | `GEMINI_API_KEY` | Sí | Sí | — | Generación de embeddings con Gemini. |
 | `GEMINI_EMBEDDING_MODEL` | No | No | `gemini-embedding-001` | Modelo de embeddings. |
-| `GEMINI_VECTOR_DIMENSION` | Sí | No | — | Dimensión de los vectores; debe ser `768` para este esquema. |
+| `GEMINI_VECTOR_DIMENSION` | No | No | `768` | Dimensión de los vectores; la del esquema es `768`. |
 | `GROQ_API_KEY` | Sí | Sí | — | Acceso al modelo generativo de Groq. |
 | `GROQ_MODEL_DEFAULT` | No | No | `openai/gpt-oss-20b` | Modelo usado para responder. |
 | `SIMILARITY_THRESHOLD` | No | No | `0.5` | Umbral de similitud coseno para recuperar contexto. |
@@ -139,7 +139,7 @@ La ingesta:
    algún archivo falla.
 
 Asegúrate de haber aplicado las migraciones y de tener configurados
-`DATABASE_URL`, `GEMINI_API_KEY` y `GEMINI_VECTOR_DIMENSION` antes de ingerir.
+`DATABASE_URL` y `GEMINI_API_KEY` antes de ingerir.
 
 ### Reingerir el corpus
 
@@ -478,9 +478,23 @@ Ejecuta la suite completa desde `api/`:
 pnpm test
 ```
 
-Los tests compilan TypeScript, ejecutan las pruebas HTTP e integración y
-recogen cobertura. Necesitan el entorno local configurado según `.env` y los
-servicios que requieran las pruebas disponibles.
+Los tests compilan TypeScript, ejecutan la suite y recogen cobertura. `pnpm verify`
+es lo mismo sin cobertura, y es lo que corre CI.
+
+La suite es **hermética**: no hace ninguna petición a los proveedores y no necesita
+sus credenciales. Los proveedores externos —base de datos, generación y embeddings—
+entran por el **punto único de inyección de la aplicación**, las opciones de
+construcción (`src/dependencies.ts`): los tests de ruta pasan dobles por ahí y en
+producción no se pasa nada, así que se usan los de verdad. Los servicios, a su vez,
+reciben su colaborador por parámetro en vez de construirlo dentro.
+
+Lo único que pide el entorno es lo del test de integración de `pgvector`
+(`DATABASE_URL`) y `CORS_ORIGIN`. Ni claves de Gemini ni de Groq.
+
+Un guardián (`test/setup.ts`, cargado con `-r`) cierra `fetch` a todo lo que no sea el
+bucle local: si un test se olvida de un doble, falla al instante y dice qué URL intentó
+alcanzar, en vez de quedarse colgado hasta que la red agota el tiempo. Para hablar con
+el proveedor de verdad a propósito, `API_TEST_ALLOW_NETWORK=1`.
 
 ## Scripts disponibles
 
@@ -488,6 +502,8 @@ servicios que requieran las pruebas disponibles.
 |---|---|
 | `pnpm dev` | Desarrollo con compilación y recarga. |
 | `pnpm start` | Arranque local de producción. |
-| `pnpm test` | Compilación y suite de tests. |
+| `pnpm test` | Compilación y suite de tests con cobertura. |
+| `pnpm verify` | Compilación, typecheck de los tests y suite, sin cobertura. |
+| `pnpm test:run` | Solo la suite, sin el paso de compilación previa (ts-node compila al vuelo). |
 | `pnpm db:migrate` | Aplica migraciones pendientes. |
 | `pnpm ingest <archivos>` | Ingresa uno o más archivos desde `ingest/`. |

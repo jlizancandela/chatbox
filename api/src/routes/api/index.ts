@@ -1,6 +1,12 @@
 import { Readable } from "node:stream";
 import type { FastifyPluginAsync } from "fastify";
 import rateLimitMiddleware from "../../middleware/rate-limit";
+// Las declaraciones de tipo de los decoradores (`pg`, `groq`, `embedding`) viven en
+// los plugins. Importarlos aquí —aunque no se registren— es lo que las carga cuando
+// se compila archivo a archivo (ts-node), que es como corren los tests.
+import "../../plugins/db";
+import "../../plugins/embedding";
+import "../../plugins/groq";
 import { chatOptions } from "../../schemas/chat";
 import { chatService, type ChatEvent } from "../../services/chat";
 
@@ -59,11 +65,12 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 			});
 		}
 
-		const chat = chatService(
-			fastify.pg,
-			fastify.groq.client,
-			fastify.groq.options.modelDefault,
-		);
+		const chat = chatService({
+			pg: fastify.pg,
+			groqClient: fastify.groq.client,
+			modelDefault: fastify.groq.options.modelDefault,
+			embedText: fastify.embedding.embedText,
+		});
 
 		const controller = new AbortController();
 

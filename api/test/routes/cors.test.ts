@@ -1,9 +1,9 @@
 import * as assert from "node:assert";
 import { test } from "node:test";
-import { build } from "../helper";
+import { build, testDependencies } from "../helper";
 
 test("CORS allows the configured origin", async (t) => {
-	const app = await build(t);
+	const app = await build(t, testDependencies());
 
 	const res = await app.inject({
 		method: "OPTIONS",

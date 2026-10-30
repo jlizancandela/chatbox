@@ -1,21 +1,51 @@
-name: Publish API image
+name: API CI
 
-# La imagen se publica en cada push a `main` que toca la API: el VPS tira de ella con
+# La suite de la API corre en cada PR y en cada push a `main`. La imagen se publica
+# solo cuando la verificación pasa y solo desde `main`: el VPS tira de ella con
 # `docker compose pull`, así que la imagen es el artefacto que se despliega.
 on:
   push:
     branches: [main]
     paths:
       - "api/**"
-      - ".github/workflows/publish-api-image.yml"
+      - ".github/workflows/api.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "api/**"
+      - ".github/workflows/api.yml"
 
 jobs:
-  build:
+  verify:
     name: Verify
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: api
+
+    services:
+      db:
+        # El esquema usa `vector(768)`, así que la imagen de PostgreSQL tiene que traer
+        # pgvector.
+        image: pgvector/pgvector:pg18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: chatbox
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U postgres -d chatbox"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    # Sin claves de proveedor: la suite inyecta los dobles por el seam de la
+    # aplicación y el guardián de red corta cualquier llamada que se escape. Lo que
+    # queda aquí es infraestructura (la base de datos) y configuración, no credenciales.
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/chatbox
+      CORS_ORIGIN: http://localhost:5173
 
     steps:
       - uses: actions/checkout@v4
@@ -36,16 +66,20 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # La imagen compila el TypeScript en su etapa de build: si eso falla, la imagen
-      # fallaría al construirse. Compilarlo aquí deja que un error de tipos no llegue a
-      # Docker Hub.
-      - name: Build
-        run: pnpm build:ts
+      - name: Migrate
+        run: pnpm db:migrate
+
+      # `verify` es la lista única: compilación, typecheck de los tests y suite. Si se
+      # escribe aquí paso a paso, el comando local y el de CI se desincronizan sin que
+      # nadie lo note.
+      - name: Verify
+        run: pnpm verify
 
   publish:
     name: Build and push the image
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [verify]
+    if: github.event_name == 'push'
     permissions:
       contents: read
 
