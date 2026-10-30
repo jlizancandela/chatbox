@@ -1,4 +1,5 @@
 import type Groq from "groq-sdk";
+import type { FailureTrace, Logger } from "../infrastructure/logging";
 import { findChunksByEmbedding, type QueryClient } from "../repositories/documents";
 import { chatConfig, type GenerationConfig } from "./chat.config";
 import type { EmbedTextFn } from "./embedding";
@@ -55,6 +56,8 @@ type AskStreamDeps = {
 		maxTotalChars: number;
 	};
 	generation: GenerationConfig;
+	/** Dónde se registran los fallos clasificados (#146). */
+	logger?: Logger;
 };
 
 export type AskStreamOptions = {
@@ -113,6 +116,18 @@ const classifyGenerationError = (error: unknown): GenerationFailure => {
 	}
 
 	return { code: "GENERATION_FAILED" };
+};
+
+/**
+ * Lo que se registra de un fallo del proveedor.
+ *
+ * Solo la clasificación y el estado: nunca el mensaje del error, que puede contener
+ * fragmentos de la petición, ni el cuerpo de la respuesta del proveedor (#146).
+ */
+const failureTrace = (error: unknown): FailureTrace => {
+	const status = isRecord(error) && typeof error.status === "number" ? error.status : undefined;
+
+	return { code: classifyGenerationError(error).code, ...(status === undefined ? {} : { status }) };
 };
 
 /**
@@ -250,6 +265,7 @@ export const createAskStream = ({
 	modelDefault,
 	historyLimits,
 	generation,
+	logger,
 }: AskStreamDeps) =>
 	async function* askStream(question: string, options: AskStreamOptions): AsyncIterable<ChatEvent> {
 		const { history: rawHistory, signal } = options;
@@ -260,7 +276,10 @@ export const createAskStream = ({
 		let sources: ChatSource[];
 		try {
 			sources = await retrieve(question);
-		} catch {
+		} catch (caught) {
+			// El fallo de la recuperación no lo ve el manejador de errores de Fastify: la
+			// respuesta del stream ya empezó. Se registra aquí, con su clasificación (#146).
+			logger?.failure(failureTrace(caught));
 			yield generationErrorEvent();
 			return;
 		}
@@ -300,6 +319,10 @@ export const createAskStream = ({
 			if (signal?.aborted) {
 				return;
 			}
+
+			// La cuota agotada y el fallo genérico se distinguen en el log igual que se
+			// distinguen en la respuesta (#144, #146).
+			logger?.failure(failureTrace(caught));
 			yield generationErrorEvent(caught);
 		}
 	};
@@ -316,9 +339,17 @@ export type ChatServiceDeps = {
 	groqClient: Groq;
 	modelDefault: string;
 	embedText: EmbedTextFn;
+	/** Dónde se registran los fallos clasificados (#146). */
+	logger?: Logger;
 };
 
-export const chatService = ({ pg, groqClient, modelDefault, embedText }: ChatServiceDeps) => {
+export const chatService = ({
+	pg,
+	groqClient,
+	modelDefault,
+	embedText,
+	logger,
+}: ChatServiceDeps) => {
 	const retrieve = async (question: string): Promise<ChatSource[]> => {
 		const sqlEmbedding = await embedText(question, { purpose: "query" });
 
@@ -355,6 +386,7 @@ export const chatService = ({ pg, groqClient, modelDefault, embedText }: ChatSer
 			modelDefault,
 			historyLimits: chatConfig.historyLimits,
 			generation: chatConfig.generation,
+			logger,
 		}),
 		retrieve,
 	};

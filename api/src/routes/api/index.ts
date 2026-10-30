@@ -7,6 +7,7 @@ import rateLimitMiddleware from "../../middleware/rate-limit";
 import "../../plugins/db";
 import "../../plugins/embedding";
 import "../../plugins/groq";
+import "../../plugins/logging";
 import { chatOptions } from "../../schemas/chat";
 import { type ChatEvent, chatService, generationErrorEvent } from "../../services/chat";
 
@@ -84,6 +85,7 @@ const api: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 			groqClient: fastify.groq.client,
 			modelDefault: fastify.groq.options.modelDefault,
 			embedText: fastify.embedding.embedText,
+			logger: fastify.logger,
 		});
 
 		const controller = new AbortController();
