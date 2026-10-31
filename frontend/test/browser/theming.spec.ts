@@ -69,6 +69,39 @@ test.describe("RF-F61 browser theming resolution", () => {
 		}
 	});
 
+	test("T5 a host mapping reaches the widget in every theme path, and accessibility still wins", async ({
+		page,
+	}) => {
+		const button = page.locator('.chatbox__footer button[type="submit"]');
+		const background = () =>
+			button.evaluate((element) => getComputedStyle(element).backgroundColor);
+
+		// Los cuatro caminos que puede tomar un host: sin `data-theme` (el sistema decide, que
+		// es lo que hace el portafolio con `data-theme="system"`) y con el tema explícito.
+		const paths = [
+			{ theme: undefined, colorScheme: "light" },
+			{ theme: undefined, colorScheme: "dark" },
+			{ theme: "light", colorScheme: "light" },
+			{ theme: "dark", colorScheme: "light" },
+		] as const;
+
+		for (const { theme, colorScheme } of paths) {
+			await page.emulateMedia({ colorScheme, forcedColors: "none" });
+			await openChatbox(page, theme);
+			await page.evaluate(() => {
+				document.body.style.setProperty("--chatbox-host-primary", "rgb(255, 0, 0)");
+			});
+			await expect
+				.poll(background, { message: `${theme ?? "sistema"}/${colorScheme}` })
+				.toBe("rgb(255, 0, 0)");
+		}
+
+		// El mapeo del host no puede silenciar la preferencia de la persona: los colores
+		// forzados siguen ganando, como en T4.
+		await page.emulateMedia({ colorScheme: "light", forcedColors: "active" });
+		await expect.poll(background).not.toBe("rgb(255, 0, 0)");
+	});
+
 	test("submit label is readable in light and dark themes", async ({ page }) => {
 		for (const colorScheme of ["light", "dark"] as const) {
 			await page.emulateMedia({ colorScheme });

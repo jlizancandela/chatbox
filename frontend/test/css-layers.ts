@@ -22,6 +22,25 @@ export const tokensOf = (rule: Rule): Record<string, string> =>
 		Object.entries(declarationsOf(rule)).filter(([prop]) => prop.startsWith("--chatbox-color-"))
 	);
 
+/**
+ * Forma de un token de tema: `var(--chatbox-host-<rol>, <default>)`. El host mapea el nombre
+ * `--chatbox-host-*` desde cualquier ancestro y el widget pinta la reserva cuando no hay
+ * mapeo. Ver RF-F61.
+ */
+const HOST_TOKEN = /^var\(\s*(--chatbox-host-[a-z-]+)\s*,\s*(.+?)\s*\)$/;
+
+/** El nombre que mapea el host, si el valor tiene la forma de token de tema. */
+export const hostTokenOf = (value: string): string | undefined => value.match(HOST_TOKEN)?.[1];
+
+/** Lo que pinta el widget cuando el host no mapea nada. */
+export const fallbackOf = (value: string): string => value.match(HOST_TOKEN)?.[2] ?? value;
+
+/** Los tokens con su valor de reserva resuelto: la paleta efectiva sin host. */
+export const resolvedTokensOf = (rule: Rule): Record<string, string> =>
+	Object.fromEntries(
+		Object.entries(tokensOf(rule)).map(([prop, value]) => [prop, fallbackOf(value)])
+	);
+
 /** Busca una regla por selector entre las de primer nivel. */
 export const topLevelRule = (selector: string): Rule => {
 	const rule = styles.nodes.find(

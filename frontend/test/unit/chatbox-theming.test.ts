@@ -3,8 +3,11 @@ import { describe, expect, it } from "vitest";
 import { contrastRatio } from "../contrast";
 import {
 	declarationsOf,
+	fallbackOf,
+	hostTokenOf,
 	mediaRule,
 	offsetOf,
+	resolvedTokensOf,
 	ruleInside,
 	tokensOf,
 	topLevelRule,
@@ -90,12 +93,29 @@ const PALETTE_TARGETS: Record<string, number> = {
 };
 
 const PARSED_TOKENS = {
-	light: tokensOf(baseRule()),
-	dark: tokensOf(darkRule()),
+	light: resolvedTokensOf(baseRule()),
+	dark: resolvedTokensOf(darkRule()),
 };
 
+/**
+ * Las capas que el host puede mapear: los defaults y los dos temas explícitos. Cada una
+ * declara cada rol como `var(--chatbox-host-<rol>, <default>)`.
+ */
+const MAPPABLE_LAYERS: { name: string; rule: Rule }[] = [
+	{ name: "defaults", rule: baseRule() },
+	{ name: "sistema oscuro", rule: darkRule() },
+	{ name: "tema oscuro del host", rule: hostRule("dark") },
+	{ name: "tema claro del host", rule: hostRule("light") },
+];
+
+/** Las capas que la persona elige y que un mapeo del host no puede silenciar. */
+const ACCESSIBILITY_LAYERS: { name: string; rule: Rule }[] = [
+	{ name: "contraste alto", rule: prefersContrastRule() },
+	{ name: "colores forzados", rule: forcedColorsRule() },
+];
+
 describe("Chatbox.css (RF-F61/T1 — light defaults)", () => {
-	it("declares exactly the 10 light tokens inside .chatbox", () => {
+	it("declares exactly the 10 light tokens with their default values", () => {
 		expect(PARSED_TOKENS.light).toEqual(LIGHT_TOKENS);
 	});
 
@@ -150,8 +170,41 @@ describe("Chatbox.css (RF-F61/T3 — explicit host themes)", () => {
 	});
 
 	it("declares complete dark and light token sets", () => {
-		expect(tokensOf(hostRule("dark"))).toEqual(DARK_TOKENS);
-		expect(tokensOf(hostRule("light"))).toEqual(LIGHT_TOKENS);
+		expect(resolvedTokensOf(hostRule("dark"))).toEqual(DARK_TOKENS);
+		expect(resolvedTokensOf(hostRule("light"))).toEqual(LIGHT_TOKENS);
+	});
+});
+
+describe("Chatbox.css (RF-F61 — host mapping)", () => {
+	for (const { name, rule } of MAPPABLE_LAYERS) {
+		it(`resolves every role through its host token (${name})`, () => {
+			const declared = tokensOf(rule);
+			expect(Object.keys(declared)).toHaveLength(10);
+			for (const [prop, value] of Object.entries(declared)) {
+				const role = prop.replace("--chatbox-color-", "");
+				expect(hostTokenOf(value), `${prop} no acepta mapeo del host`).toBe(
+					`--chatbox-host-${role}`
+				);
+			}
+		});
+	}
+
+	for (const { name, rule } of ACCESSIBILITY_LAYERS) {
+		it(`bypasses the host token so the preference cannot be silenced (${name})`, () => {
+			const declared = tokensOf(rule);
+			expect(Object.keys(declared)).toHaveLength(10);
+			for (const [prop, value] of Object.entries(declared)) {
+				expect(hostTokenOf(value), `${prop} no puede depender del host`).toBeUndefined();
+				expect(fallbackOf(value), `${prop} no declara un valor propio`).toBe(value);
+			}
+		});
+	}
+
+	it("keeps the same reserve in the system layer and the explicit host layer", () => {
+		// Dos bloques declaran el mismo tema; si la reserva se separa, el widget cambia de
+		// color según cómo lo active el host.
+		expect(resolvedTokensOf(baseRule())).toEqual(resolvedTokensOf(hostRule("light")));
+		expect(resolvedTokensOf(darkRule())).toEqual(resolvedTokensOf(hostRule("dark")));
 	});
 });
 

@@ -8,6 +8,17 @@
  * the site must not be silenced by the site that embeds the widget. That is why
  * they repeat the host theme selectors — same specificity, later in the source.
  *
+ * Host mapping (RF-F61): every theme layer resolves its token through a host
+ * token, `var(--chatbox-host-<role>, <default>)`. Declaring the default on
+ * `.chatbox` shadows any value inherited from an ancestor, so a host that maps
+ * `--chatbox-color-*` on `body` — as the first version of the contract promised —
+ * changed nothing. The host token is read on `.chatbox` and inherited from
+ * anywhere above it, so the mapping works from an ancestor, from a container, or
+ * on the widget itself for one instance, and it survives both themes with a
+ * single declaration. The accessibility layers below do NOT use the host token:
+ * they declare `--chatbox-color-*` directly, so a host mapping can never silence
+ * the person's contrast or forced-colors preference.
+ *
  * The motion layers (RF-F44) are orthogonal: they never touch a token, so they sit
  * at the end without entering the order above. The typing animation is declared
  * only inside `@media (prefers-reduced-motion: no-preference)`.
@@ -19,17 +30,17 @@
  * `inverse-primary`, `secondary-fixed-dim`, `primary-fixed`).
  */
 .chatbox {
-	--chatbox-color-text: #1a1b22;
-	--chatbox-color-surface: #ffffff;
-	--chatbox-color-primary: #00685f;
-	--chatbox-color-link: #006398;
-	--chatbox-color-border: #6d7a77;
-	--chatbox-color-focus: #006398;
-	--chatbox-color-error: #ba1a1a;
+	--chatbox-color-text: var(--chatbox-host-text, #1a1b22);
+	--chatbox-color-surface: var(--chatbox-host-surface, #ffffff);
+	--chatbox-color-primary: var(--chatbox-host-primary, #00685f);
+	--chatbox-color-link: var(--chatbox-host-link, #006398);
+	--chatbox-color-border: var(--chatbox-host-border, #6d7a77);
+	--chatbox-color-focus: var(--chatbox-host-focus, #006398);
+	--chatbox-color-error: var(--chatbox-host-error, #ba1a1a);
 	/* Tonal surfaces: the assistant turn and the chips separate by tone, not by border. */
-	--chatbox-color-surface-subtle: #eeedf7;
-	--chatbox-color-surface-raised: #e8e7f1;
-	--chatbox-color-accent-container: #008378;
+	--chatbox-color-surface-subtle: var(--chatbox-host-surface-subtle, #eeedf7);
+	--chatbox-color-surface-raised: var(--chatbox-host-surface-raised, #e8e7f1);
+	--chatbox-color-accent-container: var(--chatbox-host-accent-container, #008378);
 
 	display: flex;
 	flex-direction: column;
@@ -66,50 +77,53 @@
  */
 @media (prefers-color-scheme: dark) {
 	.chatbox {
-		--chatbox-color-text: #f1effa;
-		--chatbox-color-surface: #2f3038;
-		--chatbox-color-primary: #6bd8cb;
-		--chatbox-color-link: #93ccff;
-		--chatbox-color-border: #bcc9c6;
-		--chatbox-color-focus: #93ccff;
-		--chatbox-color-error: #fca5a5;
-		--chatbox-color-surface-subtle: #3a3b44;
-		--chatbox-color-surface-raised: #45464f;
-		--chatbox-color-accent-container: #89f5e7;
+		--chatbox-color-text: var(--chatbox-host-text, #f1effa);
+		--chatbox-color-surface: var(--chatbox-host-surface, #2f3038);
+		--chatbox-color-primary: var(--chatbox-host-primary, #6bd8cb);
+		--chatbox-color-link: var(--chatbox-host-link, #93ccff);
+		--chatbox-color-border: var(--chatbox-host-border, #bcc9c6);
+		--chatbox-color-focus: var(--chatbox-host-focus, #93ccff);
+		--chatbox-color-error: var(--chatbox-host-error, #fca5a5);
+		--chatbox-color-surface-subtle: var(--chatbox-host-surface-subtle, #3a3b44);
+		--chatbox-color-surface-raised: var(--chatbox-host-surface-raised, #45464f);
+		--chatbox-color-accent-container: var(--chatbox-host-accent-container, #89f5e7);
 	}
 }
 
 /* Explicit host themes override the system preference. */
 [data-theme="dark"] .chatbox {
-	--chatbox-color-text: #f1effa;
-	--chatbox-color-surface: #2f3038;
-	--chatbox-color-primary: #6bd8cb;
-	--chatbox-color-link: #93ccff;
-	--chatbox-color-border: #bcc9c6;
-	--chatbox-color-focus: #93ccff;
-	--chatbox-color-error: #fca5a5;
-	--chatbox-color-surface-subtle: #3a3b44;
-	--chatbox-color-surface-raised: #45464f;
-	--chatbox-color-accent-container: #89f5e7;
+	--chatbox-color-text: var(--chatbox-host-text, #f1effa);
+	--chatbox-color-surface: var(--chatbox-host-surface, #2f3038);
+	--chatbox-color-primary: var(--chatbox-host-primary, #6bd8cb);
+	--chatbox-color-link: var(--chatbox-host-link, #93ccff);
+	--chatbox-color-border: var(--chatbox-host-border, #bcc9c6);
+	--chatbox-color-focus: var(--chatbox-host-focus, #93ccff);
+	--chatbox-color-error: var(--chatbox-host-error, #fca5a5);
+	--chatbox-color-surface-subtle: var(--chatbox-host-surface-subtle, #3a3b44);
+	--chatbox-color-surface-raised: var(--chatbox-host-surface-raised, #45464f);
+	--chatbox-color-accent-container: var(--chatbox-host-accent-container, #89f5e7);
 }
 
 [data-theme="light"] .chatbox {
-	--chatbox-color-text: #1a1b22;
-	--chatbox-color-surface: #ffffff;
-	--chatbox-color-primary: #00685f;
-	--chatbox-color-link: #006398;
-	--chatbox-color-border: #6d7a77;
-	--chatbox-color-focus: #006398;
-	--chatbox-color-error: #ba1a1a;
-	--chatbox-color-surface-subtle: #eeedf7;
-	--chatbox-color-surface-raised: #e8e7f1;
-	--chatbox-color-accent-container: #008378;
+	--chatbox-color-text: var(--chatbox-host-text, #1a1b22);
+	--chatbox-color-surface: var(--chatbox-host-surface, #ffffff);
+	--chatbox-color-primary: var(--chatbox-host-primary, #00685f);
+	--chatbox-color-link: var(--chatbox-host-link, #006398);
+	--chatbox-color-border: var(--chatbox-host-border, #6d7a77);
+	--chatbox-color-focus: var(--chatbox-host-focus, #006398);
+	--chatbox-color-error: var(--chatbox-host-error, #ba1a1a);
+	--chatbox-color-surface-subtle: var(--chatbox-host-surface-subtle, #eeedf7);
+	--chatbox-color-surface-raised: var(--chatbox-host-surface-raised, #e8e7f1);
+	--chatbox-color-accent-container: var(--chatbox-host-accent-container, #008378);
 }
 
 /* Increased contrast. It only substitutes the palette when the effective scheme is
  * light: the dark palette already clears every floor of the contrast contract
  * (RF-F42), so there is nothing to fix there, and repainting the widget in light
  * would be a downgrade for the person who asked for more contrast.
+ *
+ * It declares `--chatbox-color-*` directly, without the host token: a host mapping
+ * must not be able to silence a contrast preference.
  */
 @media (prefers-contrast: more) and (prefers-color-scheme: light) {
 	.chatbox {
@@ -155,7 +169,8 @@
 
 /* Forced colors must be the final layer so user-selected system colors always win.
  * The host theme selectors are repeated here so that a site with an explicit theme
- * cannot silence the system palette either.
+ * cannot silence the system palette either. Like the contrast layer, it bypasses the
+ * host token on purpose.
  */
 @media (forced-colors: active) {
 	.chatbox,
