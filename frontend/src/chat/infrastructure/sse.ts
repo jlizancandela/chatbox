@@ -1,13 +1,7 @@
 import { createParser, type EventSourceMessage } from "eventsource-parser";
+import { isChatMessage } from "../domain/conversation";
 import { isChatSource } from "../domain/sources";
-import type {
-	ChatMessage,
-	DoneEvent,
-	ErrorEvent,
-	SourcesEvent,
-	StreamErrorCode,
-	TokenEvent,
-} from "../types";
+import type { DoneEvent, ErrorEvent, SourcesEvent, StreamErrorCode, TokenEvent } from "../types";
 
 export type ChatEvent = SourcesEvent | TokenEvent | DoneEvent | ErrorEvent;
 
@@ -18,11 +12,6 @@ export type SSEParser = {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null;
-
-const isChatMessage = (value: unknown): value is ChatMessage =>
-	isRecord(value) &&
-	(value.role === "user" || value.role === "assistant") &&
-	typeof value.content === "string";
 
 const isStreamErrorCode = (value: unknown): value is StreamErrorCode =>
 	value === "GENERATION_FAILED" || value === "QUOTA_EXHAUSTED";

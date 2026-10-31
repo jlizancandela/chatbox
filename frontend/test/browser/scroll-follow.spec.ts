@@ -252,7 +252,7 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 		await expect
 			.poll(async () => {
 				const state = await threadState(page);
-				return state.scrollHeight - state.clientHeight - followThreshold();
+				return state.scrollHeight - state.clientHeight - followThreshold;
 			})
 			.toBeGreaterThan(0);
 		await expect.poll(async () => (await threadState(page)).atBottom).toBe(true);

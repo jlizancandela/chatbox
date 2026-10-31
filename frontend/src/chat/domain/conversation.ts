@@ -78,7 +78,13 @@ export const isVisibleMessage = (value: unknown): value is VisibleMessage => {
 	return Array.isArray(sources) && sources.every(isChatSource);
 };
 
-const copyMessage = (message: ChatMessage): ChatMessage => ({
+/**
+ * La copia mínima de un mensaje: solo rol y contenido.
+ *
+ * Las fuentes no se copian: son la atribución de lo que se ve, no parte del contexto, y
+ * copiarlas las metería en el historial que se reenvía al API.
+ */
+export const copyMessage = (message: ChatMessage): ChatMessage => ({
 	role: message.role,
 	content: message.content,
 });

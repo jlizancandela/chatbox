@@ -1,12 +1,12 @@
-import { type ConversationState, isChatMessage, isVisibleMessage } from "../domain/conversation";
+import {
+	type ConversationState,
+	copyMessage,
+	isChatMessage,
+	isVisibleMessage,
+} from "../domain/conversation";
 import type { ChatMessage, VisibleMessage } from "../types";
 
 export const STORAGE_KEY = "chatbox:v1";
-
-const copyMessage = (message: ChatMessage): ChatMessage => ({
-	role: message.role,
-	content: message.content,
-});
 
 /**
  * El mensaje visible conserva sus fuentes: sin ellas, una conversación restaurada

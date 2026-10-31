@@ -64,12 +64,7 @@ export const coveredByKeyboard = (bottom: number, area: VisibleArea): number =>
  *   Lo que evita que la reserva crezca sin control es la medida, que ya descuenta lo
  *   reservado.
  */
-export const reservedInset = (
-	bottom: number,
-	applied: number,
-	_layoutHeight: number,
-	area: VisibleArea
-): number => {
+export const reservedInset = (bottom: number, applied: number, area: VisibleArea): number => {
 	const contentBottom = bottom - applied;
 	return coveredByKeyboard(contentBottom, area);
 };

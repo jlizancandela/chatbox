@@ -62,12 +62,7 @@ export function useKeyboardInset(root: { current: HTMLElement | null }, enabled 
 				setInset(0);
 				return;
 			}
-			const next = reservedInset(
-				element.getBoundingClientRect().bottom,
-				applied.current,
-				layoutHeight(),
-				area
-			);
+			const next = reservedInset(element.getBoundingClientRect().bottom, applied.current, area);
 			applied.current = next;
 			setInset(next);
 		};
