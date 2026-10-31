@@ -11,8 +11,7 @@ import { Chatbox } from "./components/Chatbox";
  */
 export function App() {
 	const requested = new URLSearchParams(window.location.search).get("widget");
-	const variant =
-		requested === "embedded" || requested === "drawer" ? requested : ("floating" as const);
+	const variant = requested === "embedded" || requested === "drawer" ? requested : "floating";
 
 	return <Chatbox apiUrl="http://127.0.0.1:7000" variant={variant} />;
 }
