@@ -16,6 +16,7 @@ import {
 	cssSource,
 	mediaRule,
 	offsetOf,
+	resolvedTokensOf,
 	ruleInside,
 	ruleWith,
 	tokensOf,
@@ -113,11 +114,11 @@ const CONTRAST_MEDIA = "(prefers-contrast: more)";
 const FORCED_COLORS_MEDIA = "(forced-colors: active)";
 
 const PALETTES: { name: string; tokens: Record<string, string> }[] = [
-	{ name: "claro", tokens: tokensOf(topLevelRule(".chatbox")) },
-	{ name: "oscuro", tokens: tokensOf(ruleInside(mediaRule(DARK_MEDIA), ".chatbox")) },
+	{ name: "claro", tokens: resolvedTokensOf(topLevelRule(".chatbox")) },
+	{ name: "oscuro", tokens: resolvedTokensOf(ruleInside(mediaRule(DARK_MEDIA), ".chatbox")) },
 	{
 		name: "contraste alto",
-		tokens: tokensOf(ruleInside(mediaRule(CONTRAST_LIGHT_MEDIA), ".chatbox")),
+		tokens: resolvedTokensOf(ruleInside(mediaRule(CONTRAST_LIGHT_MEDIA), ".chatbox")),
 	},
 ];
 

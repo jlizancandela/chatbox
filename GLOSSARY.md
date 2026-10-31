@@ -9,16 +9,21 @@ en issues, specs o tests.
 
 ## Tema del widget (RF-F61)
 
-- **Tema (chatbox)**: combinación de los 7 tokens semánticos de color del widget,
-  expresada como defaults en `.chatbox` y override por cascada desde cualquier ancestro.
+- **Tema (chatbox)**: combinación de los 10 roles semánticos de color del widget. Cada capa de
+  tema resuelve `--chatbox-color-<rol>` desde `--chatbox-host-<rol>` con una reserva, así que el
+  host la alinea mapeando los tokens de host en cualquier ancestro.
 - **Sitio host**: sitio web que embebe el widget del chatbox. En MVP es una página Astro,
   pero el contrato no acopla a Astro.
 - **Self-contained**: el widget no escribe en `:root` ni depende de variables globales del
   sitio host. Sus defaults viven dentro de `.chatbox` y son portables entre hosts.
+- **Token de host**: nombre `--chatbox-host-<rol>` que el sitio host mapea para alinear el
+  widget con su marca. Se lee en `.chatbox` y se hereda desde cualquier ancestro, así que un
+  solo mapeo vale para los dos temas y para cualquier conmutador del host.
 - **Override por cascada**: mecanismo por el cual el sitio host sobrescribe los tokens del
-  chatbox desde cualquier ancestro del subtree, aprovechando la cascada CSS. El host puede
-  mapear sus propias variables a las del chatbox o pisar valores literales; el chatbox no
-  consulta directamente las variables del host.
+  chatbox desde cualquier ancestro del subtree. El host mapea los tokens de host
+  (`--chatbox-host-*`) a sus propias variables o a valores literales, y el widget resuelve
+  `--chatbox-color-*` desde ellos. Declarar `--chatbox-color-*` en un ancestro no funciona: la
+  declaración del propio `.chatbox` la tapa.
 
 ## Textos de la interfaz (RF-F62)
 

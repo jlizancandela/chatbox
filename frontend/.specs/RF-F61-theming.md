@@ -5,11 +5,13 @@
 > Spec confirmado el 2026-10-17 tras sesión de `grill-with-docs`. Cambios respecto al borrador inicial: US #7 reescrita a lectura (a), L2 honra `data-theme` en ancestros (antes se rechazaba), `forced-colors: active` y `prefers-contrast: more` entran en scope (antes fuera), target sube a WCAG 2.x AAA, layout de archivos a `src/components/Chatbox.css` (antes `src/components/chatbox/chatbox.css`), glosario renombrado.
 >
 > Revisión 2026-10-17 (sesión de T2, issue #58): ratios recalculados con WCAG 2.x y corregidos; el target AAA se acota a **texto de cuerpo** (los tokens cromáticos del tema claro se quedan en AA); el orden de las capas de tema pasa a assertearse estructuralmente; el widget consume `text` y `surface`; el label del botón usa `--chatbox-color-surface`; y la verificación de valores resueltos se traslada al ticket T5 (navegador real).
+>
+> Revisión 2026-10-31 (issue #166): el override desde un ancestro **no funcionaba**. Los defaults se declaran en `.chatbox`, así que una declaración en `body` nunca hereda; y con un conmutador de tema del host, `[data-theme] .chatbox` empata en especificidad con `body .chatbox` y gana por orden, porque la hoja del widget se carga después. El único selector que ganaba, `:root body .chatbox`, también pisaba `prefers-contrast` y `forced-colors`. Se sustituye el contrato: el host mapea **10 tokens de host** (`--chatbox-host-*`), cada capa de tema los resuelve con `var()` y su reserva, y las capas de accesibilidad declaran el token en directo para no poder ser silenciadas. La lista pública pasa de 7 a 10 roles (se documentan `surface-subtle`, `surface-raised` y `accent-container`, que ya existían en el CSS).
 
 ## Síntesis de la entrevista (decisiones acordadas, 2026-10-17)
 
-- **L0 — Superficie pública**: 7 tokens semánticos `--chatbox-color-*` (text, surface, primary, link, border, focus, error). Lista cerrada. Burbujas user/assistant mismo color (sin `surface-elevated`). Estados de link reusan `--chatbox-color-link` (sin `link-hover`/`link-visited`). Sin `text-muted`, `success`, `warning` ni "on-primary" dedicado.
-- **L1 — Scoping**: defaults declarados dentro de `.chatbox` (no en `:root`), self-contained, override por cascada desde cualquier ancestro. US #7 reescrita: "los defaults del chatbox son razonables y se ven neutros; alinear con la marca del sitio es opt-in vía mapping explícito de los 7 tokens en la hoja del host". Scope raíz único: `.chatbox`.
+- **L0 — Superficie pública**: 10 roles semánticos. El host mapea `--chatbox-host-*` (text, surface, primary, link, border, focus, error, surface-subtle, surface-raised, accent-container) y el widget resuelve `--chatbox-color-*` desde ellos. Lista cerrada. Burbujas user/assistant no comparten color: la del asistente usa el tono sutil (ver revisión de 2026-10-31). Estados de link reusan `--chatbox-host-link` (sin `link-hover`/`link-visited`). Sin `text-muted`, `success`, `warning` ni "on-primary" dedicado.
+- **L1 — Scoping**: defaults declarados dentro de `.chatbox` (no en `:root`), self-contained, override por cascada desde cualquier ancestro a través de los tokens de host. US #7 reescrita: "los defaults del chatbox son razonables y se ven neutros; alinear con la marca del sitio es opt-in vía mapping explícito de los 10 tokens de host en la hoja del host". Scope raíz único: `.chatbox`.
 - **L2 — Estrategia de tema**: el widget honra `data-theme="dark"` y `data-theme="light"` cuando un ancestro del subtree del widget lo declara. Sin `data-theme`, cae a `@media (prefers-color-scheme: dark)` para los defaults oscuros. `data-theme` gana sobre `prefers-color-scheme` por especificidad. `forced-colors: active` y `prefers-contrast: more` entran en scope.
 - **L3 — Paleta y conformidad**: las dos tablas del borrador se confirman **en hex**. Target: **WCAG 2.x AAA (≥7:1) para texto de cuerpo** (`--chatbox-color-text`) y **AA (≥4.5:1) para texto cromático** (`link`, `primary`, `focus`, `error`); `--chatbox-color-border` cumple AA non-text 1.4.11 (≥3:1). Ratios recalculados el 2026-10-17: texto light 15.9:1, dark 10.8:1; `link`/`primary`/`focus` 5.98:1 en light y 7.84:1 en dark; `error` 6.47:1 light y 9.17:1 dark; `border` 4.83:1 light y 3.60:1 dark. Los tokens cromáticos del tema claro **no** alcanzan 7:1 con los hex acordados; subirlos exigiría reabrir la paleta de T1, así que el spec declara el target real en vez de un AAA global que no se cumple.
 - **L4 — Layout de archivos**: CSS del chatbox en `src/components/Chatbox.css` (nuevo, colocalizado con `Chatbox.tsx`). `src/style.css` mínimo (solo reset de Vite, sin reglas `.chatbox`). Migración del bloque `.chatbox a` desde `src/style.css` al nuevo `Chatbox.css` con `var(--chatbox-color-link)`. `src/index.tsx` sin cambios; `src/components/Chatbox.tsx` añade `import './Chatbox.css'`.
@@ -23,7 +25,7 @@ El widget de chatbox se incrusta en un sitio host (Astro en MVP) y hoy no expone
 
 ## Solution
 
-El chatbox expone un contrato de tema mínimo basado en 7 tokens semánticos CSS: `--chatbox-color-text`, `--chatbox-color-surface`, `--chatbox-color-primary`, `--chatbox-color-link`, `--chatbox-color-border`, `--chatbox-color-focus`, `--chatbox-color-error`. Los defaults se declaran dentro de `.chatbox` para que el widget sea self-contained; el sitio host los pisa por cascada desde cualquier ancestro. El tema oscuro se activa con `@media (prefers-color-scheme: dark)` y, además, el widget honra `data-theme` en ancestros del subtree para sincronizarse con toggles del host. `forced-colors: active` y `prefers-contrast: more` adaptan el widget a las preferencias de accesibilidad del sistema. Los defaults de ambos temas pasan WCAG 2.x AAA para **texto de cuerpo** (≥7:1), AA (≥4.5:1) para texto cromático (enlaces, acciones, error) y AA non-text (3:1) para componentes y foco. Los enlaces y los acentos usan los tokens en vez de hex hardcodeados (RF-F31, RF-F61).
+El chatbox expone un contrato de tema mínimo basado en 10 roles semánticos CSS. El sitio host mapea el token de host de cada rol —`--chatbox-host-text`, `--chatbox-host-surface`, `--chatbox-host-primary`, `--chatbox-host-link`, `--chatbox-host-border`, `--chatbox-host-focus`, `--chatbox-host-error`, `--chatbox-host-surface-subtle`, `--chatbox-host-surface-raised`, `--chatbox-host-accent-container`— en cualquier ancestro, y el widget resuelve `--chatbox-color-*` como `var(--chatbox-host-*, <reserva>)`. Los defaults viven dentro de `.chatbox` para que el widget sea self-contained. El tema oscuro se activa con `@media (prefers-color-scheme: dark)` y, además, el widget honra `data-theme` en ancestros del subtree para sincronizarse con toggles del host. `forced-colors: active` y `prefers-contrast: more` adaptan el widget a las preferencias de accesibilidad del sistema, y no aceptan mapeo del host: la preferencia de la persona gana siempre. Los defaults de ambos temas pasan WCAG 2.x AAA para **texto de cuerpo** (≥7:1), AA (≥4.5:1) para texto cromático (enlaces, acciones, error) y AA non-text (3:1) para componentes y foco. Los enlaces y los acentos usan los tokens en vez de hex hardcodeados (RF-F31, RF-F61).
 
 ## User Stories
 
@@ -33,7 +35,7 @@ El chatbox expone un contrato de tema mínimo basado en 7 tokens semánticos CSS
 4. Como autor del sitio host, quiero override de un solo token sin tocar los demás, para ajustes puntuales (p. ej. un color de error distinto).
 5. Como usuario de teclado, quiero indicadores de foco visibles, para saber dónde estoy navegando.
 6. Como visitante con baja visión, quiero texto con al menos 7:1 de contraste (WCAG 2.x AAA), para leer sin esforzar la vista.
-7. Como autor del sitio host, quiero que los defaults del chatbox sean razonables y se vean neutros; alinear con la marca de mi sitio es opt-in vía mapping explícito de los 7 tokens en mi hoja.
+7. Como autor del sitio host, quiero que los defaults del chatbox sean razonables y se vean neutros; alinear con la marca de mi sitio es opt-in vía mapping explícito de los 10 tokens de host en mi hoja.
 8. Como autor del sitio host con un toggle manual de tema, quiero sincronizar el chatbox propagando `data-theme` al subtree del widget, sin escribir CSS adicional.
 9. Como usuario con Windows High Contrast Mode (u otra preferencia de colores forzados del sistema), quiero que el chatbox use los colores del sistema, para que el widget no se vea roto ni ilegible.
 10. Como usuario con `prefers-contrast: more` activo, quiero que el chatbox suba el contraste de sus tokens, para alinear con el resto del sistema.
@@ -45,29 +47,37 @@ El chatbox expone un contrato de tema mínimo basado en 7 tokens semánticos CSS
 
 ### Contrato de tokens (público)
 
-7 tokens semánticos, todos con prefijo `--chatbox-color-`:
+10 roles semánticos. El host mapea el token de host; el widget resuelve el token interno
+desde él (`--chatbox-color-<rol>: var(--chatbox-host-<rol>, <reserva>)`):
 
-- `--chatbox-color-text` — texto principal sobre la superficie.
-- `--chatbox-color-surface` — fondo del chatbox y de las burbujas (user y assistant comparten este color).
-- `--chatbox-color-primary` — acción principal (botón Enviar/Detener).
-- `--chatbox-color-link` — enlaces markdown (RF-F30) y enlace de contacto (RF-F60). Reusado para default, hover y visited.
-- `--chatbox-color-border` — separadores y bordes de input/textarea.
-- `--chatbox-color-focus` — anillo de foco (RF-F40). Aplica a componentes interactivos.
-- `--chatbox-color-error` — estado de error y borde de mensaje fallido (RF-F14, §7).
+| Rol | Token de host (lo mapea el sitio) | Uso |
+|---|---|---|
+| text | `--chatbox-host-text` | texto principal sobre la superficie. |
+| surface | `--chatbox-host-surface` | fondo del chatbox y tinta sobre `primary` (label del Enviar, burbuja del usuario, badge). |
+| primary | `--chatbox-host-primary` | acción principal (botón Enviar/Detener), burbuja del usuario, lanzador. |
+| link | `--chatbox-host-link` | enlaces markdown (RF-F30) y enlace de contacto (RF-F60). Reusado para default, hover y visited. |
+| border | `--chatbox-host-border` | separadores y bordes de input/textarea. |
+| focus | `--chatbox-host-focus` | anillo de foco (RF-F40). Aplica a componentes interactivos. |
+| error | `--chatbox-host-error` | estado de error y borde de mensaje fallido (RF-F14, §7). |
+| surface-subtle | `--chatbox-host-surface-subtle` | burbuja del asistente y franja del aviso de alcance. |
+| surface-raised | `--chatbox-host-surface-raised` | fondo de los chips de pregunta al pasar el puntero. |
+| accent-container | `--chatbox-host-accent-container` | fondo del badge «IA» (la tinta es `surface`). |
 
 ### Defaults y scoping
 
-- Defaults declarados en `.chatbox { ... }`. El chatbox no escribe en `:root`. Self-contained.
-- Override por cascada: el host pisa los tokens en cualquier ancestro (`body`, `main`, contenedor del chatbox) y la cascada los lleva al widget. Si el host quiere alinear con su sistema propio, mapea en su hoja:
+- Defaults declarados en `.chatbox { ... }`, como reserva del token de host. El chatbox no escribe en `:root`. Self-contained.
+- Override por cascada: el host mapea los tokens de host en cualquier ancestro (`body`, `main`, el contenedor del chatbox) o en el propio widget para una instancia concreta. El token se lee en `.chatbox` y se hereda desde arriba, así que el mapeo funciona con cualquier conmutador de tema y no depende del orden de las hojas:
 
 ```css
 body {
-  --chatbox-color-primary: var(--color-brand);
-  --chatbox-color-text: var(--color-fg);
-  /* los 7 */
+  --chatbox-host-primary: var(--color-brand);
+  --chatbox-host-text: var(--color-fg);
+  /* los 10 */
 }
 ```
 
+- Un mapeo que dependa del tema del sitio se declara una sola vez: si el host mapea a sus propias variables y esas variables cambian con `data-theme`, el widget las sigue en claro y en oscuro.
+- Las capas de `prefers-contrast: more` y `forced-colors: active` **no** usan el token de host: declaran `--chatbox-color-*` en directo, para que un mapeo del sitio no pueda silenciar la preferencia de la persona.
 - El host que solo quiere sincronizar el tema con su propio toggle **no necesita mapping**: propaga `data-theme` al subtree del widget (ver siguiente sección).
 
 ### Tema oscuro y sincronía con el host
@@ -86,7 +96,7 @@ body {
 ### Accesibilidad del sistema
 
 - `@media (forced-colors: active) { .chatbox { ... } }` con `system-color` keywords (`Canvas`, `CanvasText`, `LinkText`, `Highlight`, `ButtonText`, `ButtonFace`, `GrayText`). Garantiza que el widget se vea legible en Windows High Contrast Mode y en cualquier agente de usuario que fuerce colores del sistema.
-- `@media (prefers-contrast: more) { .chatbox { ... } }` con overrides de los 7 tokens para subir contraste cuando el usuario lo solicita sin forzar colores del sistema.
+- `@media (prefers-contrast: more) { .chatbox { ... } }` con overrides de los 10 tokens para subir contraste cuando el usuario lo solicita sin forzar colores del sistema.
 
 ### Paleta por defecto
 
@@ -131,7 +141,7 @@ Notas:
 ### Cambios en código
 
 - `src/components/Chatbox.tsx`: añade `import './Chatbox.css'`. El resto del componente no cambia: los tokens se aplican vía clases `.chatbox__*` ya presentes.
-- `src/components/Chatbox.css`: defaults en `.chatbox`, que además **consume** los tokens con `color: var(--chatbox-color-text)` y `background-color: var(--chatbox-color-surface)`; `@media (prefers-color-scheme: dark)` que redeclara los 7 tokens oscuros; selectores `[data-theme="dark"] .chatbox` y `[data-theme="light"] .chatbox` (T3, con precedencia sobre la media query); `@media (forced-colors: active)` y `@media (prefers-contrast: more)` (T4); el bloque `.chatbox a` migrado con `var(--chatbox-color-link)`; y el label del submit con `var(--chatbox-color-surface)`.
+- `src/components/Chatbox.css`: defaults en `.chatbox`, que además **consume** los tokens con `color: var(--chatbox-color-text)` y `background-color: var(--chatbox-color-surface)`; `@media (prefers-color-scheme: dark)` que redeclara los 10 tokens oscuros como `var(--chatbox-host-*, <reserva>)`; selectores `[data-theme="dark"] .chatbox` y `[data-theme="light"] .chatbox` (T3, con precedencia sobre la media query); `@media (forced-colors: active)` y `@media (prefers-contrast: more)` (T4); el bloque `.chatbox a` migrado con `var(--chatbox-color-link)`; y el label del submit con `var(--chatbox-color-surface)`.
 - `src/style.css`: el bloque `.chatbox a` se elimina. Se queda solo el reset de Vite.
 - `src/components/ExternalLink.tsx`: sin cambios (estilizado por `.chatbox a`).
 - `src/chat/components/AssistantMarkdown.tsx`: sin cambios (los enlaces heredan color de `.chatbox a`).
@@ -141,11 +151,11 @@ Notas:
 
 ### Test seam
 
-Renderizar `<Chatbox>` con `@testing-library/preact` y comprobar el **mecanismo** (la hoja importada está en `document.styleSheets` con las reglas esperadas, y el computed de las propiedades es el `var()` crudo). Es el seam más alto disponible en jsdom; la **resolución** de los valores se verifica en navegador real en #62. Complementado con un test unitario que parsea `Chatbox.css` con `postcss` y assertea los 7 tokens en cada tema (regresión de valores).
+Renderizar `<Chatbox>` con `@testing-library/preact` y comprobar el **mecanismo** (la hoja importada está en `document.styleSheets` con las reglas esperadas, y el computed de las propiedades es el `var()` crudo). Es el seam más alto disponible en jsdom; la **resolución** de los valores se verifica en navegador real en #62. Complementado con un test unitario que parsea `Chatbox.css` con `postcss` y assertea los 10 tokens en cada tema, con su reserva y su token de host (regresión de valores y del mecanismo).
 
 ### Tests unitarios (`test/unit/`)
 
-- `Chatbox.css` estructural con `postcss`: `.chatbox` declara exactamente los 7 tokens claros y los consume con `var()`; el bloque dentro de `@media (prefers-color-scheme: dark)` declara exactamente los 7 tokens oscuros (hex exactos, sin `color` ni `background-color`), y su `offset` es mayor que el del bloque base. Los selectores `[data-theme]` (T3) y `forced-colors` (T4) extienden el mismo test. Regresión de paleta y de precedencia.
+- `Chatbox.css` estructural con `postcss`: `.chatbox` declara exactamente los 10 tokens claros, cada uno como `var(--chatbox-host-<rol>, <hex>)`, y los consume con `var()`; el bloque dentro de `@media (prefers-color-scheme: dark)` declara exactamente los 10 tokens oscuros con la misma forma (sin `color` ni `background-color`), y su `offset` es mayor que el del bloque base. Las capas de accesibilidad declaran el token en directo, sin token de host. Los selectores `[data-theme]` (T3) y `forced-colors` (T4) extienden el mismo test. Regresión de paleta y de precedencia.
 - Contraste (umbrales WCAG 2.x sobre los tokens parseados): texto de cuerpo ≥7:1; `link`/`primary`/`focus`/`error` ≥4.5:1; `border` ≥3:1; label del botón ≥4.5:1, en ambos temas. Sin números mágicos de ratio: los hex ya están asserteados aparte.
 - Override: aplicar `style="--chatbox-color-primary: red"` a un ancestro del `<Chatbox>` y verificar que la custom property llega al ancestro y que la regla del botón sigue declarando `var(--chatbox-color-primary)`. La resolución real a `red` se verifica en navegador en #62.
 - Precedencia `data-theme` sobre `prefers-color-scheme` (T3): assertear estructuralmente la presencia y el orden posterior a la media query de los selectores `[data-theme]`; la resolución real de la precedencia se verifica en navegador en #62.
@@ -155,8 +165,8 @@ Renderizar `<Chatbox>` con `@testing-library/preact` y comprobar el **mecanismo*
 
 En jsdom, `getComputedStyle` devuelve `var(--chatbox-color-*)` sin resolver y **no evalúa `@media`**: verificado el 2026-10-17, con `matchMedia('(prefers-color-scheme: dark)')` devolviendo `true` el computed sigue mostrando el valor del bloque base. Por eso aquí se assertea el **mecanismo** (la hoja importada por `Chatbox.tsx` está en `document.styleSheets`, contiene las reglas esperadas y los valores crudos de las propiedades). Los valores resueltos se verifican en navegador real en el ticket T5.
 
-- Light mode: `.chatbox` computa `color: var(--chatbox-color-text)` y `background-color: var(--chatbox-color-surface)` (crudo) y las reglas base declaran los 7 tokens claros.
-- Dark mode: `document.styleSheets` contiene una `CSSMediaRule` con `(prefers-color-scheme: dark)` y dentro una regla `.chatbox` con los 7 tokens oscuros; sin evaluación de la cascada.
+- Light mode: `.chatbox` computa `color: var(--chatbox-color-text)` y `background-color: var(--chatbox-color-surface)` (crudo) y las reglas base declaran los 10 tokens claros con su token de host.
+- Dark mode: `document.styleSheets` contiene una `CSSMediaRule` con `(prefers-color-scheme: dark)` y dentro una regla `.chatbox` con los 10 tokens oscuros; sin evaluación de la cascada.
 - Override del host: aplicar CSS externo que pise `--chatbox-color-link` y verificar que la custom property llega al ancestro y la regla sigue declarando `var()`.
 - Sincronía con `data-theme`: assertear la presencia y el orden posterior a la media query de los selectores `[data-theme="dark"] .chatbox` / `[data-theme="light"] .chatbox` (T3).
 - `forced-colors`: assertear la estructura del bloque y el uso de keywords de sistema (T4).
@@ -174,7 +184,7 @@ En jsdom, `getComputedStyle` devuelve `var(--chatbox-color-*)` sin resolver y **
 
 - Tokens de spacing, radius, tipografía. Son decisión interna del chatbox; el SPEC no los pide y la entrevista los dejó fuera del contrato.
 - Toggle manual de tema en el widget. El widget no tiene UI de toggle; si el sitio host tiene uno, propaga `data-theme` al subtree.
-- Múltiples paletas configurables (temas "brand A" vs "brand B"). El host puede definirlas en su hoja y mapear a los 7 tokens.
+- Múltiples paletas configurables (temas "brand A" vs "brand B"). El host puede definirlas en su hoja y mapear a los 10 tokens de host.
 - Internacionalización de los nombres de tokens. Prefijo `--chatbox-color-*` en inglés, alineado con el resto del naming del proyecto (`ChatMessage`, `ChatSource`, `useChatStream`).
 - Animaciones de transición entre temas.
 
@@ -191,12 +201,13 @@ En jsdom, `getComputedStyle` devuelve `var(--chatbox-color-*)` sin resolver y **
 
 ## Términos fijados (L5)
 
-- **Tema (chatbox)**: combinación de los 7 tokens semánticos de color del widget, expresada como defaults en `.chatbox` y override por cascada desde cualquier ancestro.
+- **Tema (chatbox)**: combinación de los 10 roles semánticos de color del widget. Cada capa de tema resuelve `--chatbox-color-<rol>` desde `--chatbox-host-<rol>` con una reserva, así que el host la alinea mapeando los tokens de host en cualquier ancestro.
 - **Sitio host**: sitio web que embebe el widget del chatbox. En MVP es una página Astro, pero el contrato no acopla a Astro.
 - **Self-contained**: el widget no escribe en `:root` ni depende de variables globales del sitio host. Sus defaults viven dentro de `.chatbox` y son portables entre hosts.
-- **Override por cascada**: mecanismo por el cual el sitio host sobrescribe los tokens del chatbox desde cualquier ancestro del subtree, aprovechando la cascada CSS. El host puede mapear sus propias variables a las del chatbox o pisar valores literales; el chatbox no consulta directamente las variables del host.
+- **Override por cascada**: mecanismo por el cual el sitio host sobrescribe los tokens del chatbox desde cualquier ancestro del subtree. El host mapea los tokens de host (`--chatbox-host-*`) a sus propias variables o a valores literales, y el widget resuelve `--chatbox-color-*` desde ellos. Declarar `--chatbox-color-*` en un ancestro no funciona: la declaración del propio `.chatbox` la tapa.
+- **Token de host**: nombre `--chatbox-host-<rol>` que el sitio host mapea para alinear el widget con su marca. Se lee en `.chatbox` y se hereda desde cualquier ancestro, así que un solo mapeo vale para los dos temas y para cualquier conmutador del host.
 - **Por defecto (tema)**: comportamiento base cuando ni el usuario ni el sitio fuerzan nada. Defaults claros y `@media (prefers-color-scheme: dark)` para los oscuros. Sin ruta manual en el widget.
-- **Token semántico**: nombre CSS (`--chatbox-color-text`, `--chatbox-color-link`, etc.) que describe un rol, no un valor. El host lo pisa; el componente lo consume.
+- **Token semántico**: nombre CSS interno (`--chatbox-color-text`, `--chatbox-color-link`, etc.) que describe un rol, no un valor. Lo resuelve la capa de tema desde el token de host; el componente lo consume.
 - **Verificación de mecanismo**: assertar la estructura del CSS (declaraciones, orden de capas, selectores) con un parser. Prueba que el mecanismo está bien montado, no que el navegador resuelva el valor final. Es lo máximo que permite jsdom.
 - **Verificación de resolución**: assertar el valor computado final (`getComputedStyle`) en un navegador real. Imposible en jsdom para `var()` y `@media`; vive en el ticket T5.
 

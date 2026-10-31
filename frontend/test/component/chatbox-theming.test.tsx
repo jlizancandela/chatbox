@@ -13,6 +13,9 @@ const DARK_TOKEN_NAMES = [
 	"--chatbox-color-border",
 	"--chatbox-color-focus",
 	"--chatbox-color-error",
+	"--chatbox-color-surface-subtle",
+	"--chatbox-color-surface-raised",
+	"--chatbox-color-accent-container",
 ];
 
 const allStyleRules = (): CSSRule[] =>
@@ -32,26 +35,19 @@ describe("Chatbox theming (RF-F61/T1)", () => {
 		expect(root).not.toBeNull();
 	});
 
-	it("applies the primary token via the CSS rule on the submit button (jsdom limitation noted)", () => {
+	it("declares every role through its host token, so a host mapping reaches it", () => {
 		const wrapper = document.createElement("div");
-		wrapper.style.setProperty("--chatbox-color-primary", "red");
 		document.body.appendChild(wrapper);
 
 		render(<Chatbox variant="embedded" apiUrl="http://example.com" />, { container: wrapper });
 
-		// The host's custom property is set on the ancestor.
-		expect(wrapper.style.getPropertyValue("--chatbox-color-primary")).toBe("red");
-
-		const button = wrapper.querySelector(
-			".chatbox__footer button[type='submit']"
-		) as HTMLButtonElement;
-		expect(button).not.toBeNull();
-
-		// The CSS rule applies var(--chatbox-color-primary) to the button.
-		// jsdom does not resolve var() in computed styles (known limitation),
-		// so we assert the raw value; a real browser would resolve it to "red".
-		const buttonStyles = getComputedStyle(button);
-		expect(buttonStyles.backgroundColor).toBe("var(--chatbox-color-primary)");
+		// jsdom no resuelve var() ni la cascada: se assertea el mecanismo —la declaración
+		// del token— y la resolución real vive en `test/browser/theming.spec.ts`.
+		const root = wrapper.querySelector(".chatbox") as HTMLElement;
+		expect(root).not.toBeNull();
+		expect(getComputedStyle(root).getPropertyValue("--chatbox-color-primary")).toMatch(
+			/^var\(--chatbox-host-primary,\s*#00685f\)$/
+		);
 
 		document.body.removeChild(wrapper);
 	});
