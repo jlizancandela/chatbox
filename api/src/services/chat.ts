@@ -375,15 +375,10 @@ export const createAskStream = ({
 
 			if (budget && sessionId) {
 				budget.record(sessionId, consumedTokens);
-				logger?.request({
-					requestId: sessionId,
-					method: "chat",
-					url: "/api/chat",
-					statusCode: 200,
-					durationMs: 0,
-					tokens: consumedTokens,
-					sessionId,
-				});
+				// El consumo es su propio evento: sesión y tokens. Antes se registraba como
+				// una traza de petición y había que rellenar un identificador y una duración
+				// que no existen en este punto (#146, #148).
+				logger?.consumption({ sessionId, tokens: consumedTokens });
 			}
 
 			yield { type: "done" };

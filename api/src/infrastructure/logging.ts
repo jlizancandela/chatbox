@@ -56,10 +56,18 @@ export type RequestTrace = {
 	url: string;
 	statusCode: number;
 	durationMs: number;
-	/** Los tokens que consumió el turno, cuando la petición fue una generación (#148). */
-	tokens?: number;
-	/** La sesión a la que se contabiliza el consumo (#148). */
-	sessionId?: string;
+};
+
+/**
+ * El consumo de un turno.
+ *
+ * Es un evento propio y no una traza de petición: un turno tiene una sesión y unos
+ * tokens, y **no** tiene un identificador de correlación ni una duración de HTTP. Meterlo
+ * en la traza obligaba a rellenar esos campos con algo inventado (#146, #148).
+ */
+export type ConsumptionTrace = {
+	sessionId: string;
+	tokens: number;
 };
 
 /**
@@ -79,6 +87,8 @@ export type FailureTrace = {
 export type Logger = {
 	/** La traza de una petición que terminó. */
 	request: (trace: RequestTrace) => void;
+	/** El consumo de un turno. */
+	consumption: (usage: ConsumptionTrace) => void;
 	/** El registro de un fallo clasificado. */
 	failure: (failure: FailureTrace) => void;
 };

@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from "fastify";
 import fp from "fastify-plugin";
 import type { AppOptions } from "../dependencies";
 import {
+	type ConsumptionTrace,
 	type FailureTrace,
 	type Logger,
 	REQUEST_ID_HEADER,
@@ -82,6 +83,14 @@ const logging: FastifyPluginAsync<AppOptions> = async (fastify, opts) => {
 			}
 
 			fastify.log.info({ ...trace, msg: "request completed" });
+		},
+		consumption: (usage: ConsumptionTrace) => {
+			if (injected) {
+				injected.consumption(usage);
+				return;
+			}
+
+			fastify.log.info({ ...usage, msg: "turn consumed" });
 		},
 		failure: (failure: FailureTrace) => {
 			if (injected) {
