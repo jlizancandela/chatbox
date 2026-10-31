@@ -30,7 +30,17 @@ case "$command" in
 	start)
 		migrate
 		echo "==> Arrancando la API en el puerto ${PORT:-7000}"
-		exec ./node_modules/.bin/fastify start -l warn -a 0.0.0.0 -p "${PORT:-7000}" dist/app.js
+		# `--options` es imprescindible: sin él, fastify-cli **ignora** el `options`
+		# que exporta `dist/app.js`, así que el nivel de log, los timeouts y
+		# `trustProxy` no se aplican. El servidor arranca igual y la falta no se nota
+		# hasta que hace falta un timeout o se mira un log (#143, #146). Comprobado:
+		# sin la marca, una petición deja cero líneas de traza.
+		exec ./node_modules/.bin/fastify start \
+			-l "${LOG_LEVEL:-info}" \
+			--options \
+			-a 0.0.0.0 \
+			-p "${PORT:-7000}" \
+			dist/app.js
 		;;
 	ingest)
 		# La ingesta también migra: así funciona sobre una base recién creada, sin
