@@ -61,7 +61,11 @@
 	 * encima del teclado. */
 	padding-bottom: var(--chatbox-keyboard-inset, 0px);
 	margin: 0;
-	font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+	/* La tipografía es lo único del contrato que no cambia con el tema, así que se resuelve
+	 * una vez y no en las cuatro capas de color: `font-family: inherit` ya lleva la pila a
+	 * los controles. Sin mapeo, la pila del sistema; el host alinea con su marca mapeando
+	 * `--chatbox-host-font`. */
+	font-family: var(--chatbox-host-font, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
 	/* Stitch body-md. Inter itself is not embedded: the widget must not pull a
 	 * webfont from a host page it does not control. */
 	font-size: 0.875rem;

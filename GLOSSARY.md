@@ -18,7 +18,9 @@ en issues, specs o tests.
   sitio host. Sus defaults viven dentro de `.chatbox` y son portables entre hosts.
 - **Token de host**: nombre `--chatbox-host-<rol>` que el sitio host mapea para alinear el
   widget con su marca. Se lee en `.chatbox` y se hereda desde cualquier ancestro, así que un
-  solo mapeo vale para los dos temas y para cualquier conmutador del host.
+  solo mapeo vale para los dos temas y para cualquier conmutador del host. Incluye
+  `--chatbox-host-font`, la tipografía: es el único que no es un rol de color y no cambia con
+  el tema.
 - **Override por cascada**: mecanismo por el cual el sitio host sobrescribe los tokens del
   chatbox desde cualquier ancestro del subtree. El host mapea los tokens de host
   (`--chatbox-host-*`) a sus propias variables o a valores literales, y el widget resuelve

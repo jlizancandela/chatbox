@@ -206,6 +206,26 @@ describe("Chatbox.css (RF-F61 — host mapping)", () => {
 		expect(resolvedTokensOf(baseRule())).toEqual(resolvedTokensOf(hostRule("light")));
 		expect(resolvedTokensOf(darkRule())).toEqual(resolvedTokensOf(hostRule("dark")));
 	});
+
+	it("resolves the typography from its host token, with the system stack as the reserve", () => {
+		expect(declarationsOf(baseRule())["font-family"]).toBe(
+			'var(--chatbox-host-font, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif)'
+		);
+	});
+
+	it("declares the typography once, not in the theme layers", () => {
+		// La tipografía no cambia con el tema: repetirla en las capas de color abriría la
+		// puerta a que se separen.
+		for (const rule of [
+			darkRule(),
+			hostRule("dark"),
+			hostRule("light"),
+			prefersContrastRule(),
+			forcedColorsRule(),
+		]) {
+			expect(declarationsOf(rule)["font-family"]).toBeUndefined();
+		}
+	});
 });
 
 describe("Chatbox.css (RF-F61/T2 — prefers-color-scheme: dark)", () => {
