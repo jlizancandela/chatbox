@@ -3,6 +3,7 @@ import { request } from "node:http";
 import { test } from "node:test";
 import { BURST_MAX } from "../../src/middleware/rate-limit";
 import { CHAT_BODY_LIMIT_BYTES } from "../../src/schemas/chat";
+import { chatConfig } from "../../src/services/chat.config";
 import { build, CHUNK, fakeGroq, fakePg, parseSSE, testDependencies } from "../helper";
 
 test("chat stream returns empty sources and done when no chunk matches", async (t) => {
@@ -344,6 +345,38 @@ test("chat route rejects a request body larger than the configured limit", async
 			message: "Request body is too large",
 		},
 	});
+});
+
+test("rejects a history message above the configured limit", async (t) => {
+	// La validación y el recorte comparten el mismo número: si el esquema vuelve a
+	// tener un `maxLength` fijo distinto de `HISTORY_MAX_MESSAGE_CHARS`, este test
+	// falla. Sin él, un mensaje de 1500 caracteres pasaba la validación y se truncaba
+	// en silencio, contra RF-20a.
+	const app = await build(t, testDependencies());
+	const limit = chatConfig.historyLimits.maxMessageChars;
+
+	const accepted = await app.inject({
+		method: "POST",
+		url: "/api/chat",
+		payload: {
+			question: "¿Qué tecnologías usa Jorge?",
+			history: [{ role: "user", content: "a".repeat(limit) }],
+		},
+	});
+
+	assert.equal(accepted.statusCode, 200);
+
+	const rejected = await app.inject({
+		method: "POST",
+		url: "/api/chat",
+		payload: {
+			question: "¿Qué tecnologías usa Jorge?",
+			history: [{ role: "user", content: "a".repeat(limit + 1) }],
+		},
+	});
+
+	assert.equal(rejected.statusCode, 400);
+	assert.equal(rejected.json().error.code, "VALIDATION_ERROR");
 });
 
 test("chat route applies the burst rate limit", async (t) => {
