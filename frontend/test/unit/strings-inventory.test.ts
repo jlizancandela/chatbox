@@ -77,11 +77,11 @@ const CSS_CLASSES_AND_IDS = [
 const ATTRIBUTE_VALUES = ["es", "true", "false", "polite", "off", "status", "submit", "button"];
 
 /**
- * Los nombres de la variante y del estado del widget (RF-F64): los valores de
+ * Los nombres de la variante y del estado del widget (RF-F64, RF-F65): los valores de
  * `data-variant` y `data-state`, y los de la prop `variant`. Son valores técnicos del
  * atributo, no redacción de interfaz.
  */
-const VARIANT_AND_STATE_VALUES = ["embedded", "floating", "collapsed"];
+const VARIANT_AND_STATE_VALUES = ["embedded", "floating", "drawer", "collapsed"];
 
 /**
  * Valores técnicos del SVG en línea de los controles solo-icono (RF-F64): el `viewBox` y la
