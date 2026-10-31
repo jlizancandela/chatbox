@@ -27,20 +27,20 @@ export type ChatboxProps = {
 	contactUrl?: string;
 	title?: string;
 	/**
-	 * Variante del widget (RF-F64): embebida en el flujo del sitio host, o flotante
-	 * anclada a la esquina inferior derecha de la pantalla.
+	 * Variante del widget (RF-F64, RF-F65): embebida en el flujo del sitio host, flotante
+	 * anclada a la esquina inferior derecha de la pantalla, o cajón pegado al borde derecho
+	 * de la pantalla, de altura completa.
 	 *
 	 * Por defecto es **flotante**: el sitio monta el chat como un lanzador en la esquina,
-	 * y la variante embebida —una sección que el sitio coloca donde quiere— es la que se
-	 * pide explícitamente.
+	 * y las otras dos se piden explícitamente.
 	 */
-	variant?: "embedded" | "floating";
+	variant?: "embedded" | "floating" | "drawer";
 	/**
 	 * Si el widget arranca contraído (RF-F64).
 	 *
-	 * Solo aplica a la variante flotante —la embebida vive en el flujo del host y no tiene
-	 * dónde recogerse— y por defecto vale `true`: un widget flotante que naciera abierto
-	 * taparía la página sin motivo.
+	 * Solo aplica a las variantes superpuestas —la embebida vive en el flujo del host y no
+	 * tiene dónde recogerse— y por defecto vale `true`: un widget superpuesto que naciera
+	 * abierto taparía la página sin motivo.
 	 */
 	initiallyCollapsed?: boolean;
 };
@@ -150,14 +150,22 @@ export function Chatbox({
 	const [contextWasTrimmed, setContextWasTrimmed] = useState(false);
 
 	/**
+	 * Si la variante se superpone a la página (RF-F65).
+	 *
+	 * La embebida vive en el flujo del sitio host y no tiene dónde recogerse; las otras
+	 * dos —la flotante y el cajón— se anclan a la pantalla y comparten el estado
+	 * contraído: un lanzador en la esquina que abre el panel.
+	 */
+	const overlay = variant !== "embedded";
+
+	/**
 	 * El estado contraído (RF-F64).
 	 *
-	 * Solo la variante flotante lo tiene: la embebida vive en el flujo del sitio host y no
-	 * tiene dónde recogerse. El estado es interno —el sitio host decide con
+	 * Solo las variantes superpuestas lo tienen: la embebida vive en el flujo del sitio
+	 * host y no tiene dónde recogerse. El estado es interno —el sitio host decide con
 	 * `initiallyCollapsed`— y no se persiste: es presentación, no dato.
 	 */
-	const floating = variant === "floating";
-	const [collapsed, setCollapsed] = useState(floating && initiallyCollapsed !== false);
+	const [collapsed, setCollapsed] = useState(overlay && initiallyCollapsed !== false);
 
 	/**
 	 * El foco vuelve al lanzador cuando se monta: se desmonta al expandirse el panel y, sin
@@ -258,12 +266,12 @@ export function Chatbox({
 	 */
 	const handleKeyDown = (event: KeyboardEvent): void => {
 		if (event.key !== "Escape") return;
-		if (!floating || collapsed || isBusy) return;
+		if (!overlay || collapsed || isBusy) return;
 		collapse();
 	};
 
 	/**
-	 * La variante y el estado del widget (RF-F64).
+	 * La variante y el estado del widget (RF-F64, RF-F65).
 	 *
 	 * Van en atributos de datos y no en clases: la raíz tiene que conservar su clase como
 	 * literal —`class="chatbox"`—, porque el contrato de nombres accesibles (RF-F45)
@@ -272,7 +280,7 @@ export function Chatbox({
 	 * Los atributos solo se escriben cuando apartan del caso por defecto, así que el
 	 * widget embebido entrega exactamente el mismo DOM que antes de RF-F64.
 	 */
-	const rootVariant = floating ? "floating" : undefined;
+	const rootVariant = variant === "embedded" ? undefined : variant;
 	const rootState = collapsed ? "collapsed" : undefined;
 
 	// El campo de texto no está en el DOM mientras el widget está contraído: el foco tiene
@@ -405,7 +413,7 @@ export function Chatbox({
 				<ChatHeader
 					title={title}
 					notice={strings.header.scopeNotice}
-					onCollapse={floating ? collapse : undefined}
+					onCollapse={overlay ? collapse : undefined}
 				/>
 			)}
 

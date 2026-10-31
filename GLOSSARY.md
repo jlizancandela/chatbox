@@ -242,13 +242,21 @@ en issues, specs o tests.
 ## Variantes y estados del widget (RF-F64)
 
 - **Variante del widget**: forma en que el widget se coloca en el sitio host. Es
-  **embebida** —dentro del flujo del host, que le da la altura— o **flotante** —anclada a la
-  esquina inferior derecha de la pantalla, con su propio tamaño—. No es un estado: describe
-  dónde está el widget, no qué se ve. La flotante es la que se monta **por defecto**: el
-  sitio aloja el chat como un lanzador en la esquina, y la embebida es la que se pide
+  **embebida** —dentro del flujo del host, que le da la altura—, **flotante** —una tarjeta
+  anclada a la esquina inferior derecha de la pantalla, con su propio tamaño— o **cajón
+  lateral** —un panel de altura completa pegado al borde derecho de la pantalla—. No es un
+  estado: describe dónde está el widget, no qué se ve. La flotante es la que se monta **por
+  defecto**: el sitio aloja el chat como un lanzador en la esquina, y las otras dos se piden
   explícitamente.
+- **Variante superpuesta**: la variante que se superpone a la página del sitio host en vez
+  de vivir en su flujo. Son la flotante y el cajón lateral. Las dos se pueden recoger en su
+  estado contraído; la embebida no.
+- **Cajón lateral**: la variante del widget que se abre como un panel pegado al borde
+  derecho de la pantalla, de altura completa, superpuesto a la página sin empujarla. Se
+  llama así por lo que hace —el panel sale del borde— y no *sidebar*, que evoca una columna
+  permanente: esa es la variante embebida. (RF-F65.)
 - **Estado contraído**: el widget reducido a su lanzador, sin panel. Es el estado en que
-  nace la variante flotante.
+  nacen las variantes superpuestas.
 - **Estado expandido**: el widget con el panel completo. Es el estado en que estaba el
   widget antes de RF-F64.
 - **Lanzador**: el control circular de 56×56 que, en el estado contraído, abre el widget.
@@ -258,7 +266,9 @@ en issues, specs o tests.
   la conversación se conserva. El botón que lo hace se nombra «Contraer el chat», con el
   mismo verbo del estado.
 - **Anclaje del panel**: la esquina de la pantalla a la que se ancla la variante flotante —
-  abajo a la derecha—, con la safe area sumada al margen y nunca sustituida (RF-F50).
+  abajo a la derecha—, con la safe area sumada al margen y nunca sustituida (RF-F50). El
+  cajón lateral se ancla al borde derecho y, contraído, vuelve a la esquina abajo a la
+  derecha con el mismo margen (RF-F65).
 
 ## Distribución del widget (Paso 7)
 

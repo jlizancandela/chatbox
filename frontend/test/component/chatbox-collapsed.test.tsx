@@ -6,7 +6,7 @@
  * del número de hooks ni del número de efectos.
  */
 
-import { cleanup, render, screen, waitFor } from "@testing-library/preact";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/preact";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Chatbox } from "../../src/components/Chatbox";
@@ -23,6 +23,17 @@ const collapse = (): HTMLElement =>
 
 /** El campo de texto: la prueba de que el panel está montado. */
 const questionField = (): HTMLElement => screen.getByLabelText(strings.input.label);
+
+/**
+ * El hilo de la conversación, con sus consultas acotadas.
+ *
+ * El texto de una respuesta vive **también** en la región de estado —`role="status"`—,
+ * que lo anuncia (RF-F41). Buscarlo en toda la página lo encuentra dos veces, y cuál de
+ * las dos responde depende de cuándo se cargue el markdown: el hilo es donde el mensaje
+ * está de verdad.
+ */
+const thread = (): ReturnType<typeof within> =>
+	within(screen.getByRole("list", { name: strings.messages.listLabel }));
 
 describe("RF-F64 — la variante flotante contraída", () => {
 	afterEach(cleanup);
@@ -163,13 +174,17 @@ describe("RF-F64 — la variante flotante contraída", () => {
 
 			await send("¿Qué stack usa?");
 			await waitFor(() =>
-				expect(screen.getByText("Jorge trabaja con TypeScript.")).toBeInTheDocument()
+				expect(thread().getByText("Jorge trabaja con TypeScript.")).toBeInTheDocument()
 			);
 
 			await user.keyboard("{Escape}");
 			await user.click(launcher());
 
-			expect(screen.getByText("Jorge trabaja con TypeScript.")).toBeInTheDocument();
+			// El markdown del asistente se carga diferido (RF-F30): el mensaje está en el
+			// hilo, pero su texto aparece cuando el módulo resuelve.
+			await waitFor(() =>
+				expect(thread().getByText("Jorge trabaja con TypeScript.")).toBeInTheDocument()
+			);
 		});
 
 		it("contraer no interrumpe el turno", async () => {

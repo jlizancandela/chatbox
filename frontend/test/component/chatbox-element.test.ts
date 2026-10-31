@@ -86,6 +86,22 @@ describe("el custom element del widget", () => {
 		expect(screen.queryByRole("button", { name: strings.launcher.open.ariaLabel })).toBeNull();
 	});
 
+	it("el atributo variant monta la variante que dice", () => {
+		// La lista de valores admitidos es cerrada y un valor que no está en ella se
+		// descarta en silencio: si «drawer» no llegara a la lista, el atributo se perdería y
+		// el widget montaría flotante sin avisar de nada.
+		const element = mountElement({ "api-url": "http://localhost:7000", variant: "drawer" });
+
+		expect(element.querySelector(".chatbox")).toHaveAttribute("data-variant", "drawer");
+	});
+
+	it("un valor de variant que no existe se ignora y manda el defecto", () => {
+		// La entrada que rechaza: un valor inventado no monta una variante inventada.
+		const element = mountElement({ "api-url": "http://localhost:7000", variant: "cajon" });
+
+		expect(element.querySelector(".chatbox")).toHaveAttribute("data-variant", "floating");
+	});
+
 	it("cambiar un atributo vuelve a montar el widget", () => {
 		const element = mountElement({
 			"api-url": "http://localhost:7000",

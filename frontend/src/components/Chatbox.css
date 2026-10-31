@@ -550,6 +550,48 @@
 }
 
 /*
+ * La variante cajón (RF-F65): un panel de altura completa pegado al borde derecho de la
+ * pantalla.
+ *
+ * Se superpone a la página y no la empuja: el widget es una isla dentro del sitio host y
+ * no conoce su layout, así que no toca su DOM. La página queda viva detrás —el panel no
+ * es modal— y el sitio conserva su propia geometría.
+ *
+ * `height: 100dvh` y no `100vh`: la unidad dinámica acompaña a la barra del navegador
+ * (RF-F50). `min(100%, …)` y no `100vw`: el bloque contenedor inicial de un elemento fijo
+ * no incluye la barra de desplazamiento.
+ *
+ * La regla **no** declara `padding-bottom`: la franja que tapa el teclado virtual la
+ * reserva la raíz (RF-F51), y declararla aquí la pondría a cero.
+ *
+ * Va **antes** de la regla del estado contraído a propósito: contraído, el círculo del
+ * lanzador es el de la variante flotante —56×56, su fondo y su sombra—, y esa regla viene
+ * después. Es el mismo mecanismo que usa la variante flotante.
+ */
+.chatbox[data-variant="drawer"] {
+	position: fixed;
+	top: 0;
+	right: 0;
+	width: min(100%, 460px);
+	height: 100dvh;
+	box-shadow: -8px 0 24px rgb(0 0 0 / 0.16);
+	z-index: 50;
+}
+
+/*
+ * El cajón contraído es el lanzador de la esquina.
+ *
+ * La regla del cajón lo ancla arriba —`top: 0`— y contra el borde derecho —`right: 0`—:
+ * contraído, el lanzador vuelve al anclaje de la variante flotante, abajo a la derecha,
+ * con la safe area sumada al margen y nunca sustituida (RF-F50).
+ */
+.chatbox[data-variant="drawer"][data-state="collapsed"] {
+	top: auto;
+	right: max(1rem, env(safe-area-inset-right, 0px));
+	bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+}
+
+/*
  * El estado contraído (RF-F64): la raíz se reduce al lanzador.
  *
  * El círculo lleva el color primario y el botón del lanzador lo llena entero: así el

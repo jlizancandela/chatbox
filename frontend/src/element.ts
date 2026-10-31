@@ -40,7 +40,7 @@ export const CHATBOX_ELEMENT_ATTRIBUTES = [
 ] as const;
 
 /** Los valores admitidos por el atributo `variant`. */
-const VARIANTS = ["embedded", "floating"] as const;
+const VARIANTS = ["embedded", "floating", "drawer"] as const;
 
 /**
  * La clase base del elemento.

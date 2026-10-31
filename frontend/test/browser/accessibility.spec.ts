@@ -149,6 +149,17 @@ const ESTADOS: Estado[] = [
 			await expect(page.locator(".chatbox__launcher")).toBeVisible();
 		},
 	},
+	{
+		nombre: "cajón expandido",
+		montar: async (page) => {
+			// El cajón es la tercera variante (RF-F65): el panel de altura completa pegado
+			// al borde derecho. Su árbol de accesibilidad es el del widget abierto, pero su
+			// geometría no: es la forma que hay que auditar.
+			await page.goto("/?widget=drawer");
+			await page.getByRole("button", { name: strings.launcher.open.ariaLabel }).click();
+			await expect(page.locator("#chatbox-question")).toBeVisible();
+		},
+	},
 ];
 
 for (const esquema of ["light", "dark"] as const) {

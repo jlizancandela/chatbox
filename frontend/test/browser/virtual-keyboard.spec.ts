@@ -413,3 +413,46 @@ test.describe("RF-F64 — la variante flotante", () => {
 		expect(measured.footerBottom).toBeGreaterThan(top);
 	});
 });
+
+test.describe("RF-F65 — la variante cajón", () => {
+	test.use({ viewport: SCREEN });
+
+	test("el pie del cajón queda en el borde de la zona visible", async ({ page }) => {
+		// El cajón llega al borde inferior de la pantalla: lo que tapa el teclado es su
+		// borde entero, sin la separación que deja la tarjeta flotante. La franja que
+		// reserva es la del teclado, entera.
+		await withVirtualKeyboard(page);
+		await page.goto("/?widget=drawer");
+		await page.getByRole("button", { name: strings.launcher.open.ariaLabel }).click();
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		await openKeyboard(page, KEYBOARD_PX);
+
+		const top = await keyboardTop(page);
+		const measured = await geometry(page);
+
+		expect(
+			measured.footerBottom,
+			"el pie del cajón no puede quedar bajo el teclado"
+		).toBeLessThanOrEqual(top);
+		expect(measured.reserved).toBeCloseTo(KEYBOARD_PX, 0);
+	});
+
+	test("la comprobación de la franja del cajón muerde: sin la franja, el campo queda bajo el teclado", async ({
+		page,
+	}) => {
+		// La entrada que rechaza: el mismo escenario con la franja reservada anulada.
+		await withVirtualKeyboard(page);
+		await page.goto("/?widget=drawer");
+		await page.getByRole("button", { name: strings.launcher.open.ariaLabel }).click();
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		await page.addStyleTag({ content: ".chatbox { padding-bottom: 0 !important; }" });
+		await openKeyboard(page, KEYBOARD_PX);
+
+		const top = await keyboardTop(page);
+		const measured = await geometry(page);
+
+		expect(measured.footerBottom).toBeGreaterThan(top);
+	});
+});
