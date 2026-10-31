@@ -13,7 +13,7 @@ describe("RF-F48 — el umbral de seguimiento", () => {
 	it("son 16 px, los mismos en cualquier widget", () => {
 		// La regla no recibe la altura del contenedor: si la recibiera, el umbral se
 		// movería solo cuando el widget cambia de alto.
-		expect(followThreshold()).toBe(16);
+		expect(followThreshold).toBe(16);
 	});
 
 	it("ignora el ruido y cuenta el apartarse", () => {

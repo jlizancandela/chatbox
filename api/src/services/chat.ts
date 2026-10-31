@@ -1,7 +1,7 @@
 import type Groq from "groq-sdk";
 import type { FailureTrace, Logger } from "../infrastructure/logging";
 import { findChunksByEmbedding, type QueryClient } from "../repositories/documents";
-import { chatConfig, type GenerationConfig } from "./chat.config";
+import { chatConfig, type GenerationConfig, type HistoryLimits } from "./chat.config";
 import type { EmbedTextFn } from "./embedding";
 import type { SessionBudget } from "./sessionBudget";
 
@@ -57,11 +57,7 @@ type AskStreamDeps = {
 	retrieve: (question: string) => Promise<ChatSource[]>;
 	groqClient: Groq;
 	modelDefault: string;
-	historyLimits: {
-		maxMessages: number;
-		maxMessageChars: number;
-		maxTotalChars: number;
-	};
+	historyLimits: HistoryLimits;
 	generation: GenerationConfig;
 	/** Dónde se registran los fallos clasificados (#146). */
 	logger?: Logger;
@@ -253,14 +249,7 @@ export const buildChatMessages = (
  *   dropped because it would be an unpaired turn.
  * - The returned array is a new object — the input is never mutated.
  */
-export const trimHistory = (
-	history: ChatMessage[],
-	limits: {
-		maxMessages: number;
-		maxMessageChars: number;
-		maxTotalChars: number;
-	}
-): ChatMessage[] => {
+export const trimHistory = (history: ChatMessage[], limits: HistoryLimits): ChatMessage[] => {
 	// Iterate from most recent (end) toward oldest (start).
 	const truncated: ChatMessage[] = [];
 	let totalChars = 0;

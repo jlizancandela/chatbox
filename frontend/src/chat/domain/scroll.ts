@@ -21,7 +21,7 @@
  * No depende de la altura del contenedor: si dependiera, la definición de «apartado» se
  * movería sola cuando el widget cambia de alto.
  */
-export const followThreshold = (): number => 16;
+export const followThreshold = 16;
 
 /**
  * ¿Está la persona apartada del final del hilo?
@@ -29,4 +29,4 @@ export const followThreshold = (): number => 16;
  * `distanceFromEnd` son los píxeles que le quedan al final de la conversación.
  */
 export const isAwayFromEnd = (distanceFromEnd: number): boolean =>
-	distanceFromEnd >= followThreshold();
+	distanceFromEnd >= followThreshold;
