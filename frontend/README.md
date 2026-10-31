@@ -11,14 +11,14 @@ Es el widget que usa [jorgelizancandela.com](https://jorgelizancandela.com), ins
 ## Instalación
 
 ```bash
-npm i github:jlizancandela/chatbox#v0.1.0
+npm i github:jlizancandela/chatbox#v0.3.0
 ```
 
-Cada versión del widget es un **tag** del repositorio (`v0.1.0`, `v0.2.0`…), así que
+Cada versión del widget es un **tag** del repositorio (`v0.1.0`, `v0.2.0`, `v0.3.0`…), así que
 actualizar es cambiar el tag:
 
 ```bash
-npm i github:jlizancandela/chatbox#v0.2.0
+npm i github:jlizancandela/chatbox#v0.3.0
 ```
 
 Lo que se instala es lo que declara el `package.json` de la raíz del repositorio: el
@@ -30,7 +30,7 @@ bundler del sitio compila el TypeScript del widget y resuelve su hoja de estilos
 único peer dependency es `preact`, que aporta el sitio:
 
 ```bash
-npm i github:jlizancandela/chatbox#v0.1.0 preact
+npm i github:jlizancandela/chatbox#v0.3.0 preact
 ```
 
 ## Los exports
@@ -91,8 +91,8 @@ export default defineConfig({
 | `initiallyCollapsed` | No | `true` si es flotante o cajón | Si la variante superpuesta nace contraída. |
 
 El widget trae sus propios estilos, todos bajo la clase `.chatbox`: no toca `:root` ni las
-variables del sitio. Para cambiarle el color, el sitio sobrescribe los tokens
-`--chatbox-*` desde cualquier ancestro.
+variables del sitio. Para alinearlo con la marca del sitio, mapea los tokens de host (ver
+[Tema](#tema)).
 
 ## Uso como custom element
 
@@ -126,6 +126,39 @@ decide lo suyo.
 
 Como en el componente, el estado contraído es el inicial de las variantes superpuestas —la
 flotante y el cajón— y se abre con el lanzador.
+
+## Tema
+
+El widget trae una paleta propia (los roles Material 3 de su diseño). Para alinearlo con la
+marca del sitio, el host mapea los **tokens de host** en cualquier ancestro: `body`, el
+contenedor del widget, o el propio widget para una instancia concreta.
+
+```css
+body {
+	--chatbox-host-text: #131b2e;
+	--chatbox-host-surface: #ffffff;
+	--chatbox-host-primary: #3525cd;
+	--chatbox-host-link: #006591;
+	--chatbox-host-border: #777587;
+	--chatbox-host-focus: #3525cd;
+	--chatbox-host-error: #ba1a1a;
+	--chatbox-host-surface-subtle: #f2f3ff;
+	--chatbox-host-surface-raised: #e2e7ff;
+	--chatbox-host-accent-container: #3525cd;
+}
+```
+
+Un solo mapeo vale para claro y oscuro si apunta a variables del sitio que ya cambian con el
+tema. Los diez roles, su uso y los pisos de contraste están en la
+[spec de tema](https://github.com/jlizancandela/chatbox/blob/main/frontend/.specs/RF-F61-theming.md).
+
+Declarar `--chatbox-color-*` en un ancestro **no** funciona: el widget declara esos tokens en
+`.chatbox`, y la declaración propia gana a la heredada. El token de host se lee en `.chatbox`,
+así que sí se hereda desde arriba.
+
+El widget honra `data-theme="dark"` y `data-theme="light"` en un ancestro y, sin él, sigue
+`prefers-color-scheme`. Las capas de `prefers-contrast: more` y `forced-colors: active` no
+aceptan mapeo: la preferencia de la persona gana siempre.
 
 ## Notas para quien integra
 
