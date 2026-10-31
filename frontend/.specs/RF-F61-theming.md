@@ -7,6 +7,8 @@
 > Revisión 2026-10-17 (sesión de T2, issue #58): ratios recalculados con WCAG 2.x y corregidos; el target AAA se acota a **texto de cuerpo** (los tokens cromáticos del tema claro se quedan en AA); el orden de las capas de tema pasa a assertearse estructuralmente; el widget consume `text` y `surface`; el label del botón usa `--chatbox-color-surface`; y la verificación de valores resueltos se traslada al ticket T5 (navegador real).
 >
 > Revisión 2026-10-31 (issue #166): el override desde un ancestro **no funcionaba**. Los defaults se declaran en `.chatbox`, así que una declaración en `body` nunca hereda; y con un conmutador de tema del host, `[data-theme] .chatbox` empata en especificidad con `body .chatbox` y gana por orden, porque la hoja del widget se carga después. El único selector que ganaba, `:root body .chatbox`, también pisaba `prefers-contrast` y `forced-colors`. Se sustituye el contrato: el host mapea **10 tokens de host** (`--chatbox-host-*`), cada capa de tema los resuelve con `var()` y su reserva, y las capas de accesibilidad declaran el token en directo para no poder ser silenciadas. La lista pública pasa de 7 a 10 roles (se documentan `surface-subtle`, `surface-raised` y `accent-container`, que ya existían en el CSS).
+>
+> Revisión 2026-10-31 (issue #168): la tipografía entra en el contrato con un token de host propio, `--chatbox-host-font`, resuelto una sola vez porque no cambia con el tema. El tamaño no entra: el widget conserva su escala.
 
 ## Síntesis de la entrevista (decisiones acordadas, 2026-10-17)
 
@@ -25,7 +27,7 @@ El widget de chatbox se incrusta en un sitio host (Astro en MVP) y hoy no expone
 
 ## Solution
 
-El chatbox expone un contrato de tema mínimo basado en 10 roles semánticos CSS. El sitio host mapea el token de host de cada rol —`--chatbox-host-text`, `--chatbox-host-surface`, `--chatbox-host-primary`, `--chatbox-host-link`, `--chatbox-host-border`, `--chatbox-host-focus`, `--chatbox-host-error`, `--chatbox-host-surface-subtle`, `--chatbox-host-surface-raised`, `--chatbox-host-accent-container`— en cualquier ancestro, y el widget resuelve `--chatbox-color-*` como `var(--chatbox-host-*, <reserva>)`. Los defaults viven dentro de `.chatbox` para que el widget sea self-contained. El tema oscuro se activa con `@media (prefers-color-scheme: dark)` y, además, el widget honra `data-theme` en ancestros del subtree para sincronizarse con toggles del host. `forced-colors: active` y `prefers-contrast: more` adaptan el widget a las preferencias de accesibilidad del sistema, y no aceptan mapeo del host: la preferencia de la persona gana siempre. Los defaults de ambos temas pasan WCAG 2.x AAA para **texto de cuerpo** (≥7:1), AA (≥4.5:1) para texto cromático (enlaces, acciones, error) y AA non-text (3:1) para componentes y foco. Los enlaces y los acentos usan los tokens en vez de hex hardcodeados (RF-F31, RF-F61).
+El chatbox expone un contrato de tema mínimo basado en 10 roles semánticos CSS. El sitio host mapea el token de host de cada rol —`--chatbox-host-text`, `--chatbox-host-surface`, `--chatbox-host-primary`, `--chatbox-host-link`, `--chatbox-host-border`, `--chatbox-host-focus`, `--chatbox-host-error`, `--chatbox-host-surface-subtle`, `--chatbox-host-surface-raised`, `--chatbox-host-accent-container`— en cualquier ancestro, y el widget resuelve `--chatbox-color-*` como `var(--chatbox-host-*, <reserva>)`. Los defaults viven dentro de `.chatbox` para que el widget sea self-contained. El tema oscuro se activa con `@media (prefers-color-scheme: dark)` y, además, el widget honra `data-theme` en ancestros del subtree para sincronizarse con toggles del host. `forced-colors: active` y `prefers-contrast: more` adaptan el widget a las preferencias de accesibilidad del sistema, y no aceptan mapeo del host: la preferencia de la persona gana siempre. Los defaults de ambos temas pasan WCAG 2.x AAA para **texto de cuerpo** (≥7:1), AA (≥4.5:1) para texto cromático (enlaces, acciones, error) y AA non-text (3:1) para componentes y foco. Los enlaces y los acentos usan los tokens en vez de hex hardcodeados (RF-F31, RF-F61). La tipografía se alinea con `--chatbox-host-font`, sin descargar webfonts: el host aporta la que ya cargó.
 
 ## User Stories
 
@@ -62,6 +64,24 @@ desde él (`--chatbox-color-<rol>: var(--chatbox-host-<rol>, <reserva>)`):
 | surface-subtle | `--chatbox-host-surface-subtle` | burbuja del asistente y franja del aviso de alcance. |
 | surface-raised | `--chatbox-host-surface-raised` | fondo de los chips de pregunta al pasar el puntero. |
 | accent-container | `--chatbox-host-accent-container` | fondo del badge «IA» (la tinta es `surface`). |
+
+### Tipografía
+
+Un token más, fuera de los roles de color: `--chatbox-host-font`. Se resuelve una sola vez en
+`.chatbox` —la tipografía no cambia con el tema— con la pila del sistema como reserva:
+
+```css
+.chatbox {
+  font-family: var(--chatbox-host-font, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+}
+```
+
+`textarea` y `button` declaran `font-family: inherit`, así que una sola declaración alcanza a
+todo el widget. Ninguna capa de accesibilidad toca la tipografía: no hay preferencia del sistema
+que sustituir. El widget sigue sin descargar webfonts: usa la que el host ya cargó.
+
+El tamaño no forma parte del contrato. El widget usa su propia escala (body-md, `0.875rem`)
+para no arrastrar titulares, espaciados ni objetivos táctiles.
 
 ### Defaults y scoping
 

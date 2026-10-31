@@ -145,8 +145,12 @@ body {
 	--chatbox-host-surface-subtle: #f2f3ff;
 	--chatbox-host-surface-raised: #e2e7ff;
 	--chatbox-host-accent-container: #3525cd;
+	--chatbox-host-font: "Geist", sans-serif;
 }
 ```
+
+La tipografía va en su propio token porque no cambia con el tema: una sola declaración alcanza a
+todo el widget. Sin mapeo, el widget usa la pila del sistema, y no descarga ninguna webfont.
 
 Un solo mapeo vale para claro y oscuro si apunta a variables del sitio que ya cambian con el
 tema. Los diez roles, su uso y los pisos de contraste están en la

@@ -102,6 +102,29 @@ test.describe("RF-F61 browser theming resolution", () => {
 		await expect.poll(background).not.toBe("rgb(255, 0, 0)");
 	});
 
+	test("T6 the host aligns the typography and the system stack stays as the reserve", async ({
+		page,
+	}) => {
+		const fontOf = (selector: string) =>
+			page.locator(selector).evaluate((element) => getComputedStyle(element).fontFamily);
+
+		await page.emulateMedia({ colorScheme: "light" });
+		await openChatbox(page);
+		expect(await fontOf(".chatbox")).toContain("system-ui");
+
+		await page.evaluate(() => {
+			document.body.style.setProperty("--chatbox-host-font", '"Courier New", monospace');
+		});
+
+		await expect.poll(() => fontOf(".chatbox")).toContain("Courier New");
+		// `textarea` y `button` declaran `font-family: inherit`, así que una sola declaración
+		// en la raíz alcanza a los controles.
+		await expect.poll(() => fontOf(".chatbox textarea")).toContain("Courier New");
+		await expect
+			.poll(() => fontOf('.chatbox__footer button[type="submit"]'))
+			.toContain("Courier New");
+	});
+
 	test("submit label is readable in light and dark themes", async ({ page }) => {
 		for (const colorScheme of ["light", "dark"] as const) {
 			await page.emulateMedia({ colorScheme });
