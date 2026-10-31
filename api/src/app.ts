@@ -86,6 +86,10 @@ export const serverOptions = (env: NodeJS.ProcessEnv = process.env) => {
 
 	return {
 		logger: loggerOptions(env),
+		// Fastify escribe su propia traza por petición y el plugin de logging escribe otra
+		// con el identificador de correlación (#146). Con las dos, cada petición deja dos
+		// líneas "request completed". Se apaga la del framework: la fuente es la nuestra.
+		disableRequestLogging: true,
 		// Los timeouts del framework valen 0, y su propia documentación advierte del
 		// riesgo de denegación de servicio. Con un valor finito, una conexión que
 		// envía el cuerpo a goteo se cierra en vez de retener un socket para siempre.

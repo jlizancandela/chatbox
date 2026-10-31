@@ -50,3 +50,10 @@ test("las opciones del servidor llevan el proxy y los timeouts", () => {
 	assert.strictEqual(options.trustProxy, "10.0.1.0/24");
 	assert.ok(options.requestTimeout > 0);
 });
+
+test("la traza de petición no sale dos veces", () => {
+	// Fastify escribe su propia traza por petición y el plugin de logging escribe otra
+	// con el identificador de correlación. Con las dos, cada petición deja dos líneas
+	// "request completed" (#146).
+	assert.strictEqual(serverOptions({}).disableRequestLogging, true);
+});

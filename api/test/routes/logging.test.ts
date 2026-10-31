@@ -6,16 +6,18 @@ import { build, fakeGroq, fakePg, parseSSE, testDependencies } from "../helper";
 
 type Recorded = {
 	requests: unknown[];
+	consumptions: unknown[];
 	failures: unknown[];
 };
 
 const recordingLogger = (recorded: Recorded): Logger => ({
 	request: (trace) => recorded.requests.push(trace),
+	consumption: (usage) => recorded.consumptions.push(usage),
 	failure: (failure) => recorded.failures.push(failure),
 });
 
 test("cada petición deja una traza con su identificador, método, ruta y estado", async (t) => {
-	const recorded: Recorded = { requests: [], failures: [] };
+	const recorded: Recorded = { requests: [], consumptions: [], failures: [] };
 	const app = await build(t, testDependencies({ logger: recordingLogger(recorded) }));
 
 	const response = await app.inject({ method: "GET", url: "/health" });
@@ -32,7 +34,7 @@ test("cada petición deja una traza con su identificador, método, ruta y estado
 });
 
 test("la respuesta lleva el identificador de correlación", async (t) => {
-	const recorded: Recorded = { requests: [], failures: [] };
+	const recorded: Recorded = { requests: [], consumptions: [], failures: [] };
 	const app = await build(t, testDependencies({ logger: recordingLogger(recorded) }));
 
 	const response = await app.inject({ method: "GET", url: "/health" });
@@ -41,7 +43,7 @@ test("la respuesta lleva el identificador de correlación", async (t) => {
 });
 
 test("el identificador que ya viaja en la petición se respeta", async (t) => {
-	const recorded: Recorded = { requests: [], failures: [] };
+	const recorded: Recorded = { requests: [], consumptions: [], failures: [] };
 	const app = await build(t, testDependencies({ logger: recordingLogger(recorded) }));
 
 	const response = await app.inject({
@@ -55,7 +57,7 @@ test("el identificador que ya viaja en la petición se respeta", async (t) => {
 });
 
 test("dos peticiones distintas tienen identificadores distintos", async (t) => {
-	const recorded: Recorded = { requests: [], failures: [] };
+	const recorded: Recorded = { requests: [], consumptions: [], failures: [] };
 	const app = await build(t, testDependencies({ logger: recordingLogger(recorded) }));
 
 	await app.inject({ method: "GET", url: "/health" });
@@ -68,7 +70,7 @@ test("dos peticiones distintas tienen identificadores distintos", async (t) => {
 });
 
 test("la traza de una petición no lleva el cuerpo ni el historial", async (t) => {
-	const recorded: Recorded = { requests: [], failures: [] };
+	const recorded: Recorded = { requests: [], consumptions: [], failures: [] };
 	const app = await build(t, testDependencies({ logger: recordingLogger(recorded) }));
 
 	await app.inject({
@@ -87,7 +89,7 @@ test("la traza de una petición no lleva el cuerpo ni el historial", async (t) =
 });
 
 test("un fallo del proveedor se registra con su clasificación", async (t) => {
-	const recorded: Recorded = { requests: [], failures: [] };
+	const recorded: Recorded = { requests: [], consumptions: [], failures: [] };
 	const groqError = Object.assign(new Error("quota"), { status: 429 });
 	// Sin fragmentos no se llega al proveedor: hace falta contexto para que la generación
 	// falle de verdad.
@@ -123,7 +125,7 @@ test("un fallo del proveedor se registra con su clasificación", async (t) => {
 });
 
 test("un fallo que no es de cuota se registra con su propia clasificación", async (t) => {
-	const recorded: Recorded = { requests: [], failures: [] };
+	const recorded: Recorded = { requests: [], consumptions: [], failures: [] };
 	const groqError = Object.assign(new Error("boom"), { status: 500 });
 	const app = await build(
 		t,
@@ -145,7 +147,7 @@ test("un fallo que no es de cuota se registra con su propia clasificación", asy
 });
 
 test("ninguna clave de proveedor llega al log", async (t) => {
-	const recorded: Recorded = { requests: [], failures: [] };
+	const recorded: Recorded = { requests: [], consumptions: [], failures: [] };
 	const secret = "gsk-no-me-puedo-mostrar";
 	process.env.GROQ_API_KEY = secret;
 
@@ -179,4 +181,52 @@ test("el detector de secretos muerde: encuentra la clave cuando está presente",
 
 	assert.strictEqual(found.length, 1);
 	assert.strictEqual(found[0].value, "secreto");
+});
+
+test("el consumo se registra como evento propio, sin campos de petición", async (t) => {
+	const recorded: Recorded = { requests: [], consumptions: [], failures: [] };
+
+	// Un cliente que devuelve texto y, al final, el consumo —como el proveedor real.
+	const client = {
+		chat: {
+			completions: {
+				create: async function* () {
+					yield { choices: [{ delta: { content: "Usa Preact." } }] };
+					yield { usage: { total_tokens: 321 } };
+				},
+			},
+		},
+	};
+
+	const app = await build(
+		t,
+		testDependencies({
+			logger: recordingLogger(recorded),
+			pg: fakePg([{ document_id: "1", chunk_index: 0, title: "CV", content: "c", distance: 0.1 }]),
+			groqClient: client as never,
+		})
+	);
+
+	await app.inject({
+		method: "POST",
+		url: "/api/chat",
+		headers: { "x-session-id": "ses-1" },
+		payload: { question: "¿Qué usa Jorge?" },
+	});
+
+	// El evento lleva lo que de verdad se sabe: la sesión y los tokens.
+	assert.deepStrictEqual(recorded.consumptions, [{ sessionId: "ses-1", tokens: 321 }]);
+
+	// Y la traza de la petición no se inventa una duración ni se hace pasar por el
+	// consumo: antes el turno se registraba como traza con `durationMs: 0` y el
+	// identificador de sesión en el campo del identificador de correlación.
+	for (const trace of recorded.requests) {
+		const asRecord = trace as Record<string, unknown>;
+		assert.ok(!("tokens" in asRecord), "la traza no debe llevar tokens");
+		assert.ok(!("sessionId" in asRecord), "la traza no debe llevar la sesión");
+		assert.ok(
+			typeof asRecord.durationMs === "number" && asRecord.requestId !== asRecord.sessionId,
+			"la traza debe llevar su propio identificador y su duración"
+		);
+	}
 });
