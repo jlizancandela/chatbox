@@ -251,4 +251,18 @@ test.describe("con el widget contraído", () => {
 		const ids = activeControls(contractControls(measured)).map((control) => control.id);
 		expect(ids).toContain("collapse");
 	});
+
+	test("el botón de contraer alcanza el suelo en el cajón", async ({ page }) => {
+		// El cajón (RF-F65) es la otra variante superpuesta: su botón de contraer se mide
+		// en el mismo estado de widget —vacío— que el de la flotante.
+		await page.goto("/?widget=drawer");
+		await page.getByRole("button", { name: strings.launcher.open.ariaLabel }).click();
+		await expect(page.locator("#chatbox-question")).toBeVisible();
+
+		const measured = await measureControls(page);
+		assertFloor(measured, "vacío");
+
+		const ids = activeControls(contractControls(measured)).map((control) => control.id);
+		expect(ids).toContain("collapse");
+	});
 });
