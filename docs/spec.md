@@ -82,7 +82,7 @@ Por qué: poder compararla con los fragmentos almacenados.
 **RF-12 — Búsqueda top-k**
 Cuando se disponga del embedding de la pregunta, el sistema deberá recuperar los
 `k` fragmentos más similares. `k` es configurable con `RETRIEVAL_TOP_K` (por defecto `5`)
-y el umbral de similitud coseno con `SIMILARITY_THRESHOLD` (por defecto `0.5`, calibrado
+y el umbral de similitud coseno con `SIMILARITY_THRESHOLD` (por defecto `0.8`, calibrado
 sobre el espacio de embeddings vigente).
 Por qué: seleccionar únicamente el contexto relevante para la respuesta y poder ajustar
 ambos parámetros sin tocar el código.
@@ -124,10 +124,19 @@ rechazarla.
 Por qué: evitar cargas excesivas o malintencionadas.
 
 **RF-18 — Logs mínimos sin secretos**
-Mientras se registre actividad, el sistema deberá mantener un nivel mínimo
-(`warn` en los comandos de arranque) y no registrar cuerpos, preguntas,
-contexto, respuestas ni secretos.
+Mientras se registre actividad, el sistema deberá mantener el nivel configurado con
+`LOG_LEVEL` (por defecto `info`) y no registrar cuerpos, preguntas, contexto, respuestas
+ni secretos.
 Por qué: permitir depurar sin exponer datos sensibles ni información del usuario.
+
+**RF-27 — Presupuesto por sesión**
+Cuando una petición incluya el identificador de sesión en `x-session-id`, el sistema
+deberá contabilizar los tokens reales consumidos en cada turno y cortar la conversación
+con el código `SESSION_BUDGET_EXCEEDED` al agotar `SESSION_BUDGET_MAX_TOKENS` o
+`SESSION_BUDGET_MAX_TURNS`. Sin identificador no hay consumo que contabilizar. El
+presupuesto es equidad entre visitantes, no seguridad: el identificador lo controla el
+cliente y empezar una conversación nueva lo reinicia.
+Por qué: una sola conversación no debe consumir la cuota compartida del proveedor.
 
 ### Entrega
 
@@ -220,7 +229,7 @@ sentido.
 
 ## Fuera de alcance actual
 
-- Embeddings locales.
+- Embeddings remotos de terceros: el corpus no sale de la infraestructura.
 - Escalado horizontal e infraestructura distribuida avanzada.
 - Autenticación de usuarios, cuentas y sesiones permanentes.
 - Versionado documental sofisticado o reemplazo atómico.
@@ -233,9 +242,9 @@ sentido.
   muestra en la línea de fuentes del widget.
 - Cambio de modelo generativo: el modelo vigente acepta los parámetros que faltan.
 
-La memoria temporal del Paso 6 queda fuera de la implementación actual hasta
-que se complete su checklist en `api/TODO.md`. Cuando se implemente, seguirá
-sin ser una cuenta de usuario ni una conversación permanente.
+El servidor no persiste el historial ni la conversación: el cliente lo envía en
+cada petición y el servidor solo lo recorta. No hay cuenta de usuario ni
+conversación permanente.
 
 ## Criterios de finalización
 

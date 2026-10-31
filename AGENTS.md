@@ -17,10 +17,13 @@ fundamentadas con Groq.
 
 ## Estructura
 - `api/` — el backend (única app). Todo el código vive aquí.
-- `docs/` — plan de implementación KISS (`plan-implementacion-api-chatbox.md`)
+- `docs/` — índice y documentación compartida (`docs/README.md`); plan histórico en `docs/api/plan.md`.
 - `api/TODO.md` — estado real del MVP (espejo del plan, con checkboxes)
 - `.agents/`, `.claude/`, `.atl/` — skills y tooling de agentes (no tocar app)
-- `frontend/` — el widget (Preact + Vite). Un spec por RF en `frontend/.specs/`; el texto de interfaz se centraliza en `frontend/src/strings.es.ts` (RF-F62, migración en curso).
+- `frontend/` — el widget (Preact + Vite). Las specs de implementación viven en
+  `docs/specs/frontend/` (una por issue cuando la decisión no es obvia; el requisito vive en
+  `docs/design/SPEC-FRONTEND.md`); el texto de interfaz se centraliza en
+  `frontend/src/strings.es.ts` (RF-F62, migración en curso).
   **Antes de tocar `frontend/`, lee `frontend/AGENTS.md`**: tiene la arquitectura de `src/`, el
   reparto de tests, la verificación mínima y las trampas del toolchain (TypeScript es el port
   nativo, sin API de parser). No se carga solo, así que este puntero es la única vía.
@@ -68,7 +71,7 @@ de correlación (`x-request-id`, que el servidor genera y respeta si el cliente 
 envía), método, ruta, código de estado y duración — nunca el cuerpo, el historial ni
 el contenido del corpus. Los fallos del proveedor se registran con su clasificación
 (`QUOTA_EXHAUSTED` o `GENERATION_FAILED`) y nunca con las claves. Ver
-`api/.specs/146-observabilidad-logging.md`.
+`docs/specs/api/146-observabilidad-logging.md`.
 
 ## Presupuesto por sesión
 El servidor contabiliza los tokens reales de cada turno (la cifra que da el proveedor)
@@ -78,7 +81,7 @@ Los topes son `SESSION_BUDGET_MAX_TOKENS` y `SESSION_BUDGET_MAX_TURNS`. El corte
 su propio código (`SESSION_BUDGET_EXCEEDED`) y su mensaje ofrece empezar una
 conversación nueva, que reinicia el presupuesto. El presupuesto por sesión es
 **equidad, no seguridad**: el identificador lo controla el cliente. Ver
-`api/.specs/148-presupuesto-por-sesion.md`.
+`docs/specs/api/148-presupuesto-por-sesion.md`.
 
 ## Estado del proyecto
 Ver `api/TODO.md` para el estado actual del MVP.

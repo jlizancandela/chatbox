@@ -37,9 +37,18 @@ ignorado por Git y no debe versionarse ni compartirse.
 | `SIMILARITY_THRESHOLD` | No | No | `0.8` | Distancia coseno máxima para recuperar contexto. |
 | `RETRIEVAL_TOP_K` | No | No | `5` | Número de fragmentos recuperados por pregunta. |
 | `GENERATION_TEMPERATURE` | No | No | `0.6` | Temperatura de la generación, entre `0` y `2`. |
-| `GENERATION_MAX_COMPLETION_TOKENS` | No | No | `2048` | Límite de tokens de la respuesta, razonamiento incluido. |
+| `GENERATION_MAX_COMPLETION_TOKENS` | No | No | `1200` | Límite de tokens de la respuesta, razonamiento incluido. |
 | `GENERATION_REASONING_EFFORT` | No | No | `low` | Esfuerzo de razonamiento del modelo: `low`, `medium` o `high`. |
-| `CORS_ORIGIN` | Sí | No | — | Único origen permitido por CORS, por ejemplo `http://localhost:3000`. |
+| `CORS_ORIGIN` | Sí | No | — | Orígenes permitidos por CORS, separados por comas, por ejemplo `http://localhost:3000`. |
+| `TRUST_PROXY` | No | No | vacío | IP o rango CIDR del proxy inverso de confianza. Vacío, no se confía en ninguno. |
+| `REQUEST_TIMEOUT_MS` | No | No | `30000` | Tiempo máximo para recibir la petición completa. |
+| `CONNECTION_TIMEOUT_MS` | No | No | `10000` | Tiempo máximo para establecer la conexión. |
+| `LOG_LEVEL` | No | No | `info` | Nivel del logger: `fatal`, `error`, `warn`, `info`, `debug`, `trace` o `silent`. Un valor inválido cae en `info`. |
+| `HISTORY_MAX_MESSAGES` | No | No | `12` | Mensajes de historial que se conservan. |
+| `HISTORY_MAX_MESSAGE_CHARS` | No | No | `1000` | Caracteres máximos por mensaje de historial; por encima, la petición se rechaza con `400`. |
+| `HISTORY_MAX_TOTAL_CHARS` | No | No | `4000` | Caracteres máximos del historial completo. |
+| `SESSION_BUDGET_MAX_TOKENS` | No | No | `20000` | Tokens que una sesión puede consumir antes del corte. |
+| `SESSION_BUDGET_MAX_TURNS` | No | No | `12` | Turnos que una sesión puede consumir antes del corte. |
 
 «Secreto» marca las variables cuyo valor no debe aparecer en un repositorio, en una
 imagen ni en un log: las claves de los proveedores y la URL de la base de datos, que
@@ -391,10 +400,10 @@ lugar de esperar al resultado completo.
 
 | Evento | Datos | Significado |
 |---|---|---|
-| `sources` | `{"sources":[...]}` | Fragmentos recuperados; se emite antes de llamar a Groq. |
+| `sources` | `{"sources":[...],"history":[...]}` | Fragmentos recuperados y el historial canónico ya recortado; se emite antes de llamar a Groq. |
 | `token` | `{"token":"..."}` | Fragmento de la respuesta generada por el modelo. |
 | `done` | `{}` | Fin del stream. |
-| `error` | `{"code":"GENERATION_FAILED" \| "QUOTA_EXHAUSTED","message":"...","retryAfterSeconds":42}` | Error durante el stream (no filtra detalles internos). `QUOTA_EXHAUSTED` es cuota agotada del proveedor; `retryAfterSeconds` solo aparece si el proveedor lo da. |
+| `error` | `{"code":"GENERATION_FAILED" \| "QUOTA_EXHAUSTED" \| "SESSION_BUDGET_EXCEEDED","message":"...","retryAfterSeconds":42}` | Error durante el stream (no filtra detalles internos). `QUOTA_EXHAUSTED` es cuota agotada del proveedor y `SESSION_BUDGET_EXCEEDED` el presupuesto de la conversación; `retryAfterSeconds` solo aparece si el proveedor lo da. |
 
 Secuencia normal: `sources`, uno o más `token`, `done`. Sin contexto
 suficiente, la API no invoca al modelo generativo y emite únicamente
@@ -476,8 +485,21 @@ campo `history` del cuerpo de la petición:
 ```
 
 El servidor no persiste el historial. Este campo es opcional; si se omite, la
-conversación empieza sin historial. Los mensajes de usuario y asistente se
-incluyen tal cual en el contexto enviado a Groq.
+conversación empieza sin historial. Cada mensaje se valida contra
+`HISTORY_MAX_MESSAGE_CHARS` (1000 por defecto) y, si lo excede, la petición se
+rechaza con `400` antes de abrir el stream. El servidor recorta el historial a
+`HISTORY_MAX_MESSAGES` y `HISTORY_MAX_TOTAL_CHARS`, y devuelve el historial
+canónico dentro del evento `sources` para que el cliente sincronice su estado. Los
+mensajes de usuario y asistente se incluyen tal cual en el contexto enviado a Groq.
+
+### Presupuesto por sesión
+
+El cliente envía el identificador de la conversación en `x-session-id`. El servidor
+suma los tokens reales de cada turno y corta con `SESSION_BUDGET_EXCEEDED` al superar
+`SESSION_BUDGET_MAX_TOKENS` o `SESSION_BUDGET_MAX_TURNS`. `POST
+/api/chat/session/reset` con la misma cabecera devuelve el contador a cero; empezar
+una conversación nueva es la salida del corte. Es **equidad, no seguridad**: la
+cabecera la controla el cliente y rotarla reinicia el presupuesto.
 
 ## Tests
 

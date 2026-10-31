@@ -142,8 +142,8 @@ El teclado virtual del widget es un **contrato**, no una lista de comprobaciones
 
 ## Referencias
 
-- Requisito: RF-F51 de `docs/stitch-frontend-design/SPEC-FRONTEND.md`.
-- Spec de implementación: `frontend/.specs/RF-F51-teclado-virtual.md`.
+- Requisito: RF-F51 de `docs/design/SPEC-FRONTEND.md`.
+- Spec de implementación: `docs/specs/frontend/RF-F51-teclado-virtual.md`.
 - Issue: #119.
 
 ## Alternativas rechazadas

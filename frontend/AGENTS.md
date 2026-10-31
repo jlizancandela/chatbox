@@ -28,7 +28,7 @@ gestionan desde la raíz del repositorio, no desde un repositorio Git separado
 dentro de `frontend/`.
 
 El **manifiesto del widget** vive en la raíz, no en `frontend/`: el sitio lo instala
-como dependencia de git (`github:jlizancandela/chatbox#v0.1.0`) y npm busca el
+como dependencia de git (`github:jlizancandela/chatbox#v0.4.0`) y npm busca el
 `package.json` en la raíz del repositorio. `frontend/package.json` es el de la app de
 desarrollo y es privado. Los dos campos que deciden lo que el sitio recibe —`exports` y
 `files`— los cruza `test/unit/package-manifest.test.ts`: si uno cambia sin el otro, el
@@ -122,7 +122,7 @@ Ubicar cada archivo nuevo según su responsabilidad:
 
 Los tests deben vivir fuera de `src/`, bajo `test/`, y organizarse por tipo
 (`unit/`, `component/` y `browser/`). La fuente autoritativa del reparto es
-`.specs/47-test-layout.md`. Los tests de navegador usan Playwright y terminan en
+`../docs/specs/frontend/47-test-layout.md`. Los tests de navegador usan Playwright y terminan en
 `.spec.ts`; Vitest solo descubre `.test.ts` y `.test.tsx`. No crear archivos
 genéricos como `src/utils.ts`, `src/helpers.ts` o `src/types.ts` para
 funcionalidad del chat. Si una responsabilidad todavía no
@@ -195,7 +195,7 @@ Límites que deben mantenerse alineados con el API:
   enviado al API).
 - No introducir autenticación, WebSockets ni persistencia server-side.
 - La visualización de fuentes sí está permitida desde la issue #110: cada respuesta
-  nombra los documentos de los que viene (ver `.specs/110-fuentes-visibles.md`). Lo
+  nombra los documentos de los que viene (ver `../docs/specs/frontend/110-fuentes-visibles.md`). Lo
   que no se permite son citas inline dentro del texto.
 
 ## Reglas de UI, seguridad y accesibilidad
@@ -218,9 +218,9 @@ El flujo issue → plan → aprobación → implementación → verificación �
 restricciones propias del frontend; la aprobación se pide una vez, al presentar el
 plan, no otra vez antes de escribir cada archivo.
 
-Las specs de implementación se guardan en `.specs/` usando el identificador
+Las specs de implementación se guardan en `../docs/specs/frontend/` usando el identificador
 del issue y un slug descriptivo. Las decisiones generales de proceso se
-guardan en `../docs/decisions/`, no en `.specs/`.
+guardan en `../docs/decisions/`, no en `../docs/specs/frontend/`.
 
 Al revisar cambios, incluir explícitamente los archivos untracked: `git diff HEAD`
 los omite. No usar `git add -N` para colarlos en el diff: lint-staged rechaza el
@@ -287,7 +287,8 @@ casos, la revisión debe comprobar diff, tests, build y estado limpio del árbol
 
 ## Referencias
 
+- Índice y mapa de autoridad: [`../docs/README.md`](../docs/README.md).
 - Estado: `TODO.md`.
-- Especificación: `../docs/stitch-frontend-design/SPEC-FRONTEND.md`.
+- Especificación: `../docs/design/SPEC-FRONTEND.md`.
 - Contrato API: `../api/README.md` y `../api/src/services/chat.ts`.
-- Planes de implementación: `.specs/`.
+- Planes de implementación: `../docs/specs/frontend/`.

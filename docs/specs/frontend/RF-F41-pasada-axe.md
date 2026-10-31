@@ -1,10 +1,10 @@
 # RF-F41 — Pasada automática con axe y cierre sin nivel manual
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Spec abierto el 2026-10-26 con el plan aprobado de la issue #113. Enmienda
-> `.specs/RF-F41-region-estado.md` y `docs/decisions/005-live-region-verification.md`.
+> `docs/specs/frontend/RF-F41-region-estado.md` y `docs/decisions/005-live-region-verification.md`.
 
 ## Objetivo
 
@@ -84,7 +84,7 @@ vacío están todos. Lo que queda es un sitio donde se audita, no cuatro.
 
 ### D7 — El diseño se toca en una línea
 
-`docs/stitch-frontend-design/SPEC-FRONTEND.md` decía, en su sección de pruebas, que la
+`docs/design/SPEC-FRONTEND.md` decía, en su sección de pruebas, que la
 accesibilidad se verificaba «con una pasada automática con axe y una prueba manual con NVDA
 y VoiceOver». La D10 de `RF-F41-region-estado.md` decía que ese documento no se toca; esa
 D10 hablaba de los **identificadores** `RF-Fxx`, que son el contrato de trazabilidad con

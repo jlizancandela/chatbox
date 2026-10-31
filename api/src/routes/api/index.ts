@@ -9,9 +9,12 @@ import "../../plugins/embedding";
 import "../../plugins/groq";
 import "../../plugins/logging";
 import "../../plugins/session-budget";
-import { chatOptions } from "../../schemas/chat";
+import { createChatOptions } from "../../schemas/chat";
 import { type ChatEvent, chatService, generationErrorEvent } from "../../services/chat";
+import { chatConfig } from "../../services/chat.config";
 import { BUDGET_SESSION_HEADER } from "../../services/sessionBudget";
+
+const chatOptions = createChatOptions(chatConfig.historyLimits.maxMessageChars);
 
 const SSE_HEADERS = {
 	"content-type": "text/event-stream",

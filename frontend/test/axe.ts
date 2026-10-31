@@ -7,7 +7,7 @@
  * más de qué se audita, y el más amplio no era el que se usaba en todas partes.
  *
  * Ver `docs/decisions/005-live-region-verification.md` y
- * `frontend/.specs/RF-F41-pasada-axe.md`.
+ * `docs/specs/frontend/RF-F41-pasada-axe.md`.
  */
 
 import type { Page } from "@playwright/test";

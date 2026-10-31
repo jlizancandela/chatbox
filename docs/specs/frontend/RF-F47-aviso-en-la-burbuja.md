@@ -1,6 +1,6 @@
 # RF-F47 — El aviso de escritura vive dentro del bocadillo
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Enmienda de RF-F41 y RF-F44: el aviso «El asistente está escribiendo» deja de pintarse en la
@@ -80,9 +80,9 @@ none` y `visibility: hidden` la sacarían del árbol de accesibilidad y el anunc
 | `test/browser/live-region.spec.ts` | Test nuevo: el aviso se ve en el bocadillo, la región lo anuncia sin pintarlo. Retiene la respuesta con una puerta que abre el test, no con un retardo fijo |
 | `test/browser/scroll-follow.spec.ts` | La precondición de RF-F06: la respuesta tiene que desbordar el hilo antes de apartarse de él (ver «Riesgos») |
 | `test/unit/strings-inventory.test.ts` | Lista blanca: `chatbox__writing` |
-| `.specs/RF-F41-region-estado.md` | Enmienda: la región no pinta el aviso; la referencia manual es la burbuja |
-| `.specs/RF-F44-movimiento-reducido.md` | Enmienda: D3 y el criterio 1 quedan invertidos |
-| `.specs/RF-F46-respuesta-una-vez.md` | Enmienda: D2 y el criterio 2 (la región deja de pintar el aviso) |
+| `docs/specs/frontend/RF-F41-region-estado.md` | Enmienda: la región no pinta el aviso; la referencia manual es la burbuja |
+| `docs/specs/frontend/RF-F44-movimiento-reducido.md` | Enmienda: D3 y el criterio 1 quedan invertidos |
+| `docs/specs/frontend/RF-F46-respuesta-una-vez.md` | Enmienda: D2 y el criterio 2 (la región deja de pintar el aviso) |
 | `../../GLOSSARY.md` | «Región de estado» (enmienda) y «Aviso de escritura» (entrada nueva) |
 | `TODO.md` | RF-F47 |
 

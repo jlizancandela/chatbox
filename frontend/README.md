@@ -154,7 +154,7 @@ todo el widget. Sin mapeo, el widget usa la pila del sistema, y no descarga ning
 
 Un solo mapeo vale para claro y oscuro si apunta a variables del sitio que ya cambian con el
 tema. Los diez roles, su uso y los pisos de contraste están en la
-[spec de tema](https://github.com/jlizancandela/chatbox/blob/main/frontend/.specs/RF-F61-theming.md).
+[spec de tema](https://github.com/jlizancandela/chatbox/blob/main/docs/specs/frontend/RF-F61-theming.md).
 
 Declarar `--chatbox-color-*` en un ancestro **no** funciona: el widget declara esos tokens en
 `.chatbox`, y la declaración propia gana a la heredada. El token de host se lee en `.chatbox`,

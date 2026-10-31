@@ -1,6 +1,6 @@
 # RF-F65 — Variante cajón del chatbox
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Spec del 2026-10-31. Issue: #162.
@@ -154,7 +154,7 @@ mecanismo que usa la variante flotante.
 | `test/browser/touch-targets.spec.ts` | Escenario del botón de contraer en el cajón |
 | `test/browser/virtual-keyboard.spec.ts` | Escenarios de la franja del teclado en el cajón |
 | `test/component/chatbox-collapsed.test.tsx` | Aserto acotado al hilo (D13) |
-| `GLOSSARY.md`, `docs/stitch-frontend-design/SPEC-FRONTEND.md` | Vocabulario y requisito |
+| `GLOSSARY.md`, `docs/design/SPEC-FRONTEND.md` | Vocabulario y requisito |
 | `frontend/TODO.md`, `frontend/AGENTS.md` | Estado del MVP y el número de estados de axe |
 
 ## Criterios de aceptación
@@ -211,7 +211,7 @@ el hook pre-commit y CI.
 
 ## Referencias
 
-- Requisito: `../../docs/stitch-frontend-design/SPEC-FRONTEND.md` (RF-F65).
+- Requisito: `../../docs/design/SPEC-FRONTEND.md` (RF-F65).
 - Glosario: `../../GLOSSARY.md` (RF-F65).
 - Decisión heredada: `RF-F64-modo-contraido.md` (variantes y estados del widget).
 - Decisión heredada: `../../docs/decisions/011-teclado-virtual.md` (la franja que reserva la

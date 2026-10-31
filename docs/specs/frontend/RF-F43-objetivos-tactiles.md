@@ -1,6 +1,6 @@
 # RF-F43 — Objetivos táctiles del chatbox
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Spec confirmado el 2026-10-21 tras sesión de `grill-with-docs`. Decisión de verificación
@@ -168,7 +168,7 @@ hook pre-commit y CI.
 
 ## Referencias
 
-- Requisito: `../../docs/stitch-frontend-design/SPEC-FRONTEND.md` (RF-F43).
+- Requisito: `../../docs/design/SPEC-FRONTEND.md` (RF-F43).
 - Decisión: `../../docs/decisions/007-objetivos-tactiles.md`.
 - Glosario: `../../GLOSSARY.md` (RF-F43).
 - Patrones heredados: `../../docs/decisions/002-css-theming-test-strategy.md`,

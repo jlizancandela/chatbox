@@ -44,8 +44,8 @@ El alcance sale de cruzar los requisitos genéricos de chatbot con lo que la API
 
 - El schema tiene `additionalProperties: false`: solo `question` y `history`; cada mensaje solo `role` y `content`.
 - `question`: 1–1000 caracteres tras `trim()` (el schema exige `minLength: 1`; el máximo lo aplica la ruta con `INVALID_QUESTION`).
-- `history[].content`: máximo 2000 caracteres, si no hay `400`.
-- Límites de recorte del servidor (por defecto): 20 mensajes, 2000 caracteres por mensaje, 8000 en total.
+- `history[].content`: máximo `HISTORY_MAX_MESSAGE_CHARS` (1000 por defecto), si no hay `400`.
+- Límites de recorte del servidor (por defecto): 12 mensajes, 1000 caracteres por mensaje, 4000 en total.
 
 ### Respuesta de éxito (`text/event-stream`)
 
@@ -75,9 +75,9 @@ Forma: `{ "error": { "code": "...", "message": "..." } }`
 2. **El `history` devuelto es el historial de entrada recortado.** No incluye la pregunta actual ni la respuesta nueva. El cliente las añade al terminar.
 3. **Sin contexto suficiente no hay ningún `token`**: llega `sources: []` y `done`. El texto de "no lo sé" lo tiene que pintar el front.
 4. **`error` puede llegar antes de `sources`** (si falla la búsqueda vectorial), con HTTP 200 ya enviado.
-5. **El front debe recortar el historial antes de enviarlo.** Sin recorte, 20 mensajes de 2000 caracteres superan el límite de 16 KB y la petición falla con `413`.
+5. **El front debe recortar el historial antes de enviarlo.** Sin recorte, 12 mensajes de 1000 caracteres superan el límite de 16 KB y la petición falla con `413`.
 6. **Si el cliente aborta**, el servidor cancela la llamada a Groq y no emite `error`.
-7. **CORS admite un único origen** (`CORS_ORIGIN`). `.env.example` trae `http://localhost:3000`; el dev server de Astro usa `4321` por defecto. Alinearlos o la petición fallará por CORS en desarrollo.
+7. **CORS admite varios orígenes** (`CORS_ORIGIN`, separados por comas). `.env.example` trae `http://localhost:3000`; el dev server de Astro usa `4321` por defecto. Alinearlos o la petición fallará por CORS en desarrollo.
 8. `Retry-After` no es legible desde JS entre orígenes salvo que el API lo añada a `exposedHeaders`. No depender de él.
 
 ---
@@ -95,8 +95,9 @@ Prioridad: **I** imprescindible · **R** recomendable.
 | RF-F03 | Cuando el usuario escriba, el campo de texto (textarea multilínea) crecerá hasta un máximo de 5 líneas y mostrará un contador cuando se supere el 80 % del límite de 1000 caracteres. No permitirá enviar si el texto tras `trim()` está vacío o supera 1000. | I |
 | RF-F04 | `Enter` enviará el mensaje y `Shift+Enter` insertará salto de línea. `Enter` durante composición IME (`isComposing`) no enviará. | I |
 | RF-F05 | Mientras haya una respuesta en curso, el botón Enviar se sustituirá por Detener, que aborta la petición. `Esc` tendrá el mismo efecto. | I |
-| RF-F06 | Al añadirse contenido, el área de mensajes bajará automáticamente solo si el usuario estaba a menos de ~80 px del final; si no, mostrará un botón "Ir al final". | I |
+| RF-F06 | Al añadirse contenido, el área de mensajes bajará automáticamente solo si el usuario estaba a menos de 16 px del final; si no, mostrará un botón "Ir al final". El umbral de seguimiento está en RF-F48. | I |
 | RF-F07 | Los mensajes del usuario se renderizarán como texto plano, nunca como HTML. | I |
+| RF-F48 | El umbral de seguimiento será de 16 px, vivirá en el dominio y seguirá el tamaño real del hilo: una animación de scroll en curso no debe cortar el seguimiento. | I |
 
 ### B. Streaming y feedback
 
@@ -107,14 +108,14 @@ Prioridad: **I** imprescindible · **R** recomendable.
 | RF-F12 | Si llega `sources: []` seguido de `done` sin tokens, la burbuja mostrará un mensaje local fijo ("Eso no lo tengo en la información que manejo. Puedes escribirle a Jorge directamente.") con el enlace de contacto. | I |
 | RF-F13 | Si no llega ningún frame en 30 s (valor configurable), se abortará la petición y se tratará como error de red. | I |
 | RF-F14 | El front no mostrará nunca el `message` de un evento `error` ni de un JSON de error; usará textos propios según la tabla de la sección 7. | I |
-| RF-F15 | Las `sources` se guardarán en el estado del mensaje, pero no se mostrarán en el MVP. | R |
+| RF-F15 | Las `sources` se guardarán en el estado del mensaje y se mostrarán como una línea de fuentes bajo la respuesta, con los documentos de los que viene (issue #110). No habrá citas inline dentro del texto. | R |
 
 ### C. Conversación e historial
 
 | ID | Requisito | P |
 |---|---|---|
 | RF-F20 | El estado mantendrá dos estructuras separadas: `messages` (transcripción visible, completa) y `context` (lo que se envía al API). | I |
-| RF-F21 | Cada petición enviará `history` derivado de `context`, recortado por el cliente a 20 mensajes / 2000 caracteres por mensaje / 8000 en total (constantes alineadas con el `.env` del API), con solo roles `user` y `assistant`. | I |
+| RF-F21 | Cada petición enviará `history` derivado de `context`, recortado por el cliente a 12 mensajes / 1000 caracteres por mensaje / 4000 en total (constantes alineadas con el `.env` del API), con solo roles `user` y `assistant`. | I |
 | RF-F22 | Cuando llegue `sources` con `history`, `context` se sustituirá por ese historial (el servidor es la fuente de verdad del contexto). | I |
 | RF-F23 | Cuando llegue `done` tras al menos un `token`, se añadirá a `context` el par `{user: pregunta, assistant: texto completo}`. Los turnos con error, abortados o sin contexto no entran en `context`. | I |
 | RF-F24 | `messages` y `context` se guardarán en `sessionStorage` bajo una clave versionada (`chatbox:v1`). La lectura validará la forma y descartará datos inválidos; si el almacenamiento falla o está bloqueado, el chat seguirá funcionando en memoria. | I |
@@ -138,6 +139,8 @@ Prioridad: **I** imprescindible · **R** recomendable.
 | RF-F43 | Todos los controles táctiles medirán al menos 44×44 px (enviar, detener, nueva conversación, sugerencias). | I |
 | RF-F44 | Con `prefers-reduced-motion`, el indicador "escribiendo" no se animará y el scroll no será suave. | I |
 | RF-F45 | El campo de texto tendrá etiqueta asociada, los botones solo-icono tendrán `aria-label`, y el componente declarará `lang="es"`. | I |
+| RF-F46 | La región de estado anunciará siempre y pintará solo lo que no está en la conversación: la respuesta se ve una sola vez. La burbuja mantiene el indicador mientras carga el markdown. | I |
+| RF-F47 | El aviso «El asistente está escribiendo» se mostrará dentro del bocadillo y la región de estado lo anunciará sin pintarlo; la copia visible es decorativa. | I |
 
 ### F. Responsive y móvil
 

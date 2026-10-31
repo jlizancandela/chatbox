@@ -1,6 +1,13 @@
 const CHAT_BODY_LIMIT_BYTES = 16 * 1024;
 
-const chatSchema = {
+/**
+ * El esquema se construye con el límite de historial configurado.
+ *
+ * El recorte del servicio y la validación de la ruta tienen que medir lo mismo: con
+ * un `maxLength` fijo, un mensaje por encima de `HISTORY_MAX_MESSAGE_CHARS` pasaba
+ * la validación y se truncaba en silencio. RF-20a pide rechazarlo con `400`.
+ */
+const createChatSchema = (historyMaxChars: number) => ({
 	type: "object",
 	required: ["question"],
 	additionalProperties: false,
@@ -19,19 +26,19 @@ const chatSchema = {
 					role: { type: "string", enum: ["user", "assistant"] },
 					content: {
 						type: "string",
-						maxLength: 2000,
+						maxLength: historyMaxChars,
 					},
 				},
 			},
 		},
 	},
-};
+});
 
-const chatOptions = {
+const createChatOptions = (historyMaxChars: number) => ({
 	bodyLimit: CHAT_BODY_LIMIT_BYTES,
 	schema: {
-		body: chatSchema,
+		body: createChatSchema(historyMaxChars),
 	},
-};
+});
 
-export { CHAT_BODY_LIMIT_BYTES, chatOptions };
+export { CHAT_BODY_LIMIT_BYTES, createChatOptions };

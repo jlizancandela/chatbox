@@ -1,6 +1,6 @@
 # RF-F41 — Región de estado y anuncios de la conversación
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Spec confirmado el 2026-10-20 tras sesión de `grill-with-docs`. Decisión de
@@ -8,7 +8,7 @@
 
 ## Síntesis de la entrevista (decisiones acordadas, 2026-10-20)
 
-- **D1 — Alcance**: el contrato completo de `.specs/chatbox-component.md` §8, no solo la
+- **D1 — Alcance**: el contrato completo de `docs/specs/frontend/chatbox-component.md` §8, no solo la
   letra de RF-F41. Cierra el hueco entre ambos: una única región, más aborto y la
   rehidratación que hoy anuncia por error.
 - **D2 — Origen del anuncio**: eventos del turno emitidos por `useChatStream`
@@ -37,7 +37,7 @@
   del 2026-10-26 (issue #113), porque nunca se ejecutó y porque lo que añadía —la
   fonética— no es un contrato del widget.
 - **D10 — Ubicaciones**: esta spec, `docs/decisions/005-…`, una sección de glosario y una
-  issue. `docs/stitch-frontend-design/SPEC-FRONTEND.md` **no se toca**: los IDs `RF-Fxx`
+  issue. `docs/design/SPEC-FRONTEND.md` **no se toca**: los IDs `RF-Fxx`
   son la referencia estable entre `TODO.md` y la spec de diseño; la ampliación de RF-F41
   vive aquí.
   > *Enmienda (2026-10-26, issue #113):* la D10 sigue valiendo para los **identificadores**

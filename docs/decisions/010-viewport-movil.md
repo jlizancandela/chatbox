@@ -142,8 +142,8 @@ El viewport móvil del widget es un **contrato**, no una lista de comprobaciones
 
 ## Referencias
 
-- Requisito: RF-F50 de `docs/stitch-frontend-design/SPEC-FRONTEND.md`.
-- Spec de implementación: `frontend/.specs/RF-F50-viewport-movil.md`.
+- Requisito: RF-F50 de `docs/design/SPEC-FRONTEND.md`.
+- Spec de implementación: `docs/specs/frontend/RF-F50-viewport-movil.md`.
 - Issue: #117.
 
 ## Alternativas rechazadas

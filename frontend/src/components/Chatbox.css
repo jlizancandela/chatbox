@@ -1,4 +1,4 @@
-/* Chatbox widget styles — RF-F61 + RF-F42 + Stitch (`docs/stitch-frontend-design`).
+/* Chatbox widget styles — RF-F61 + RF-F42 + Stitch (`docs/design`).
  * Self-contained theme: the tokens live on `.chatbox` and the widget consumes
  * them. Layer precedence, lowest to highest:
  *   defaults < @media (prefers-color-scheme: dark) < [data-theme] (T3)

@@ -1,6 +1,6 @@
 # TODO — Frontend Chatbox (Preact + Vite)
 
-Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEND.md`.
+Este archivo refleja el estado real de `docs/design/SPEC-FRONTEND.md`.
 
 ## Paso 0 — Proyecto base y herramientas ✅
 
@@ -18,7 +18,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] Crear `src/chat/infrastructure/sse.ts` — parser puro de frames SSE (`parseSSE(data: string)` → evento o null; maneja frames partidos entre chunks, varios frames en un chunk, y payloads con `history`).
 - [x] Crear `src/chat/domain/conversation.ts`:
   - `chatReducer()` y `useChat()` — estado reactivo local de `messages`, `context` y ciclo del turno.
-  - `trimHistory(messages, limits)` — recortes de 20 mensajes / 2000 chars por mensaje / 8000 total (alineados con `.env` del API).
+  - `trimHistory(messages, limits)` — recortes de 12 mensajes / 1000 chars por mensaje / 4000 total (alineados con `.env` del API).
   - `mergeContext(sourcesHistory)` — sustituye `context` por el historial del servidor.
   - `buildChatRequest(text, context)` — genera el cuerpo de `POST /api/chat`.
   - `saveToSessionStorage(messages, context)` y `loadFromSessionStorage()` en `src/chat/infrastructure/storage.ts` — validación tolerante, clave versionada `chatbox:v1`.
@@ -68,7 +68,7 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 - [x] `RF-F30` — `react-markdown` con `allowedElements` (`p`, `strong`, `em`, `code`, `a`, `ul`, `ol`, `li`), sin `rehype-raw`, `urlTransform` solo `http(s):` y `mailto:`. Carga diferida con `import()`.
 - [x] `RF-F31` — Enlaces en pestaña nueva con `rel="noopener noreferrer"`, color contrastante y subrayado. SafeLink renombrado a ExternalLink; estilos aplicados a todos los enlaces.
 - [x] `RF-F61` — Variables CSS `--chatbox-*` heredadas del sitio + `prefers-color-scheme`; resolución verificada en navegador real con Playwright para T2/T3/T4 y axe-core (issue #62).
-- [x] Paleta y formas del widget adaptadas al export de Stitch (`docs/stitch-frontend-design`): roles Material 3 (`primary #00685f`, `on-surface #1a1b22`, `surface-container #eeedf7`, `outline #6d7a77`); la capa oscura se deriva de los roles inversos/fixed del mismo export, que no trae esquema dark. Tres tokens tonales añadidos (`surface-subtle`, `surface-raised`, `accent-container`) más superficies sin borde con separación tonal, radios 16/12/píldora y objetivos táctiles de 44 px. El borde de `outline-variant` no se usa: no llegaba a 3:1 contra la superficie.
+- [x] Paleta y formas del widget adaptadas al export de Stitch (`docs/design`): roles Material 3 (`primary #00685f`, `on-surface #1a1b22`, `surface-container #eeedf7`, `outline #6d7a77`); la capa oscura se deriva de los roles inversos/fixed del mismo export, que no trae esquema dark. Tres tokens tonales añadidos (`surface-subtle`, `surface-raised`, `accent-container`) más superficies sin borde con separación tonal, radios 16/12/píldora y objetivos táctiles de 44 px. El borde de `outline-variant` no se usa: no llegaba a 3:1 contra la superficie.
 - [x] Selectores de `Chatbox.css` sincronizados con el markup: el estado vacío monta `nav > ul > li` (no `ol`) y `.chatbox__conversation-actions` ya tiene fila propia. Guardia de regresión en `test/browser/widget-appearance.spec.ts`.
 - [x] `RF-F62` — Textos de UI centralizados en `src/strings.es.ts`.
 - [x] Estilos propios con clase raíz `.chatbox`; sin dependencia de estilos globales (RF-F61/L6; guardia en `test/unit/chatbox-scoped-styles.test.ts` y `test/browser/scoped-styles.spec.ts`).
@@ -87,8 +87,8 @@ Este archivo refleja el estado real de `docs/stitch-frontend-design/SPEC-FRONTEN
 
 ## Paso 6 — Responsive y móvil
 
-- [x] `RF-F50` — Altura con `dvh`, `env(safe-area-inset-*)`, `font-size` ≥ 16 px en textarea (evitar zoom iOS). La altura la da el host y el tope es `100dvh`; la safe area se suma al padding base en cabecera, hilo y pie; el campo declara `max(1rem, 16px)` como suelo absoluto. Contrato con guarda de mecanismo y resolución en Chromium, y sin nivel manual (`.specs/RF-F50-viewport-movil.md`).
-- [x] `RF-F51` — Ajuste con `visualViewport` si el chat va a pantalla completa o flotante: el widget reserva en su raíz la franja que tapa el teclado —y solo si está anclado al borde inferior de la pantalla—; el pie con el campo de texto queda por encima del teclado y el hilo no pierde su final. Contrato con guarda de mecanismo y resolución en Chromium, y sin nivel manual (`.specs/RF-F51-teclado-virtual.md`, #119).
+- [x] `RF-F50` — Altura con `dvh`, `env(safe-area-inset-*)`, `font-size` ≥ 16 px en textarea (evitar zoom iOS). La altura la da el host y el tope es `100dvh`; la safe area se suma al padding base en cabecera, hilo y pie; el campo declara `max(1rem, 16px)` como suelo absoluto. Contrato con guarda de mecanismo y resolución en Chromium, y sin nivel manual (`docs/specs/frontend/RF-F50-viewport-movil.md`).
+- [x] `RF-F51` — Ajuste con `visualViewport` si el chat va a pantalla completa o flotante: el widget reserva en su raíz la franja que tapa el teclado —y solo si está anclado al borde inferior de la pantalla—; el pie con el campo de texto queda por encima del teclado y el hilo no pierde su final. Contrato con guarda de mecanismo y resolución en Chromium, y sin nivel manual (`docs/specs/frontend/RF-F51-teclado-virtual.md`, #119).
 
 ## Paso 7 — Distribución como paquete npm
 
@@ -97,15 +97,15 @@ widget se distribuye desde npm como **fuente** (sin `dist`, sin build al instala
 bundler del sitio lo compila. El custom element cubre el consumo sin framework
 (HTML plano, CMS, WordPress) sin convertir el paquete en un bundle «universal».
 
-- [x] `RF-F64` — Variante flotante con estado contraído: el widget se ancla a la esquina inferior derecha y nace reducido a un lanzador circular de 56×56 que abre el panel. Contraer no interrumpe el turno ni borra la conversación. Cierra el formato del widget (embebido o flotante) que SPEC-FRONTEND §12.2 dejó abierto (#127, `.specs/RF-F64-modo-contraido.md`).
-- [x] `RF-F65` — Variante cajón: un panel de altura completa pegado al borde derecho de la pantalla, superpuesto a la página sin empujarla. Nace contraído —lanzador de 56×56 en la esquina inferior derecha— y se abre como panel. No es modal y no se anima (#162, `.specs/RF-F65-cajon-lateral.md`).
+- [x] `RF-F64` — Variante flotante con estado contraído: el widget se ancla a la esquina inferior derecha y nace reducido a un lanzador circular de 56×56 que abre el panel. Contraer no interrumpe el turno ni borra la conversación. Cierra el formato del widget (embebido o flotante) que SPEC-FRONTEND §12.2 dejó abierto (#127, `docs/specs/frontend/RF-F64-modo-contraido.md`).
+- [x] `RF-F65` — Variante cajón: un panel de altura completa pegado al borde derecho de la pantalla, superpuesto a la página sin empujarla. Nace contraído —lanzador de 56×56 en la esquina inferior derecha— y se abre como panel. No es modal y no se anima (#162, `docs/specs/frontend/RF-F65-cajon-lateral.md`).
 - [x] Separar la app/demo Vite del paquete distribuible: el tarball lleva el código del widget y nada más (`files` en `package.json`).
 - [x] Crear un paquete publicable con API y configuración estables (`@jlizancandela/chatbox`).
 - [x] Exponer `Chatbox` como componente Preact para consumidores con framework (export `.`).
 - [x] Exponer un custom element `<chatbox-widget>` para uso universal desde HTML (export `./element`).
 - [x] Recibir `apiUrl` y opciones mediante props/atributos; no hardcodear URLs de producción.
 - [x] Documentar instalación y uso vía NPM, HTML plano, Astro y Preact (`frontend/README.md`).
-- [x] Configurar versionado y releases: el manifiesto que el sitio instala vive en la raíz del repositorio y cada versión es un tag (`npm version` en la raíz). La primera versión etiquetada está publicada (`v0.1.0`) y el sitio de Astro ya la instala como dependencia de git.
+- [x] Configurar versionado y releases: el manifiesto que el sitio instala vive en la raíz del repositorio y cada versión es un tag (`npm version` en la raíz). La versión vigente está publicada (`v0.4.0`) y el sitio de Astro ya la instala como dependencia de git.
 
 ### Decisiones cerradas
 
@@ -132,6 +132,6 @@ bundler del sitio lo compila. El custom element cubre el consumo sin framework
 ## Pendiente de decisión (no bloqueante)
 
 - **Integración Astro**: el widget tiene las tres variantes (embebida, flotante y cajón, RF-F64/RF-F65); queda elegir cuál monta el sitio y si la superpuesta va con `client:idle`.
-- **Persistencia**: decidido `sessionStorage`; queda pendiente integrarla en el componente `Chatbox`.
+- **Persistencia**: resuelta; `sessionStorage` bajo la clave `chatbox:v1` (RF-F24).
 - **Timeout de 30 s y límites del cliente**: valores iniciales; ajustar tras medir latencia real.
 - **Galería de estados y Storybook**: con la galería propia de la página de desarrollo alcanza. **No** se mete Storybook mientras el widget tenga un solo consumidor: su infraestructura aportaría más que el catálogo. Cuando el Paso 7 lo convierta en paquete distribuible, la galería pasa a ser la documentación del paquete, y ahí Storybook —o su build estático publicado junto al paquete— sí se justifica.
