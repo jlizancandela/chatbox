@@ -1,11 +1,10 @@
-# Spec 49: implementación de `useChatStream`
+# Diseño detallado de `useChatStream`
 
 ## Estado del documento
 
-Issue: #49
-
 Este documento describe la implementación del hook `useChatStream`.
-El hook está implementado según esta especificación.
+El hook ya está implementado; este documento conserva su contrato, decisiones
+y escenarios de prueba.
 
 La finalidad es dejar documentados el propósito, las responsabilidades, los
 estados, los errores, los efectos secundarios y las pruebas necesarias antes de
@@ -13,7 +12,7 @@ comenzar la implementación.
 
 ## 1. Propósito
 
-`useChatStream` será la capa de aplicación que conecte la interfaz del chat con
+`useChatStream` es la capa de aplicación que conecta la interfaz del chat con
 el endpoint SSE del API:
 
 ```text
@@ -67,8 +66,7 @@ mensajes. Esas responsabilidades pertenecerán a `Chatbox`, `MessageList`,
 
 ## 3. API pública prevista
 
-La forma exacta puede ajustarse durante la implementación, pero el contrato
-previsto es:
+El contrato público implementado es:
 
 ```ts
 type UseChatStreamOptions = {
@@ -257,7 +255,7 @@ no permite enviar el JSON con `question` e `history`. `fetch` permite usar
 - rechazar preguntas vacías;
 - rechazar preguntas de más de 1000 caracteres;
 - filtrar y recortar el contexto;
-- respetar los límites de 20 mensajes, 2000 caracteres por mensaje y 8000
+- respetar los límites de 12 mensajes, 1000 caracteres por mensaje y 4000
   caracteres totales.
 
 Si la validación falla antes de `fetch`, el hook debe convertir el error en un
@@ -367,10 +365,7 @@ for (const event of events) {
       break;
 
     case "error":
-      chat.failTurn({
-        code: "STREAM_ERROR",
-        message: "No he podido completar la respuesta.",
-      });
+      chat.failTurn(chatErrors.streamEvent(event));
       break;
   }
 }
@@ -421,8 +416,10 @@ contexto. La interfaz mostrará después el mensaje local de “no lo tengo”.
 
 ### Evento `error`
 
-El texto recibido en `event.message` no se muestra directamente. El hook lo
-convierte a un error de interfaz genérico.
+El texto recibido en `event.message` no se muestra directamente. El código
+`event.code` decide el error de interfaz: `QUOTA_EXHAUSTED` tiene su propio
+mensaje ("el asistente está ocupado", no "algo falló") y el resto cae en el
+genérico. `retryAfterSeconds` viaja con el error cuando el proveedor lo da.
 
 ## 9. Agrupación de tokens con `requestAnimationFrame`
 
@@ -718,7 +715,13 @@ useChatStream.ts
 El hook debe reutilizar estos módulos. No debe duplicar reglas de historial,
 validación SSE o persistencia.
 
-## 16. Definición de terminado
+## 16. Estado de implementación
+
+La implementación actual se encuentra en `src/chat/hooks/useChatStream.ts` y
+su runner testeable se expone mediante `createChatStreamRunner()`. Los tests
+relacionados están en `test/unit/chat/hooks/use-chat-stream.test.ts`.
+
+## 17. Definición de terminado
 
 La futura implementación estará terminada cuando:
 

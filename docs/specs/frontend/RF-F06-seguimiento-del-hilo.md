@@ -1,6 +1,6 @@
 # RF-F06 — El seguimiento del hilo del chatbox
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Es una **spec ligera**: RF-F06 ya está en `frontend/TODO.md` y lo que estaba mal no era
@@ -115,7 +115,7 @@ desplazamiento pueda observar su tamaño, sin que el padre conozca el markup del
 | `test/unit/chat/domain/motion.test.ts` | La regla pura con las dos intenciones |
 | `test/browser/scroll-follow.spec.ts` | Nuevo: el seguimiento en Chromium (stream realista, markdown diferido, la persona que se aparta) |
 | `test/unit/strings-inventory.test.ts` | Lista blanca: las intenciones de scroll |
-| `frontend/.specs/RF-F44-movimiento-reducido.md` | Enmienda del criterio 5 |
+| `docs/specs/frontend/RF-F44-movimiento-reducido.md` | Enmienda del criterio 5 |
 | `docs/decisions/008-movimiento-reducido.md` | Enmienda de la decisión 6 |
 | `frontend/TODO.md` | Anotar RF-F06 con el issue: ya estaba marcado, pero la implementación no lo cumplía |
 
@@ -155,6 +155,6 @@ npm run test:browser  # suite de Playwright (Chromium)
 
 ## Referencias
 
-- Requisito: `../../docs/stitch-frontend-design/SPEC-FRONTEND.md` (RF-F06, RF-F30).
+- Requisito: `../../docs/design/SPEC-FRONTEND.md` (RF-F06, RF-F30).
 - Enmienda: `RF-F44-movimiento-reducido.md` y `../../docs/decisions/008-movimiento-reducido.md`.
 - Issue: #102.

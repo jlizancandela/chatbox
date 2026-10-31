@@ -1,6 +1,6 @@
 # RF-F62 — Centralización de los textos de UI
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Spec confirmado el 2026-10-18 tras sesión de `grill-with-docs`. Sin ADR: todas las

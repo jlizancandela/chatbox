@@ -1,6 +1,6 @@
 # RF-F48 — El umbral de seguimiento es una regla del dominio
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Es una **spec ligera** de un defecto de contrato de RF-F06 que el diagnóstico midió en
@@ -73,7 +73,7 @@ no contaba (30 < 80). Ese es el comportamiento que cambia.
 | `src/components/Chatbox.tsx` | Usa la regla del dominio; fuera el literal en línea |
 | `test/unit/chat/domain/scroll.test.ts` | Nuevo: los límites de la regla, sin DOM |
 | `test/browser/scroll-follow.spec.ts` | La precondición deriva de la regla; test nuevo de «apartarse un poco» |
-| `frontend/.specs/RF-F06-seguimiento-del-hilo.md` | Enmienda: el umbral es una regla del dominio y vale 16 px |
+| `docs/specs/frontend/RF-F06-seguimiento-del-hilo.md` | Enmienda: el umbral es una regla del dominio y vale 16 px |
 | `../../GLOSSARY.md` | «Umbral de seguimiento» |
 | `frontend/TODO.md` | RF-F48 |
 

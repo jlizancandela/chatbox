@@ -1,6 +1,6 @@
 # RF-F45 — Los nombres accesibles del widget son un contrato
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Issue: #112.
@@ -227,7 +227,7 @@ el hook pre-commit y CI.
 
 ## Referencias
 
-- Requisito: `../../docs/stitch-frontend-design/SPEC-FRONTEND.md` (RF-F45).
+- Requisito: `../../docs/design/SPEC-FRONTEND.md` (RF-F45).
 - Decisión: `../../docs/decisions/009-nombres-accesibles.md`.
 - Glosario: `../../GLOSSARY.md`.
 - Patrones heredados: `../../docs/decisions/006-contrato-y-verificacion-de-contraste.md`,

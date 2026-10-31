@@ -1,6 +1,6 @@
 # Fuentes visibles — la atribución de cada respuesta
 
-> Convención del proyecto: un spec por issue en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por issue en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Es una **spec ligera** de un ajuste de UX dentro de una corrección mayor (issue #110,

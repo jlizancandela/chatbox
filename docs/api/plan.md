@@ -77,7 +77,7 @@ Todo se implementa en un único backend Fastify con TypeScript. La clave de Groq
 - [x] Cancelar Groq cuando el cliente HTTP se desconecta.
 - [x] Cubrir el flujo con tests unitarios, de ruta y de desconexión HTTP real.
 
-## Paso 6 - Historial de conversación enviado por el cliente
+## Paso 6 - Historial de conversación enviado por el cliente ✅
 
 El cliente envía el historial de la conversación en cada petición `POST /api/chat`
 dentro del campo `history`. El servidor no persiste nada: no hay sesión, ni TTL,
@@ -102,11 +102,11 @@ corre por cuenta del cliente.
 - Las respuestas con contexto se generan con Groq y emiten fuentes y tokens mediante SSE.
 - Las preguntas sin contexto no producen respuestas inventadas.
 - El endpoint valida entradas, limita abuso por IP en memoria y no expone secretos.
-- Los cinco pasos implementados tienen un resultado verificable; el Paso 6 queda planificado.
+- Los pasos implementados tienen un resultado verificable y su checklist vive en `api/TODO.md`.
 
 ## Fuera de alcance actual
 
-- Embeddings locales.
+- Embeddings remotos de terceros: el corpus no sale de la infraestructura.
 - Escalado horizontal e infraestructura distribuida avanzada.
 - Autenticación de usuarios, cuentas y sesiones permanentes.
 - Versionado documental sofisticado o reemplazo atómico.
@@ -115,6 +115,7 @@ corre por cuenta del cliente.
 - Observabilidad avanzada, métricas o trazas distribuidas.
 - Panel de administración.
 
-La memoria temporal del Paso 6 no está implementada todavía; cuando se
-implemente seguirá sin representar cuentas ni conversaciones permanentes. El
-MVP no requiere cookies ni tokens de sesión anónimos.
+El servidor no persiste historial ni conversación: el cliente lo envía en cada
+petición y el servidor solo lo recorta. No hay cuentas ni conversaciones
+permanentes, y el presupuesto por sesión se apoya en un identificador que también
+genera el cliente.

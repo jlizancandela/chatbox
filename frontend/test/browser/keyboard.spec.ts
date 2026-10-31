@@ -152,7 +152,7 @@ test.describe("RF-F40 keyboard navigation", () => {
 		await page.addStyleTag({ content: ".chatbox { height: 400px; }" });
 		await sendByKeyboard(page, "¿Qué has hecho?");
 		// La respuesta tiene que estar completa antes de subir el hilo: si no, la subida cae
-		// a menos de ~80 px del final y el widget la trata como seguimiento (RF-F06).
+		// a menos de 16 px del final y el widget la trata como seguimiento (RF-F06).
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("Párrafo 60.");
 
 		const overflow = await page.locator(".chatbox__conversation").evaluate((element) => ({

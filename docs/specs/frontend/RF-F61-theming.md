@@ -1,6 +1,6 @@
 # RF-F61 — Theming del chatbox
 
-> Estructura del template `to-spec` adaptada a la convención del proyecto (`.specs/` por RF, decisiones de proceso en `../docs/decisions/`).
+> Estructura del template `to-spec` adaptada a la convención del proyecto (`docs/specs/frontend/` por RF, decisiones de proceso en `../../docs/decisions/`).
 >
 > Spec confirmado el 2026-10-17 tras sesión de `grill-with-docs`. Cambios respecto al borrador inicial: US #7 reescrita a lectura (a), L2 honra `data-theme` en ancestros (antes se rechazaba), `forced-colors: active` y `prefers-contrast: more` entran en scope (antes fuera), target sube a WCAG 2.x AAA, layout de archivos a `src/components/Chatbox.css` (antes `src/components/chatbox/chatbox.css`), glosario renombrado.
 >

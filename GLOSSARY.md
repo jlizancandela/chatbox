@@ -280,7 +280,7 @@ en issues, specs o tests.
 ## Distribución del widget (Paso 7)
 
 - **Paquete del widget**: el manifiesto que vive en la **raíz** del repositorio y que el
-  sitio instala como dependencia de git (`github:jlizancandela/chatbox#v0.1.0`). Se
+  sitio instala como dependencia de git (`github:jlizancandela/chatbox#v0.4.0`). Se
   distribuye **como fuente**: lleva el TypeScript del widget y nada más, y el bundler del
   sitio compila. No hay registro ni cuenta de por medio, no hay `dist` ni paso de build al
   instalar, y el código sigue viviendo en `frontend/src`.

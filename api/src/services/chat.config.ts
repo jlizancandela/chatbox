@@ -84,7 +84,7 @@ const readEnum = <T extends string>(
  * se reenvía **completo** en cada turno, así que es la palanca que más pesa en el
  * coste: una conversación de diez turnos paga diez veces la misma pregunta. Con el
  * tope anterior, un turno con el historial lleno costaba ~2.160 tokens; con este,
- * ~1.430. El efecto medido está en `api/.specs/148-presupuesto-por-sesion.md`.
+ * ~1.430. El efecto medido está en `docs/specs/api/148-presupuesto-por-sesion.md`.
  */
 const createHistoryLimits = (env: NodeJS.ProcessEnv = process.env): HistoryLimits => {
 	const limits: HistoryLimits = {

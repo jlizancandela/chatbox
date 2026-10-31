@@ -1,6 +1,6 @@
 # RF-F42 — Contraste del chatbox
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Spec confirmado el 2026-10-21 tras sesión de `grill-with-docs`. Decisión de verificación
@@ -59,7 +59,7 @@
   contrato de verificación y documentación.
 - **D19 — Una decisión nueva en `docs/decisions/`**. La decisión 002 (estrategia de tests para
   CSS y theming) sigue siendo cierta y no se toca: su contenido es de otra naturaleza.
-- **D20 — `docs/stitch-frontend-design/SPEC-FRONTEND.md` no se toca**: los IDs `RF-Fxx` son la
+- **D20 — `docs/design/SPEC-FRONTEND.md` no se toca**: los IDs `RF-Fxx` son la
   referencia estable entre `TODO.md` y la spec de diseño; la ampliación de RF-F42 vive aquí.
 - **D21 — La burbuja del asistente no es un componente visual**: su separación es solo tonal
   (1.16:1 en claro, 1.18:1 en oscuro) y la sombra al 5 % de negro aporta 1.12:1. Se
@@ -406,7 +406,7 @@ infraestructura de prueba.
 - **El fondo del sitio host y los valores que el host sobrescriba** quedan fuera de la
   garantía.
 - **El 7:1 del texto del cuerpo** no es criterio de aceptación de RF-F42.
-- **`docs/stitch-frontend-design/SPEC-FRONTEND.md` no se toca.**
+- **`docs/design/SPEC-FRONTEND.md` no se toca.**
 - **La API no se toca.** RF-F42 es íntegramente del frontend.
 - **RF-F43, RF-F44 y RF-F45** (objetivos táctiles, `prefers-reduced-motion`, etiquetas y
   `aria-label`) quedan fuera.

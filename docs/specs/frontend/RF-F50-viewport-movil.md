@@ -1,6 +1,6 @@
 # RF-F50 — Viewport móvil del chatbox
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Spec del 2026-10-27. Decisión de verificación en
@@ -228,7 +228,7 @@ el hook pre-commit y CI.
 
 ## Referencias
 
-- Requisito: `../../docs/stitch-frontend-design/SPEC-FRONTEND.md` (RF-F50).
+- Requisito: `../../docs/design/SPEC-FRONTEND.md` (RF-F50).
 - Decisión: `../../docs/decisions/010-viewport-movil.md`.
 - Glosario: `../../GLOSSARY.md` (RF-F50).
 - Patrones heredados: `../../docs/decisions/002-css-theming-test-strategy.md`,

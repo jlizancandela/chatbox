@@ -12,7 +12,7 @@ Es el widget que usa [jorgelizancandela.com](https://jorgelizancandela.com), y s
 **directo desde este repositorio**: sin registro de paquetes, sin cuenta y sin token.
 
 ```bash
-npm i github:jlizancandela/chatbox#v0.2.0 preact
+npm i github:jlizancandela/chatbox#v0.4.0 preact
 ```
 
 ## Cómo funciona
@@ -78,9 +78,15 @@ de la API, props del widget— vive en su README:
 
 ## Documentación
 
-- [`GLOSSARY.md`](GLOSSARY.md) — términos del dominio.
+El índice y el mapa de autoridad están en [`docs/README.md`](docs/README.md). Los
+puntos de entrada:
+
+- [`docs/spec.md`](docs/spec.md) — requisitos de la API.
+- [`docs/design/SPEC-FRONTEND.md`](docs/design/SPEC-FRONTEND.md) — requisitos del widget.
 - [`docs/decisions/`](docs/decisions/) — ADRs, con el porqué de cada decisión.
-- [`docs/plan-implementacion-api-chatbox.md`](docs/plan-implementacion-api-chatbox.md) — plan del MVP.
+- [`docs/specs/`](docs/specs/) — specs de implementación por issue.
+- [`GLOSSARY.md`](GLOSSARY.md) — términos del dominio.
+- [`docs/api/plan.md`](docs/api/plan.md) — plan histórico del MVP.
 - [`api/TODO.md`](api/TODO.md) y [`frontend/TODO.md`](frontend/TODO.md) — estado real.
 
 ## Licencia

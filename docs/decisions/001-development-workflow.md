@@ -32,9 +32,9 @@ explícita.
 Toda modificación debe tener una issue, pero el nivel de documentación depende
 del riesgo:
 
-- **Spec formal en `.specs/`** para features, cambios de API, arquitectura,
+- **Spec formal en `docs/specs/`** para features, cambios de API, arquitectura,
   seguridad, migraciones o cambios con riesgo técnico.
-- **Spec ligera en `.specs/`** para refactors, configuración, documentación
+- **Spec ligera en `docs/specs/`** para refactors, configuración, documentación
   relevante o ajustes de UX.
 - **Issue y PR sin spec** para correcciones tipográficas, formato,
   actualizaciones mecánicas y fixes obvios.
@@ -60,7 +60,7 @@ encuentre antes de empezar:
 ## Consecuencias
 
 - `AGENTS.md` puede mantenerse corto y específico del proyecto.
-- `.specs/` queda reservado para implementaciones concretas y puede vincularse
+- `docs/specs/` queda reservado para implementaciones concretas y puede vincularse
   directamente a issues.
 - Las decisiones generales tienen una ubicación estable y no se pierden al
   reorganizar un módulo.
@@ -71,5 +71,5 @@ encuentre antes de empezar:
 
 - `frontend/AGENTS.md` no contiene el procedimiento completo de issue, rama,
   commit, PR y merge.
-- `.specs/` conserva solo documentos de implementaciones.
+- `docs/specs/` conserva solo documentos de implementaciones.
 - Las decisiones de proceso están disponibles bajo `docs/decisions/`.

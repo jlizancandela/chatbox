@@ -1,6 +1,6 @@
 # RF-F64 — Variante flotante contraída del chatbox
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Spec del 2026-10-28. Issue: #127.
@@ -12,7 +12,7 @@
 > expandido —el panel completo—. Contraer no interrumpe el turno ni borra la
 > conversación. | I |
 
-Este RF cierra la decisión abierta §12.2 de `docs/stitch-frontend-design/SPEC-FRONTEND.md`
+Este RF cierra la decisión abierta §12.2 de `docs/design/SPEC-FRONTEND.md`
 —«embebido en una sección o botón flotante»— y da forma al «Modo Burbuja Flotante» que
 Stitch describe en `prd_widget_asistente_de_jorge.md:42-53`.
 
@@ -239,7 +239,7 @@ de desplazamiento, y con `100vw` la tarjeta se saldría por debajo de ella.
 | `test/touch-targets.ts`, `test/accessible-names.ts` | Estados y controles nuevos |
 | `test/browser/accessibility.spec.ts`, `test/browser/accessible-names.spec.ts`, `test/browser/touch-targets.spec.ts`, `test/browser/virtual-keyboard.spec.ts` | Escenarios nuevos |
 | `test/unit/strings-inventory.test.ts` | Lista blanca |
-| `GLOSSARY.md`, `docs/stitch-frontend-design/SPEC-FRONTEND.md` | Vocabulario y requisito |
+| `GLOSSARY.md`, `docs/design/SPEC-FRONTEND.md` | Vocabulario y requisito |
 | `TODO.md`, `AGENTS.md` | Estado del MVP y el número de estados de axe |
 
 ## Criterios de aceptación
@@ -296,9 +296,9 @@ el hook pre-commit y CI.
 
 ## Referencias
 
-- Requisito: `../../docs/stitch-frontend-design/SPEC-FRONTEND.md` (RF-F64, §12.2).
+- Requisito: `../../docs/design/SPEC-FRONTEND.md` (RF-F64, §12.2).
 - Glosario: `../../GLOSSARY.md` (RF-F64).
-- Diseño de referencia: `../../docs/stitch-frontend-design/stitch_portfolio_ai_chat_widget_ui/prd_widget_asistente_de_jorge.md`
+- Diseño de referencia: `../../docs/design/stitch_portfolio_ai_chat_widget_ui/prd_widget_asistente_de_jorge.md`
   (FR-02, Modo Burbuja Flotante) y `.../widget_lab_modo_burbuja_floating_launcher/code.html`.
 - Decisión heredada: `../../docs/decisions/011-teclado-virtual.md` (la variante flotante es
   el caso «panel anclado por su borde inferior» que la decisión anticipa).

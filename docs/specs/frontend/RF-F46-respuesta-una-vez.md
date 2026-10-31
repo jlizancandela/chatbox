@@ -1,6 +1,6 @@
 # RF-F46 — La respuesta se ve una sola vez
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Es una **spec ligera** de un defecto del contrato de RF-F41 que el diagnóstico midió en
@@ -64,7 +64,7 @@
 | `test/browser/live-region.spec.ts` | Tres tests nuevos: una sola copia visible; el indicador mientras carga el markdown; el error sigue visible |
 | `test/browser/keyboard.spec.ts`, `test/browser/touch-targets.spec.ts` | Esperan la respuesta completa antes de subir el hilo (ver «Riesgos») |
 | `test/unit/strings-inventory.test.ts` | Lista blanca: `chatbox__status--announced`; las clases del indicador pasan a escapes justificados |
-| `frontend/.specs/RF-F41-region-estado.md` | Enmienda de la línea que justificaba pintar el anuncio |
+| `docs/specs/frontend/RF-F41-region-estado.md` | Enmienda de la línea que justificaba pintar el anuncio |
 | `GLOSSARY.md` | «Región de estado» y «Indicador de escritura» |
 | `frontend/TODO.md` | RF-F46 |
 

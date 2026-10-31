@@ -202,7 +202,7 @@ test.describe("con una conversación larga", () => {
 		await page.goto("/?widget=embedded");
 		await page.locator("#chatbox-question").fill("Cuéntame algo largo");
 		await page.getByRole("button", { name: strings.input.send.ariaLabel }).click();
-		// La respuesta completa antes de subir el hilo: si no, la subida cae a menos de ~80 px
+		// La respuesta completa antes de subir el hilo: si no, la subida cae a menos de 16 px
 		// del final y el widget la trata como seguimiento (RF-F06).
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra119");
 

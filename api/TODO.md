@@ -1,6 +1,6 @@
 # TODO — MVP RAG vectorial
 
-Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`.
+Este archivo refleja el estado real de `docs/api/plan.md`.
 
 ## Paso 1 — Base ejecutable y almacenamiento vectorial ✅
 
@@ -68,8 +68,6 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 
 ## Paso 6 — Historial de conversación enviado por el cliente ✅
 
-- [x] ~~Definir el contrato del historial en el servidor (sesiones, TTL, cascade delete)~~.
-- [x] ~~Migración PostgreSQL para sesiones y mensajes temporales~~.
 - [x] El cliente envía `history` en cada petición; el servidor no persiste nada.
 - [x] Actualizar esquema de `POST /api/chat` para aceptar `history?: ChatMessage[]`.
 - [x] Simplificar `chatService`: eliminar `loadHistory` y `saveTurn`.
@@ -82,7 +80,7 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] System prompt estricto con delimitadores `=== CONTEXT ===` y reglas anti-injection.
 - [x] `trimHistory()` server-side: límites de mensajes, caracteres por mensaje y totales.
 - [x] Evento `sources` lleva el historial canónico para sync del cliente.
-- [x] Schema valida `content.maxLength=2000` por mensaje (400 si excede).
+- [x] Schema valida `history[].content.maxLength` contra `HISTORY_MAX_MESSAGE_CHARS` (1000 por defecto; `400` si excede).
 - [x] Variables `HISTORY_MAX_MESSAGES`, `HISTORY_MAX_MESSAGE_CHARS`, `HISTORY_MAX_TOTAL_CHARS`.
 - [x] Tests de `trimHistory` y actualización del contrato SSE.
 - [x] Documentación en README.md y .env.example.
@@ -98,3 +96,9 @@ Este archivo refleja el estado real de `docs/plan-implementacion-api-chatbox.md`
 - [x] Configurar `temperature`, `max_completion_tokens` y `reasoning_effort`.
 - [x] Configurar `top-k` en lugar de hardcodearlo.
 - [x] Pintar las fuentes en el widget.
+
+## Paso 9 — Operación pública ✅
+
+- [x] Endurecer la exposición pública: ráfaga y cuota diaria sobre la misma ruta, tope global, `trustProxy` y timeouts (`docs/specs/api/143-exposicion-publica.md`).
+- [x] Traza por petición con `x-request-id` y nivel configurable, sin cuerpos ni secretos (`docs/specs/api/146-observabilidad-logging.md`).
+- [x] Presupuesto por sesión con `x-session-id`, corte `SESSION_BUDGET_EXCEEDED` y reinicio al empezar conversación (`docs/specs/api/148-presupuesto-por-sesion.md`).

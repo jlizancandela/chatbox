@@ -9,7 +9,7 @@
  * golpe no genera los casos en los que el seguimiento importa, porque la respuesta llega
  * antes de que haya nada que seguir.
  *
- * Ver `frontend/.specs/RF-F06-seguimiento-del-hilo.md`.
+ * Ver `docs/specs/frontend/RF-F06-seguimiento-del-hilo.md`.
  */
 
 import { expect, type Page, test } from "@playwright/test";

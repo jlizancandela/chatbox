@@ -6,7 +6,7 @@ Implementación en curso en la rama `feature/chatbox-component`.
 
 Esta spec documenta el alcance aprobado para el componente de UI que integra
 `useChat`, `useChatStream` y la persistencia local del chat. La especificación
-funcional general continúa en `../docs/stitch-frontend-design/SPEC-FRONTEND.md`.
+funcional general continúa en `../../docs/design/SPEC-FRONTEND.md`.
 
 ## 1. Propósito
 

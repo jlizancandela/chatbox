@@ -1,6 +1,6 @@
 # RF-F44 — Movimiento reducido del chatbox
 
-> Convención del proyecto: un spec por RF en `.specs/`, decisiones de proceso en
+> Convención del proyecto: un spec por RF en `docs/specs/frontend/`, decisiones de proceso en
 > `docs/decisions/` de la raíz, glosario en `GLOSSARY.md` de la raíz.
 >
 > Spec confirmado el 2026-10-22 tras sesión de `grill-with-docs`. Decisión de verificación
@@ -309,12 +309,12 @@ reducido, Indicador de escritura, Contrato de movimiento.
 
 ## Referencias
 
-- Requisito: `../../docs/stitch-frontend-design/SPEC-FRONTEND.md` (RF-F44).
+- Requisito: `../../docs/design/SPEC-FRONTEND.md` (RF-F44).
 - Decisión: `../../docs/decisions/008-movimiento-reducido.md`.
 - Glosario: `../../GLOSSARY.md` (RF-F44).
 - Patrones heredados: `../../docs/decisions/002-css-theming-test-strategy.md`,
   `../../docs/decisions/006-contrato-y-verificacion-de-contraste.md`,
   `../../docs/decisions/007-objetivos-tactiles.md`.
-- Diseño de referencia: `../../docs/stitch-frontend-design/stitch_portfolio_ai_chat_widget_ui/widget_lab_desktop_embedded_chat/code.html`
+- Diseño de referencia: `../../docs/design/stitch_portfolio_ai_chat_widget_ui/widget_lab_desktop_embedded_chat/code.html`
   (tres puntos con `animate-bounce` y retardos 0/150/300 ms).
 - Issue: #100.

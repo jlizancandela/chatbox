@@ -72,7 +72,7 @@ El movimiento reducido del widget es un **contrato**, no una lista de comprobaci
    divergió hoy fue el que nadie tocó. *(Enmienda del 2026-10-22: esta decisión decía «suave»
    para los dos. El diagnóstico de RF-F06 —issue #102— midió que con scroll suave el hilo se
    quedaba en el 1% de una respuesta de 8000 px, porque medir la distancia durante una
-   animación da un falso «la persona se fue». Ver `frontend/.specs/RF-F06-seguimiento-del-hilo.md`.)*
+   animación da un falso «la persona se fue». Ver `docs/specs/frontend/RF-F06-seguimiento-del-hilo.md`.)*
 7. **Bajo movimiento reducido el scroll pide `behavior: "auto"`**, no `"instant"`. `auto`
    delega en el `scroll-behavior` computado, y el contrato CSS declara `scroll-behavior: auto`
    en la caja de scroll: el CSS es el que garantiza el salto instantáneo. `"instant"` daría
