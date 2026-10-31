@@ -1,5 +1,7 @@
 # @jlizancandela/chatbox
 
+[![Frontend CI](https://github.com/jlizancandela/chatbox/actions/workflows/frontend.yml/badge.svg?branch=main)](https://github.com/jlizancandela/chatbox/actions/workflows/frontend.yml) [![Widget tag](https://img.shields.io/github/v/tag/jlizancandela/chatbox?label=widget)](https://github.com/jlizancandela/chatbox/tags) ![Preact](https://img.shields.io/badge/Preact-673AB8?logo=preact&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+
 Widget de chat con **respuestas fundamentadas**: pregunta sobre un corpus documental y el
 asistente responde con lo que hay en esos documentos, citando de dónde sale cada respuesta.
 
