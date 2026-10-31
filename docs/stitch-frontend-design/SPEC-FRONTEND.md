@@ -159,6 +159,7 @@ Prioridad: **I** imprescindible · **R** recomendable.
 | ID | Requisito | P |
 |---|---|---|
 | RF-F64 | El widget tendrá una variante flotante anclada a la esquina inferior derecha de la pantalla, con dos estados: contraído —un lanzador circular de 56×56 que abre el chat— y expandido —el panel completo—. Contraer no interrumpe el turno ni borra la conversación. | I |
+| RF-F65 | El widget tendrá una variante cajón: un panel de altura completa pegado al borde derecho de la pantalla, que se superpone a la página sin empujarla. Nace contraído —un lanzador circular de 56×56 en la esquina inferior derecha— y se abre como panel. Contraer no interrumpe el turno ni borra la conversación. | I |
 
 ---
 
@@ -307,7 +308,7 @@ Uso:
 ## 12. Decisiones abiertas
 
 1. ~~**Framework**~~ Resuelto: Preact.
-2. ~~**Formato**~~ Resuelto: RF-F64. El widget tiene dos variantes: **embebida**, en el flujo del sitio host, que es la que entrega hoy; y **flotante**, anclada a la esquina inferior derecha, que nace contraída y se abre en panel. Afecta a `client:visible` vs `client:idle` y a RF-F51.
+2. ~~**Formato**~~ Resuelto: RF-F64 y RF-F65. El widget tiene tres variantes: **embebida**, en el flujo del sitio host, que es la que entrega hoy; **flotante**, anclada a la esquina inferior derecha, que nace contraída y se abre en panel; y **cajón**, un panel de altura completa pegado al borde derecho, que se superpone a la página sin empujarla. Afecta a `client:visible` vs `client:idle` y a RF-F51.
 3. **Persistencia:** `sessionStorage` (propuesta) vs `localStorage` vs solo memoria. `sessionStorage` deja menos huella pero se pierde al cerrar la pestaña.
 4. **Markdown:** `react-markdown` decidido. Pendiente medir qué formato emite el modelo con 15–20 preguntas de prueba (y, opcionalmente, añadir al prompt si se quiere limitar el formato) y medir el peso real descargado en el build.
 5. **Timeout de 30 s y límites del cliente:** valores iniciales; ajustar tras medir la latencia real.

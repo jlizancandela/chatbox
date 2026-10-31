@@ -85,8 +85,8 @@ export default defineConfig({
 | `suggestions` | No | Las del widget | Preguntas sugeridas del estado vacío. |
 | `contactUrl` | No | — | Enlace de contacto, en el aviso de «no lo tengo». |
 | `title` | No | «Asistente de Jorge» | Título de la cabecera. |
-| `variant` | No | `"floating"` | `"floating"` (lanzador en la esquina) o `"embedded"` (sección en el flujo de la página). |
-| `initiallyCollapsed` | No | `true` si es flotante | Si la variante flotante nace contraída. |
+| `variant` | No | `"floating"` | `"floating"` (lanzador en la esquina), `"drawer"` (panel de altura completa pegado al borde derecho) o `"embedded"` (sección en el flujo de la página). |
+| `initiallyCollapsed` | No | `true` si es flotante o cajón | Si la variante superpuesta nace contraída. |
 
 El widget trae sus propios estilos, todos bajo la clase `.chatbox`: no toca `:root` ni las
 variables del sitio. Para cambiarle el color, el sitio sobrescribe los tokens
@@ -114,16 +114,16 @@ props. Cada atributo es una prop:
 | `suggestions` | `suggestions` | Lista separada por comas: `Uno, Dos`. |
 | `contact-url` | `contactUrl` | Enlace de contacto. |
 | `title` | `title` | Título de la cabecera. |
-| `variant` | `variant` | `floating` (por defecto) o `embedded`. |
-| `initially-expanded` | `initiallyCollapsed` | Atributo booleano: presente, el widget nace expandido. Sin él, la variante flotante nace contraída. |
+| `variant` | `variant` | `floating` (por defecto), `drawer` o `embedded`. |
+| `initially-expanded` | `initiallyCollapsed` | Atributo booleano: presente, el widget nace expandido. Sin él, la variante superpuesta nace contraída. |
 
 `initially-expanded` se llama así, y no `initially-collapsed`, porque en HTML un
 atributo booleano está presente o no está: `initially-collapsed="false"` seguiría
 valiendo `true`. El atributo declara el estado afirmativo y, si no está, el widget
 decide lo suyo.
 
-Como en el componente, el estado contraído es el inicial de la variante flotante y se
-abre con el lanzador.
+Como en el componente, el estado contraído es el inicial de las variantes superpuestas —la
+flotante y el cajón— y se abre con el lanzador.
 
 ## Notas para quien integra
 
