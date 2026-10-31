@@ -18,7 +18,8 @@
 	},
 	"exports": {
 		".": "./frontend/src/index.ts",
-		"./element": "./frontend/src/element.ts"
+		"./element": "./frontend/src/element.ts",
+		"./vite": "./frontend/src/vite-preset.ts"
 	},
 	"files": [
 		"frontend/src/components",
@@ -27,7 +28,8 @@
 		"frontend/src/css.d.ts",
 		"frontend/src/index.ts",
 		"frontend/src/element.ts",
-		"frontend/README.md"
+		"frontend/README.md",
+		"frontend/src/vite-preset.ts"
 	],
 	"sideEffects": [
 		"**/*.css"

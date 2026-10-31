@@ -77,11 +77,14 @@ const manifestProblems = (
 };
 
 describe("el paquete que instala el sitio", () => {
-	it("está completo: los dos exports existen y viajan en el tarball", () => {
+	it("está completo: los exports existen y viajan en el tarball", () => {
 		const manifest = readManifest();
 
 		expect(manifestProblems(manifest)).toEqual([]);
-		expect(Object.keys(manifest.exports ?? {}).sort()).toEqual([".", "./element"]);
+		// `./vite` lleva la configuración que el sitio necesita para compilar el widget.
+		// Va aquí para que añadir un export sea una decisión y no un descuido: el test
+		// falla si aparece uno nuevo sin revisar que viaje en `files`.
+		expect(Object.keys(manifest.exports ?? {}).sort()).toEqual([".", "./element", "./vite"]);
 	});
 
 	it("declara el widget, no la app de desarrollo", () => {
