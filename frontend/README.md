@@ -31,15 +31,18 @@ bundler del sitio compila el TypeScript del widget y resuelve su hoja de estilos
 npm i github:jlizancandela/chatbox#v0.1.0 preact
 ```
 
-## Los dos exports
+## Los exports
 
 | Import | Qué trae |
 |---|---|
 | `@jlizancandela/chatbox` | El componente `Chatbox` y los tipos del contrato. |
 | `@jlizancandela/chatbox/element` | El custom element `<chatbox-widget>`. |
+| `@jlizancandela/chatbox/vite` | La configuración de Vite que el sitio necesita para compilar el widget. |
 
-Son exports separados a propósito: quien usa el componente no carga el elemento, y quien
-usa el elemento no carga el resto del widget dos veces.
+Los dos primeros son exports separados a propósito: quien usa el componente no carga el
+elemento, y quien usa el elemento no carga el resto del widget dos veces. El tercero no
+es código del widget: es lo que hace falta en el `astro.config.mjs` o el `vite.config.ts`
+del sitio (ver [Notas para quien integra](#notas-para-quien-integra)).
 
 ## Uso como componente (Preact, React, Astro)
 
@@ -124,18 +127,32 @@ abre con el lanzador.
 
 ## Notas para quien integra
 
-- **El alias `react → preact/compat` es obligatorio.** El widget renderiza el Markdown
-  con `react-markdown`, que es una librería de React: sin el alias, el sitio acabaría
-  con dos frameworks en el bundle y el Markdown no se pintaría bien. Con Vite y el preset
-  de Preact el alias viene puesto; en Astro hay que activarlo, porque la integración no
-  lo activa por su cuenta:
+- **Usa el preset de Vite.** El paquete trae la configuración que su código compilado
+  necesita. Sin ella el sitio **compila bien y falla en el navegador** con
+  `React is not defined`, así que no es opcional:
 
   ```js
   // astro.config.mjs
-  preact({ compat: true });
+  import { chatboxViteConfig } from "@jlizancandela/chatbox/vite";
+
+  export default defineConfig({
+    // …
+    vite: { ...chatboxViteConfig },
+  });
   ```
 
-  El alias cubre `react`, `react/jsx-runtime` y `react-dom`.
+  Trae dos cosas, y las dos hacen falta:
+
+  1. **Los alias de `react` a `preact/compat`.** El widget renderiza el Markdown con
+     `react-markdown`, que es una librería de React: sin el alias, el sitio acabaría con
+     dos frameworks en el bundle y el Markdown no se pintaría bien.
+  2. **El runtime JSX automático de Preact.** Los ficheros llegan como `.tsx` y un
+     `tsconfig` dentro de `node_modules` **no se aplica** —comprobado: con el `tsconfig`
+     en el tarball siguen saliendo 62 `React.createElement`—, así que sin esta opción
+     esbuild compila el JSX con el runtime clásico y el bundle pide un `React` global
+     que no existe.
+
+  Si prefieres escribirlo a mano, es exactamente lo que exporta `chatboxViteConfig`.
 - **El paquete es fuente.** El typecheck del sitio puede acabar leyendo el TypeScript
   del widget: `skipLibCheck` solo salta los `.d.ts`, y aquí no hay ninguno. Con
   `moduleResolution: "bundler"` (el valor por defecto de Astro) funciona; con
