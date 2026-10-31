@@ -11,14 +11,14 @@ Es el widget que usa [jorgelizancandela.com](https://jorgelizancandela.com), ins
 ## Instalación
 
 ```bash
-npm i github:jlizancandela/chatbox#v0.3.0
+npm i github:jlizancandela/chatbox#v0.4.0
 ```
 
-Cada versión del widget es un **tag** del repositorio (`v0.1.0`, `v0.2.0`, `v0.3.0`…), así que
+Cada versión del widget es un **tag** del repositorio (`v0.1.0`, `v0.2.0`, `v0.3.0`, `v0.4.0`…), así que
 actualizar es cambiar el tag:
 
 ```bash
-npm i github:jlizancandela/chatbox#v0.3.0
+npm i github:jlizancandela/chatbox#v0.4.0
 ```
 
 Lo que se instala es lo que declara el `package.json` de la raíz del repositorio: el
@@ -30,7 +30,7 @@ bundler del sitio compila el TypeScript del widget y resuelve su hoja de estilos
 único peer dependency es `preact`, que aporta el sitio:
 
 ```bash
-npm i github:jlizancandela/chatbox#v0.3.0 preact
+npm i github:jlizancandela/chatbox#v0.4.0 preact
 ```
 
 ## Los exports
