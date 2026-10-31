@@ -54,6 +54,31 @@ services:
     # EmbeddingGemma q4 mide ~620 MB de RSS en el contenedor. El límite deja aire
     # para el pico de carga y evita que un fallo del modelo arrastre al resto.
     mem_limit: 1g
+    # `default` se queda a propósito: es la red por la que encuentra a `db`, porque la
+    # URL de la base apunta al nombre del servicio. `traefik-public` es la que comparte
+    # con el proxy, y es la única puerta de entrada desde fuera.
+    networks:
+      - default
+      - traefik-public
+    # El túnel de Cloudflare ya manda cualquier subdominio a Traefik (el comodín está
+    # ahí), así que lo único que falta para que `api` exista es que Traefik sepa a qué
+    # contenedor va este host. Eso es lo que declaran estas etiquetas: no hace falta
+    # ningún hostname público en Cloudflare.
+    #
+    # `traefik.docker.network` no es decorativo: el contenedor está en dos redes y, sin
+    # esta etiqueta, Traefik puede elegir la equivocada y no alcanzarlo.
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.chatbox.rule=Host(`api.jorgelizancandela.com`)"
+      - "traefik.http.routers.chatbox.entrypoints=web"
+      - "traefik.http.services.chatbox.loadbalancer.server.port=7000"
 
 volumes:
   pgvector-data:
+
+networks:
+  # La red del proxy ya existe en el servidor y la comparten los demás servicios, así
+  # que se declara externa: Compose la usa pero no la crea ni la borra.
+  traefik-public:
+    external: true
