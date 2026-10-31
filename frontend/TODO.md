@@ -105,7 +105,7 @@ bundler del sitio lo compila. El custom element cubre el consumo sin framework
 - [x] Exponer un custom element `<chatbox-widget>` para uso universal desde HTML (export `./element`).
 - [x] Recibir `apiUrl` y opciones mediante props/atributos; no hardcodear URLs de producción.
 - [x] Documentar instalación y uso vía NPM, HTML plano, Astro y Preact (`frontend/README.md`).
-- [ ] Configurar versionado y releases: el manifiesto que el sitio instala vive en la raíz del repositorio y cada versión es un tag (`npm version` en la raíz). Falta la primera versión etiquetada y conectar el sitio de Astro.
+- [x] Configurar versionado y releases: el manifiesto que el sitio instala vive en la raíz del repositorio y cada versión es un tag (`npm version` en la raíz). La primera versión etiquetada está publicada (`v0.1.0`) y el sitio de Astro ya la instala como dependencia de git.
 
 ### Decisiones cerradas
 
