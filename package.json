@@ -1,6 +1,6 @@
 {
 	"name": "@jlizancandela/chatbox",
-	"version": "0.3.0",
+	"version": "0.4.0",
 	"description": "Widget de chat con respuestas fundamentadas sobre un corpus documental (RAG).",
 	"license": "MIT",
 	"keywords": [
