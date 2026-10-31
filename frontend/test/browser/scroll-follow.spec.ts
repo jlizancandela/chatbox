@@ -28,6 +28,14 @@ const APARTE_UN_POCO_PX = 30;
  * El body de una respuesta HTTP llega entero, así que el mock de `test/chat-frames.ts`
  * entrega los tokens de golpe: con esa señal el hilo nunca llega a crecer mientras se
  * transmite, y el seguimiento no se puede observar.
+ *
+ * El stream se puede **pausar desde el test** (`pauseStream`/`resumeStream`). Sin la pausa,
+ * «apartarse» y «llegar un token» compiten: el widget conoce el movimiento por el evento
+ * `scroll`, que el navegador entrega en el siguiente frame, y un token que llegue antes
+ * puede devolver el hilo al final aunque la persona se haya apartado. Esa carrera no se
+ * puede reproducir de forma determinista desde un test, y no es lo que estas pruebas
+ * miden: lo que miden es que, una vez el widget sabe que la persona se apartó, deja de
+ * seguirla mientras sigue llegando texto.
  */
 async function slowStream(
 	page: Page,
@@ -37,6 +45,23 @@ async function slowStream(
 ): Promise<void> {
 	await page.addInitScript(
 		({ count, delay, words }) => {
+			type Gate = { paused: boolean; waiters: Array<() => void> };
+			const gate: Gate = { paused: false, waiters: [] };
+			const host = window as unknown as {
+				__chatboxStream: { pause: () => void; resume: () => void };
+			};
+			host.__chatboxStream = {
+				pause: () => {
+					gate.paused = true;
+				},
+				resume: () => {
+					gate.paused = false;
+					for (const waiter of gate.waiters.splice(0)) waiter();
+				},
+			};
+			const waitIfPaused = () =>
+				gate.paused ? new Promise<void>((resolve) => gate.waiters.push(resolve)) : undefined;
+
 			const original = window.fetch.bind(window);
 			window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
 				if (!String(input).includes("/api/chat")) return original(input, init);
@@ -48,6 +73,7 @@ async function slowStream(
 						);
 						for (let index = 0; index < count; index++) {
 							await new Promise((resolve) => setTimeout(resolve, delay));
+							await waitIfPaused();
 							const text = Array.from(
 								{ length: words },
 								(_, word) => `palabra${index}_${word}`
@@ -68,6 +94,53 @@ async function slowStream(
 		},
 		{ count: tokens, delay: delayMs, words }
 	);
+}
+
+const streamControl = (page: Page) => {
+	const call = (action: "pause" | "resume") =>
+		page.evaluate((name) => {
+			const host = window as unknown as { __chatboxStream: Record<string, () => void> };
+			host.__chatboxStream[name]();
+		}, action);
+	return { pause: () => call("pause"), resume: () => call("resume") };
+};
+
+/**
+ * Aparta a la persona con el stream en pausa y espera a que el widget lo sepa (el botón
+ * «Ir al final» solo aparece cuando ha procesado el movimiento). Devuelve la posición y el
+ * control para reanudar: así el movimiento no compite con un token y la comprobación de que
+ * el hilo no vuelve solo se hace con el stream ya en marcha.
+ */
+async function moveAway(
+	page: Page,
+	mode: { toStart: true } | { awayBy: number }
+): Promise<{ scrollTop: number; resume: () => Promise<void> }> {
+	const stream = streamControl(page);
+	await stream.pause();
+	// Un token puede estar ya en el pipe: se le da su intervalo para que aterrice antes de
+	// mover nada, y así ningún token compite con el evento `scroll` del movimiento.
+	await page.waitForTimeout(120);
+
+	const scrollTop = await page.evaluate((away) => {
+		const conversation = document.querySelector(".chatbox__conversation") as HTMLElement;
+		conversation.scrollTop =
+			"toStart" in away ? 0 : conversation.scrollHeight - conversation.clientHeight - away.awayBy;
+		return conversation.scrollTop;
+	}, mode);
+
+	await expect(page.getByRole("button", { name: strings.actions.scrollToEnd })).toBeVisible();
+	return { scrollTop, resume: stream.resume };
+}
+
+/** Lee la posición del hilo durante un tramo del stream: un solo salto ya es un fallo. */
+async function positionsWhileStreaming(page: Page, samples = 8): Promise<number[]> {
+	const positions: number[] = [];
+	for (let index = 0; index < samples; index++) {
+		const state = await threadState(page);
+		positions.push(state.scrollTop);
+		await page.waitForTimeout(60);
+	}
+	return positions;
 }
 
 type ThreadState = {
@@ -126,7 +199,6 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 		await ask(page);
 
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra0");
-		console.log("MEDIDA VIEJO:", JSON.stringify(await threadState(page)));
 		await expect
 			.poll(async () => (await threadState(page)).atBottom, {
 				message: "el hilo tiene que volver al final cuando crece la burbuja",
@@ -153,21 +225,17 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 			})
 			.toBeGreaterThan(APARTE_UN_POCO_PX);
 
-		// 30 px del final: más que el umbral (16 px) y menos que lo que el widget
-		// toltaba antes (80 px). Un gesto pequeño de verdad es un apartarse de verdad.
-		const away = await page.evaluate((distance) => {
-			const conversation = document.querySelector(".chatbox__conversation") as HTMLElement;
-			conversation.scrollTop = conversation.scrollHeight - conversation.clientHeight - distance;
-			conversation.dispatchEvent(new Event("scroll"));
-			return conversation.scrollTop;
-		}, APARTE_UN_POCO_PX);
-
-		await expect(page.getByRole("button", { name: strings.actions.scrollToEnd })).toBeVisible();
+		// 30 px del final: más que el umbral (16 px) y menos que lo que el widget toleraba
+		// antes (80 px). Un gesto pequeño de verdad es un apartarse de verdad.
+		const away = await moveAway(page, { awayBy: APARTE_UN_POCO_PX });
 
 		// Y el hilo se queda donde lo dejó mientras sigue llegando texto.
+		await away.resume();
 		await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra10");
-		const after = await threadState(page);
-		expect(after.scrollTop, "el hilo no tiene que volver solo al final").toBe(away);
+		const positions = await positionsWhileStreaming(page);
+		expect(positions, "el hilo no tiene que volver solo al final").toEqual(
+			positions.map(() => away.scrollTop)
+		);
 	});
 
 	test("no arrastra a quien se aparta del hilo", async ({ page }) => {
@@ -191,13 +259,13 @@ test.describe("RF-F06 — el hilo sigue a la respuesta", () => {
 
 		// Quien se aparta lee por su cuenta: el hilo se queda donde lo dejó y aparece el
 		// botón para volver.
-		await page.evaluate(() => {
-			const conversation = document.querySelector(".chatbox__conversation");
-			if (conversation) conversation.scrollTop = 0;
-		});
-		await expect(page.getByRole("button", { name: strings.actions.scrollToEnd })).toBeVisible();
+		const away = await moveAway(page, { toStart: true });
+		expect(away.scrollTop).toBe(0);
 
-		const away = await threadState(page);
-		expect(away.scrollTop, "el hilo no tiene que volver solo al final").toBe(0);
+		// Y sigue ahí mientras el resto de la respuesta llega: un solo salto ya es el
+		// fallo que este test existe para cazar.
+		await away.resume();
+		const positions = await positionsWhileStreaming(page);
+		expect(positions, "el hilo no tiene que volver solo al final").toEqual(positions.map(() => 0));
 	});
 });
