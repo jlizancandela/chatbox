@@ -1,5 +1,7 @@
 # Chatbox API
 
+[![API CI](https://github.com/jlizancandela/chatbox/actions/workflows/api.yml/badge.svg?branch=main)](https://github.com/jlizancandela/chatbox/actions/workflows/api.yml) ![Fastify](https://img.shields.io/badge/Fastify-000000?logo=fastify&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?logo=postgresql&logoColor=white) ![Groq](https://img.shields.io/badge/Groq-F55036?logo=groq&logoColor=white) [![Image](https://img.shields.io/docker/image-size/jlizancandela/api_chatbox?label=image)](https://hub.docker.com/r/jlizancandela/api_chatbox)
+
 API Fastify en TypeScript para ingesta de documentos, recuperación vectorial con
 PostgreSQL/pgvector y respuestas fundamentadas mediante Groq, con embeddings autoalojados.
 
