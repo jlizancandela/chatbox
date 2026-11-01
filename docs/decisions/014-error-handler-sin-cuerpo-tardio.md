@@ -47,3 +47,5 @@ garantía.
   `error` de cierre, para que ese final sea un evento y no solo un cierre.
 - La observabilidad del fallo (registrarlo con causa y sin secretos) queda en #146: el
   manejador no registra nada propio para no duplicar la línea del error original.
+  **Revisado por la [016](./016-registro-de-errores-no-manejados.md)**: con un
+  `setErrorHandler` propio esa línea no existe, así que el camino de 500 sí la escribe.

@@ -98,7 +98,8 @@ export const createRateLimitMiddleware = (
 		 *
 		 * Las cabeceras las pone el plugin solo cuando actúa globalmente. Con
 		 * `global: false` hay que escribirlas a mano, y son parte del contrato: el
-		 * cliente tiene que poder ver cuánto le queda (#143).
+		 * cliente tiene que poder ver cuánto le queda (#143), con el saldo de verdad y no
+		 * con una constante (#176).
 		 */
 		fastify.decorate(
 			"checkRateLimits",
@@ -107,49 +108,40 @@ export const createRateLimitMiddleware = (
 				const daily = await checkDaily(request);
 				const global = await checkGlobal(request);
 
-				const burstExceeded = !burst.isAllowed && burst.isExceeded;
-				const dailyExceeded = !daily.isAllowed && daily.isExceeded;
-				const globalExceeded = !global.isAllowed && global.isExceeded;
+				// `isAllowed` solo es `true` para la allow list, que este middleware no
+				// configura. El saldo y la marca de exceso viven en la otra rama de la unión,
+				// y este descarte temprano es lo que la estrecha.
+				if (burst.isAllowed || daily.isAllowed || global.isAllowed) {
+					return "none";
+				}
 
-				if (burstExceeded || dailyExceeded || globalExceeded) {
-					const exceeded = globalExceeded ? global : burstExceeded ? burst : daily;
+				if (burst.isExceeded || daily.isExceeded || global.isExceeded) {
+					const exceeded = global.isExceeded ? global : burst.isExceeded ? burst : daily;
 
-					// El tipo del plugin es una unión: la parte "permitida" no expone los
-					// campos del límite. Aquí solo se llega con la parte "excedida".
-					const limit = exceeded as {
-						max: number;
-						remaining: number;
-						ttlInSeconds: number;
-					};
+					reply.header("x-ratelimit-limit", String(exceeded.max));
+					reply.header("x-ratelimit-remaining", String(exceeded.remaining));
+					reply.header("x-ratelimit-reset", String(exceeded.ttlInSeconds));
+					reply.header("retry-after", String(exceeded.ttlInSeconds));
 
-					reply.header("x-ratelimit-limit", String(limit.max));
-					reply.header("x-ratelimit-remaining", String(limit.remaining));
-					reply.header("x-ratelimit-reset", String(limit.ttlInSeconds));
-					reply.header("retry-after", String(limit.ttlInSeconds));
-
-					if (globalExceeded) {
+					if (global.isExceeded) {
 						return "global";
 					}
 
-					return dailyExceeded ? "daily" : "burst";
+					return daily.isExceeded ? "daily" : "burst";
 				}
 
-				const remaining =
-					burst.isAllowed && daily.isAllowed
-						? Math.min(config.burstMax - 1, config.dailyMax - 1)
-						: 0;
+				// La cabecera anuncia la ráfaga, que es la que corta antes, y el saldo es el
+				// del límite más apretado de los dos por IP.
+				const remaining = Math.min(burst.remaining, daily.remaining);
 
 				reply.header("x-ratelimit-limit", String(config.burstMax));
 				reply.header("x-ratelimit-remaining", String(remaining));
-				reply.header("x-ratelimit-reset", String(windowSeconds(config.burstWindow)));
+				reply.header("x-ratelimit-reset", String(burst.ttlInSeconds));
 
 				return "none";
 			}
 		);
 	});
-
-const windowSeconds = (window: number | string): number =>
-	typeof window === "number" ? Math.ceil(window / 1000) : 60;
 
 const rateLimitMiddleware: FastifyPluginAsync = createRateLimitMiddleware();
 

@@ -103,6 +103,28 @@ test("la cabecera del límite reporta la ráfaga, no solo el diario", async (t) 
 	assert.equal(limit, 20);
 });
 
+test("la cabecera del saldo baja con cada petición", async (t) => {
+	const app = await appWith(t, {
+		burstMax: 3,
+		burstWindow: "1 minute",
+		dailyMax: 100,
+		dailyWindow: "1 day",
+		globalMax: 100,
+		globalWindow: "1 day",
+	});
+
+	const balances: unknown[] = [];
+
+	for (let request = 0; request < 3; request += 1) {
+		const response = await app.inject({ method: "GET", url: "/limited" });
+		balances.push(response.headers["x-ratelimit-remaining"]);
+	}
+
+	// Con 3 de ráfaga quedan 2, 1 y 0. La cabecera decía siempre 0: `isAllowed` solo es
+	// `true` para la allow list, así que el saldo nunca se calculaba (#176).
+	assert.deepStrictEqual(balances, ["2", "1", "0"]);
+});
+
 test("el límite diario también corta cuando la ráfaga no lo ha hecho", async (t) => {
 	const app = await appWith(t, {
 		burstMax: 100,
