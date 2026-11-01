@@ -410,6 +410,26 @@ suficiente, la API no invoca al modelo generativo y emite únicamente
 `sources` (con lista vacía) y `done`. Los errores de validación previos al
 stream vuelven a responder como JSON con código `400`.
 
+### Errores HTTP
+
+Todo error previo al stream —y toda ruta que no existe— responde con el mismo cuerpo:
+
+```json
+{ "error": { "code": "VALIDATION_ERROR", "message": "Request validation failed" } }
+```
+
+| Código | `code` | Cuándo |
+|---:|---|---|
+| `400` | `VALIDATION_ERROR` | El cuerpo no cumple el esquema: falta `question`, un mensaje del historial supera su límite, o el JSON está mal formado. |
+| `404` | `NOT_FOUND` | La ruta no existe. |
+| `413` | `REQUEST_TOO_LARGE` | El cuerpo supera 16 KB. |
+| `415` | `UNSUPPORTED_MEDIA_TYPE` | El `Content-Type` no es `application/json`. |
+| `429` | `RATE_LIMIT_EXCEEDED`, `GLOBAL_LIMIT_EXCEEDED` | Se superó la ráfaga, el cupo del día o el tope global. `x-ratelimit-limit`, `x-ratelimit-remaining`, `x-ratelimit-reset` y `retry-after` dicen cuánto falta. |
+| `500` | `INTERNAL_ERROR` | Fallo no manejado. El mensaje es genérico a propósito: la causa queda en el log, con el `x-request-id` de la petición. |
+
+Dentro del stream, en cambio, el error viaja como un frame `error` (ver arriba): la
+respuesta ya empezó y no admite un cuerpo JSON nuevo.
+
 Ejemplo de frames:
 
 ```text
