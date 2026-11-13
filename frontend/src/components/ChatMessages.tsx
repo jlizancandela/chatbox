@@ -2,7 +2,7 @@ import type { ComponentChildren, Ref } from "preact";
 import { AssistantMarkdown } from "../chat/components/AssistantMarkdown";
 import { TypingIndicator } from "../chat/components/TypingIndicator";
 import { sourceTitles } from "../chat/domain/sources";
-import type { ChatMessage, ChatSource, VisibleMessage } from "../chat/types";
+import type { ChatSource, VisibleMessage } from "../chat/types";
 import { strings } from "../strings.es";
 
 type ChatMessagesProps = {

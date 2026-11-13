@@ -7,7 +7,7 @@
  * diverjan. No es código de producción: vive con los tests.
  */
 
-import postcss, { type AtRule, type Declaration, type Node, type Root, type Rule } from "postcss";
+import type { AtRule, Declaration, Node, Root, Rule } from "postcss";
 import { REDUCED_MOTION_QUERY } from "../src/chat/domain/motion";
 import { normalizeMediaParams } from "./media-params";
 
