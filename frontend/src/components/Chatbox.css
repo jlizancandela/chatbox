@@ -400,10 +400,26 @@
 	color: var(--chatbox-color-surface);
 }
 
+/* Bloques de Markdown del asistente (issue #182): los párrafos y listas consecutivos
+ * se separan entre sí sin añadir margen exterior al primer ni al último bloque, y
+ * manteniendo la sangría interior dentro de la burbuja. */
+.chatbox__message--assistant ul {
+	margin: 0;
+}
+
+.chatbox__message--assistant :is(p, ul, ol) + :is(p:not(.chatbox__sources), ul, ol) {
+	margin-top: 0.5rem;
+}
+
+.chatbox__message--assistant :is(ul, ol) {
+	padding-left: 1.25rem;
+}
+
 /* The sources of the answer (issue #110): the documents it comes from. Full-strength
  * ink, like the rest of the bubble: the attribution has to be readable, not decorative,
- * and blending it down would drop it under the 4.5:1 floor. */
-.chatbox__sources {
+ * and blending it down would drop it under the 4.5:1 floor. Scoped to
+ * `.chatbox__message--assistant` so its top margin beats `.chatbox p` (`margin: 0`). */
+.chatbox__message--assistant .chatbox__sources {
 	margin: 0.35rem 0 0;
 	font-size: 0.75rem;
 	color: var(--chatbox-color-text);
