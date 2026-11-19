@@ -4,7 +4,7 @@ Desarrollo web full-stack · PHP · TypeScript · React/Preact
 
 ## Perfil
 
-Cuenta activa desde agosto de 2023: github.com/jlizancandela. El perfil tiene nombre visible y bio configurados ("Desarrollador web junior | PHP · JavaScript/TypeScript · SQL | React/Preact"), con enlace al sitio jorgelizancandela.com.
+Cuenta activa desde agosto de 2023: [github.com/jlizancandela](https://github.com/jlizancandela). El perfil tiene nombre visible y bio configurados ("Desarrollador web junior | PHP · JavaScript/TypeScript · SQL | React/Preact"), con enlace al sitio [jorgelizancandela.com](https://jorgelizancandela.com).
 
 Estadísticas: 24 repositorios públicos · 3 años en GitHub · 0 repositorios archivados · 1 estrella (portafolio) · actividad continua en 2026 con contribuciones recientes en chatbox, portafolio, proyecto y proyecto-render.
 

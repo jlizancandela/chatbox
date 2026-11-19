@@ -1,11 +1,11 @@
 # Jorge Lizán Candela — Desarrollador Web Full Stack Junior
 
-- Correo: jlizancandela@gmail.com
-- Sitio web: jorgelizancandela.com
+- Correo: [jlizancandela@gmail.com](mailto:jlizancandela@gmail.com)
+- Sitio web: [jorgelizancandela.com](https://jorgelizancandela.com)
 - Teléfono: 683183851
 - Ubicación: Elche (Alicante), España
-- LinkedIn: jlizancandela/
-- GitHub: jlizancandela/
+- LinkedIn: [linkedin.com/in/jlizancandela](https://www.linkedin.com/in/jlizancandela/)
+- GitHub: [github.com/jlizancandela](https://github.com/jlizancandela/)
 
 ## Perfil profesional
 
@@ -15,7 +15,7 @@ Desarrollador web full stack graduado en DAW, con proyectos propios en producci�
 
 ### Reservas Peluquería — PHP + Preact + MySQL + Docker
 
-Sistema de gestión de reservas full-stack con backend en PHP 8.2 (router propio, plantillas Latte y acceso a datos con PDO) y frontend en Preact sobre MySQL. Código organizado en módulos siguiendo DDD (reservas, servicios, especialistas, usuarios y shared), con pruebas en Pest y Mockery, cobros con Stripe, gestión de imágenes con ImageKit y generación de PDF con DOMPDF. Se despliega con Docker Compose. reservas.jorgelizancandela.com
+Sistema de gestión de reservas full-stack con backend en PHP 8.2 (router propio, plantillas Latte y acceso a datos con PDO) y frontend en Preact sobre MySQL. Código organizado en módulos siguiendo DDD (reservas, servicios, especialistas, usuarios y shared), con pruebas en Pest y Mockery, cobros con Stripe, gestión de imágenes con ImageKit y generación de PDF con DOMPDF. Se despliega con Docker Compose. [reservas.jorgelizancandela.com](https://reservas.jorgelizancandela.com)
 
 ### Asistente de portfolio (Chatbox) — TypeScript + Fastify + PostgreSQL + pgvector
 
@@ -23,7 +23,7 @@ Widget de chat con RAG que responde sobre mi currículum y mis repositorios, pub
 
 ### Podólogos Pérez Guerrero — WordPress + Elementor
 
-Gestión completa del proyecto: desde requisitos hasta despliegue. Sitio en producción con contenido real. podologosperezguerrero.com
+Gestión completa del proyecto: desde requisitos hasta despliegue. Sitio en producción con contenido real. [podologosperezguerrero.com](https://podologosperezguerrero.com)
 
 ## Experiencia de trabajo
 

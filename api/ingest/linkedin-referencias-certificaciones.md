@@ -15,7 +15,7 @@ Información testimonial, validaciones externas y certificaciones obtenidas de l
 
 ## Validación social y presencia en LinkedIn
 
-- **Perfil profesional verificado:** linkedin.com/in/jlizancandela
+- **Perfil profesional verificado:** [linkedin.com/in/jlizancandela](https://www.linkedin.com/in/jlizancandela/)
 - **Disponibilidad laboral (Open to Work):** Búsqueda activa de empleo como Programador full stack o Desarrollador front-end.
 - **Aptitudes validadas:** Fastify, PostgreSQL, Generación aumentada por recuperación (RAG), TypeScript, Zustand, Vue.js, Tailwind CSS, Docker, Linux, Windows Server, Finanzas y Contabilidad.
-- **Publicaciones y proyectos compartidos:** Presentación pública de Chatbox (asistente RAG integrado en el portfolio personal jorgelizancandela.com).
+- **Publicaciones y proyectos compartidos:** Presentación pública de Chatbox (asistente RAG integrado en el portfolio personal [jorgelizancandela.com](https://jorgelizancandela.com)).
