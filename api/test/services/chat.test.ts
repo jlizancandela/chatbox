@@ -8,6 +8,7 @@ import {
 	type ChatMessage,
 	type ChatSource,
 	createAskStream,
+	shouldSendReasoningEffort,
 	trimHistory,
 } from "../../src/services/chat";
 
@@ -86,6 +87,89 @@ test("askStream sends the generation parameters to the provider", async () => {
 	assert.strictEqual(captured?.temperature, 0.3);
 	assert.strictEqual(captured?.max_completion_tokens, 512);
 	assert.strictEqual(captured?.reasoning_effort, "medium");
+});
+
+test("askStream omits reasoning_effort when reasoningEffort is none", async () => {
+	let captured: Record<string, unknown> | undefined;
+
+	const askStream = createAskStream({
+		retrieve: async () => [source()],
+		groqClient: createFakeGroq(async (params) => {
+			captured = params;
+			return emptyStream();
+		}),
+		modelDefault: "openai/gpt-oss-120b",
+		historyLimits: defaultLimits,
+		generation: {
+			temperature: 0.6,
+			maxCompletionTokens: 1200,
+			reasoningEffort: "none",
+		},
+	});
+
+	await collect(askStream("question", { history: [] }));
+
+	assert.ok(captured);
+	assert.strictEqual("reasoning_effort" in captured, false);
+	assert.strictEqual(captured.reasoning_effort, undefined);
+});
+
+test("askStream omits reasoning_effort when modelDefault is a llama-* model", async () => {
+	let captured: Record<string, unknown> | undefined;
+
+	const askStream = createAskStream({
+		retrieve: async () => [source()],
+		groqClient: createFakeGroq(async (params) => {
+			captured = params;
+			return emptyStream();
+		}),
+		modelDefault: "llama-3.3-70b-versatile",
+		historyLimits: defaultLimits,
+		generation: {
+			temperature: 0.6,
+			maxCompletionTokens: 1200,
+			reasoningEffort: "low",
+		},
+	});
+
+	await collect(askStream("question", { history: [] }));
+
+	assert.ok(captured);
+	assert.strictEqual("reasoning_effort" in captured, false);
+	assert.strictEqual(captured.reasoning_effort, undefined);
+});
+
+test("askStream sends reasoning_effort for reasoning models when effort is low, medium or high", async () => {
+	for (const reasoningEffort of ["low", "medium", "high"] as const) {
+		let captured: Record<string, unknown> | undefined;
+
+		const askStream = createAskStream({
+			retrieve: async () => [source()],
+			groqClient: createFakeGroq(async (params) => {
+				captured = params;
+				return emptyStream();
+			}),
+			modelDefault: "openai/gpt-oss-120b",
+			historyLimits: defaultLimits,
+			generation: {
+				temperature: 0.6,
+				maxCompletionTokens: 1200,
+				reasoningEffort,
+			},
+		});
+
+		await collect(askStream("question", { history: [] }));
+
+		assert.strictEqual(captured?.reasoning_effort, reasoningEffort);
+	}
+});
+
+test("shouldSendReasoningEffort skips none and llama-* models case-insensitively", () => {
+	assert.strictEqual(shouldSendReasoningEffort("openai/gpt-oss-120b", "none"), false);
+	assert.strictEqual(shouldSendReasoningEffort("llama-3.3-70b-versatile", "low"), false);
+	assert.strictEqual(shouldSendReasoningEffort("  LLaMA-3.1-8b-instant ", "high"), false);
+	assert.strictEqual(shouldSendReasoningEffort("openai/gpt-oss-120b", "low"), true);
+	assert.strictEqual(shouldSendReasoningEffort("model-test", "medium"), true);
 });
 
 test("askStream emits sources and done without context and skips Groq", async () => {

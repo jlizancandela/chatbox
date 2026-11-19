@@ -12,7 +12,7 @@ export type HistoryLimits = {
 	maxTotalChars: number;
 };
 
-export type ReasoningEffort = "low" | "medium" | "high";
+export type ReasoningEffort = "none" | "low" | "medium" | "high";
 
 export type GenerationConfig = {
 	temperature: number;
@@ -103,7 +103,8 @@ const createHistoryLimits = (env: NodeJS.ProcessEnv = process.env): HistoryLimit
  * conviene para responder con datos: Groq recomienda 0.5-0.7 para gpt-oss. El
  * límite de tokens tiene que contemplar el razonamiento del modelo, y el
  * esfuerzo por defecto ("medium") paga razonamiento en cada pregunta de un
- * widget que pide datos concretos.
+ * widget que pide datos concretos. Con `"none"` (o en modelos `llama-*`) no se
+ * envía `reasoning_effort`.
  *
  * El techo baja de 2.048 a 1.200 tokens (#148): el prompt pide un máximo de 200
  * palabras —unos 300 tokens— y el resto es holgura para el razonamiento. Con 1.200
@@ -112,7 +113,12 @@ const createHistoryLimits = (env: NodeJS.ProcessEnv = process.env): HistoryLimit
 export const createGenerationConfig = (env: NodeJS.ProcessEnv = process.env): GenerationConfig => ({
 	temperature: readFloatInRange(env, "GENERATION_TEMPERATURE", 0.6, 0, 2),
 	maxCompletionTokens: readPositiveInt(env, "GENERATION_MAX_COMPLETION_TOKENS", 1200),
-	reasoningEffort: readEnum(env, "GENERATION_REASONING_EFFORT", "low", ["low", "medium", "high"]),
+	reasoningEffort: readEnum(env, "GENERATION_REASONING_EFFORT", "low", [
+		"none",
+		"low",
+		"medium",
+		"high",
+	]),
 });
 
 export const createTopK = (env: NodeJS.ProcessEnv = process.env): number =>
