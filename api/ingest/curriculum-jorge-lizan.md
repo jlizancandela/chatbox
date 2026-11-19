@@ -40,17 +40,21 @@ Gestión documental, atención al cliente, herramientas digitales y organizació
 
 ## Formación profesional
 
-- FP Grado Superior DAW, IES Severo Ochoa, 2026.
-- FP Grado Medio Explotación de Sistemas Informáticos, IES Severo Ochoa, 2010.
+- FP Grado Superior DAW (Desarrollo de Aplicaciones Web), IES Severo Ochoa, 2024 – 2026. Calificación media: 9 / 10.
+- FP Grado Medio Explotación de Sistemas Informáticos (ESI), IES Severo Ochoa, 2008 – 2010. Calificación media: 8,44 / 10.
+- Certificado profesional en desarrollo de aplicaciones con tecnología web, FEMPA Formación, 2023 (510 horas lectivas).
 - FP Grado Medio Técnico Auxiliar Administrativo, IES Sixto Marco, 2004.
-- Certificado profesional en desarrollo web, Fempa, 2023.
+
+## Certificaciones
+
+- React: De cero a experto (Fernando Herrera, Udemy) — Formación especializada en React, hooks, gestión de estado y ecosistema moderno.
 
 ## Habilidades destacadas
 
-- Frontend: HTML, CSS, JavaScript, TypeScript, React, Preact
-- Backend: PHP (incluido Laravel), Node.js, SQL (MySQL y PostgreSQL con pgvector)
+- Frontend: HTML, CSS, JavaScript, TypeScript, React, Preact, Zustand, Tailwind CSS, Astro
+- Backend: PHP (incluido Laravel), Node.js (Fastify, Express), SQL (MySQL y PostgreSQL con pgvector)
 - Calidad: pruebas automatizadas con Pest, Vitest, Playwright y node:test; integración continua con GitHub Actions
-- Herramientas: Git, Docker y Docker Compose, Biome, Microsoft Office (Excel avanzado)
-- Conocimientos: Java
+- Herramientas y sistemas: Git, Docker y Docker Compose, Linux, Biome, Microsoft Office (Excel avanzado)
+- Conocimientos: Java, Windows Server
 - Idiomas: Inglés (B1)
 - Otros: Carnet de conducir, análisis de requisitos, gestión de proyectos.
