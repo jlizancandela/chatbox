@@ -19,7 +19,7 @@ type GroqPlugin = {
  */
 const groq: FastifyPluginAsync<AppOptions> = async (fastify, opts) => {
 	const injected = opts.dependencies?.groqClient;
-	const groqModelDefault = process.env.GROQ_MODEL_DEFAULT?.trim() || "llama-3.3-70b-versatile";
+	const groqModelDefault = process.env.GROQ_MODEL_DEFAULT?.trim() || "qwen/qwen3.8-27b";
 
 	let client: Groq;
 

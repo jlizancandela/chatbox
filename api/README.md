@@ -33,7 +33,7 @@ ignorado por Git y no debe versionarse ni compartirse.
 | `DATABASE_URL` | Sí | Sí | — | Conexión de la API a PostgreSQL. |
 | `EMBEDDING_CACHE_DIR` | No | No | `.cache/embeddings` | Directorio con los ficheros de EmbeddingGemma. La imagen usa `/app/model`. |
 | `GROQ_API_KEY` | Sí | Sí | — | Acceso al modelo generativo de Groq. |
-| `GROQ_MODEL_DEFAULT` | No | No | `llama-3.3-70b-versatile` | Modelo usado para responder. |
+| `GROQ_MODEL_DEFAULT` | No | No | `qwen/qwen3.8-27b` | Modelo usado para responder. |
 | `SIMILARITY_THRESHOLD` | No | No | `0.8` | Distancia coseno máxima para recuperar contexto. |
 | `RETRIEVAL_TOP_K` | No | No | `5` | Número de fragmentos recuperados por pregunta. |
 | `GENERATION_TEMPERATURE` | No | No | `0.6` | Temperatura de la generación, entre `0` y `2`. |

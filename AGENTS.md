@@ -10,7 +10,7 @@ fundamentadas con Groq.
 - Datos: PostgreSQL + extensión pgvector
 - Embeddings: EmbeddingGemma 300M en ONNX `q4`, en proceso con
   `@huggingface/transformers` (768 dimensiones, L2 normalizado)
-- Generación: Groq (`llama-3.3-70b-versatile`)
+- Generación: Groq (`qwen/qwen3.8-27b`)
 - Chunking: `@langchain/textsplitters`
 - Migraciones: node-pg-migrate
 - Formatter/linter: Biome · Package manager: pnpm
