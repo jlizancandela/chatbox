@@ -3,6 +3,7 @@
 - Correo: jlizancandela@gmail.com
 - Sitio web: jorgelizancandela.com
 - Teléfono: 683183851
+- Ubicación: Elche (Alicante), España
 - LinkedIn: jlizancandela/
 - GitHub: jlizancandela/
 
@@ -57,4 +58,4 @@ Gestión documental, atención al cliente, herramientas digitales y organizació
 - Herramientas y sistemas: Git, Docker y Docker Compose, Linux, Biome, Microsoft Office (Excel avanzado)
 - Conocimientos: Java, Windows Server
 - Idiomas: Inglés (B1)
-- Otros: Carnet de conducir, análisis de requisitos, gestión de proyectos.
+- Otros: Análisis de requisitos, gestión de proyectos.
