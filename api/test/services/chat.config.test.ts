@@ -28,6 +28,14 @@ test("la generación lee la temperatura, el límite de tokens y el razonamiento"
 	assert.strictEqual(config.reasoningEffort, "medium");
 });
 
+test("la generación acepta none como esfuerzo de razonamiento", () => {
+	const config = createGenerationConfig({
+		GENERATION_REASONING_EFFORT: "none",
+	});
+
+	assert.strictEqual(config.reasoningEffort, "none");
+});
+
 test("una temperatura fuera del rango del proveedor es un error", () => {
 	assert.throws(
 		() => createGenerationConfig({ GENERATION_TEMPERATURE: "2.5" }),

@@ -33,12 +33,12 @@ ignorado por Git y no debe versionarse ni compartirse.
 | `DATABASE_URL` | Sí | Sí | — | Conexión de la API a PostgreSQL. |
 | `EMBEDDING_CACHE_DIR` | No | No | `.cache/embeddings` | Directorio con los ficheros de EmbeddingGemma. La imagen usa `/app/model`. |
 | `GROQ_API_KEY` | Sí | Sí | — | Acceso al modelo generativo de Groq. |
-| `GROQ_MODEL_DEFAULT` | No | No | `openai/gpt-oss-20b` | Modelo usado para responder. |
+| `GROQ_MODEL_DEFAULT` | No | No | `llama-3.3-70b-versatile` | Modelo usado para responder. |
 | `SIMILARITY_THRESHOLD` | No | No | `0.8` | Distancia coseno máxima para recuperar contexto. |
 | `RETRIEVAL_TOP_K` | No | No | `5` | Número de fragmentos recuperados por pregunta. |
 | `GENERATION_TEMPERATURE` | No | No | `0.6` | Temperatura de la generación, entre `0` y `2`. |
 | `GENERATION_MAX_COMPLETION_TOKENS` | No | No | `1200` | Límite de tokens de la respuesta, razonamiento incluido. |
-| `GENERATION_REASONING_EFFORT` | No | No | `low` | Esfuerzo de razonamiento del modelo: `low`, `medium` o `high`. |
+| `GENERATION_REASONING_EFFORT` | No | No | `low` | Esfuerzo de razonamiento del modelo: `none`, `low`, `medium` o `high` (se omite en `none` y modelos `llama-*`). |
 | `CORS_ORIGIN` | Sí | No | — | Orígenes permitidos por CORS, separados por comas, por ejemplo `http://localhost:3000`. |
 | `TRUST_PROXY` | No | No | vacío | IP o rango CIDR del proxy inverso de confianza. Vacío, no se confía en ninguno. |
 | `REQUEST_TIMEOUT_MS` | No | No | `30000` | Tiempo máximo para recibir la petición completa. |

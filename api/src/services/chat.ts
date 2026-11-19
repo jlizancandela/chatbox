@@ -287,6 +287,16 @@ export const trimHistory = (history: ChatMessage[], limits: HistoryLimits): Chat
 	return truncated;
 };
 
+/**
+ * Indica si debe enviarse `reasoning_effort` al proveedor para el modelo configurado.
+ *
+ * Se omite con `"none"` y en modelos `llama-*` (que no aceptan el parámetro).
+ */
+export const shouldSendReasoningEffort = (
+	model: string,
+	effort: GenerationConfig["reasoningEffort"]
+): boolean => effort !== "none" && !/^llama-/i.test(model.trim());
+
 export const createAskStream = ({
 	retrieve,
 	groqClient,
@@ -341,7 +351,9 @@ export const createAskStream = ({
 					messages: buildChatMessages(context, history, question),
 					temperature: generation.temperature,
 					max_completion_tokens: generation.maxCompletionTokens,
-					reasoning_effort: generation.reasoningEffort,
+					...(shouldSendReasoningEffort(modelDefault, generation.reasoningEffort)
+						? { reasoning_effort: generation.reasoningEffort }
+						: {}),
 				},
 				{ signal }
 			)) as AsyncIterable<CompletionChunk>;
