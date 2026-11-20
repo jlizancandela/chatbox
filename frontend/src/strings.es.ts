@@ -17,11 +17,11 @@ export const strings = {
 		scopeNotice: "Responde solo con información del CV y GitHub de Jorge. Puede equivocarse.",
 	},
 	emptyState: {
-		prompt: "¿En qué te gustaría saber más sobre Jorge?",
+		prompt: "¿Qué te gustaría saber sobre Jorge?",
 		suggestions: [
-			"¿Qué experiencia tiene Jorge?",
-			"¿Qué stack tecnológico usa Jorge?",
-			"¿Cómo puedo contactar con Jorge?",
+			"¿Cómo funciona la arquitectura RAG de este chatbox?",
+			"¿Qué experiencia y proyectos tiene Jorge en TypeScript y React?",
+			"¿Cuáles son sus competencias en bases de datos y backend?",
 		],
 	},
 	input: {
