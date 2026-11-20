@@ -35,9 +35,11 @@ export function ChatInput({
 		const textarea = textareaRef.current;
 		if (!textarea) return;
 		textarea.style.height = "auto";
-		const lineHeight = Number.parseFloat(getComputedStyle(textarea).lineHeight) || 24;
-		textarea.style.height = `${Math.min(textarea.scrollHeight, lineHeight * 5)}px`;
-		textarea.style.overflowY = textarea.scrollHeight > lineHeight * 5 ? "auto" : "hidden";
+		const { scrollHeight } = textarea;
+		const maxHeight =
+			scrollHeight > 0 ? (Number.parseFloat(getComputedStyle(textarea).lineHeight) || 24) * 5 : 0;
+		textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+		textarea.style.overflowY = scrollHeight > maxHeight ? "auto" : "hidden";
 	}, [value]);
 
 	// Enviar y detener son un conjunto cerrado: se elige el registro de textos, no el texto (RF-F62).
