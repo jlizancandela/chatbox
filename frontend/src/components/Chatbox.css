@@ -162,14 +162,6 @@
 		--chatbox-color-surface-raised: #ffffff;
 		--chatbox-color-accent-container: #004b45;
 	}
-
-	/* The turns separate by tone in the default layers; here the tone is gone, so
-	 * the separation moves to an explicit border. It applies in every scheme: the
-	 * tonal separation never reached 3:1 on its own.
-	 */
-	.chatbox__message {
-		border: 1px solid var(--chatbox-color-text);
-	}
 }
 
 /* Forced colors must be the final layer so user-selected system colors always win.
@@ -191,10 +183,6 @@
 		--chatbox-color-surface-subtle: Canvas;
 		--chatbox-color-surface-raised: ButtonFace;
 		--chatbox-color-accent-container: ButtonFace;
-	}
-
-	.chatbox__message {
-		border: 1px solid CanvasText;
 	}
 }
 
@@ -272,6 +260,8 @@
 }
 
 .chatbox__header {
+	position: relative;
+	z-index: 1;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -286,7 +276,26 @@
 	padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
 	padding-left: max(1rem, env(safe-area-inset-left, 0px));
 	padding-right: max(1rem, env(safe-area-inset-right, 0px));
-	border-bottom: 1px solid var(--chatbox-color-border);
+	padding-bottom: 2rem;
+	margin-bottom: -1.25rem;
+	pointer-events: none;
+}
+
+.chatbox__header > * {
+	pointer-events: auto;
+}
+
+/* Degradado superior sobre el inicio del hilo para desvanecer mensajes al desplazarse.
+ * Vive dentro del espacio inferior de la cabecera para no alterar su scrollHeight. */
+.chatbox__header::after {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 1.25rem;
+	pointer-events: none;
+	background: linear-gradient(to bottom, var(--chatbox-color-surface), transparent);
 }
 
 .chatbox__header > div {
@@ -324,10 +333,13 @@
 }
 
 .chatbox__status {
+	position: relative;
+	z-index: 2;
 	padding: 0.5rem 1rem;
 	padding-left: max(1rem, env(safe-area-inset-left, 0px));
 	padding-right: max(1rem, env(safe-area-inset-right, 0px));
 	border-bottom: 1px solid var(--chatbox-color-border);
+	background-color: var(--chatbox-color-surface);
 	font-size: 0.8125rem;
 	font-weight: 500;
 }
@@ -372,6 +384,7 @@
 	gap: 0.75rem;
 	min-height: 0;
 	padding: 1rem;
+	padding-top: 1.25rem;
 	padding-left: max(1rem, env(safe-area-inset-left, 0px));
 	padding-right: max(1rem, env(safe-area-inset-right, 0px));
 	overflow-y: auto;
@@ -401,49 +414,44 @@
 .chatbox__messages {
 	display: flex;
 	flex-direction: column;
-	gap: 0.75rem;
+	gap: 1rem;
 	padding: 0;
 	list-style: none;
 }
 
 .chatbox__message {
-	max-width: 85%;
-	padding: 0.625rem 0.875rem;
-	border-radius: 1rem;
-	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 	overflow-wrap: anywhere;
 }
 
-/* The turn origin is marked by squaring one corner: assistant top-left,
- * user top-right, as in the Stitch export. */
+/* Jerarquía invertida estilo Rufus: el asistente lee limpio sobre la superficie base
+ * y el turno del usuario lleva una burbuja tonal neutra con la esquina inferior derecha
+ * cuadrada. */
 .chatbox__message--assistant {
-	align-self: flex-start;
-	background-color: var(--chatbox-color-surface-subtle);
-	border-top-left-radius: 0.25rem;
+	align-self: stretch;
+	max-width: 100%;
+	padding: 0;
+	border-radius: 0;
+	background-color: transparent;
+	box-shadow: none;
+	color: var(--chatbox-color-text);
 }
 
 .chatbox__message--user {
 	align-self: flex-end;
-	background-color: var(--chatbox-color-primary);
-	border-top-right-radius: 0.25rem;
-	color: var(--chatbox-color-surface);
+	max-width: 85%;
+	padding: 0.625rem 0.875rem;
+	border-radius: 1rem;
+	border-bottom-right-radius: 0.25rem;
+	background-color: var(--chatbox-color-surface-subtle);
+	color: var(--chatbox-color-text);
 }
 
 .chatbox__message-author {
 	display: block;
 	margin-bottom: 0.25rem;
+	color: var(--chatbox-color-text);
 	font-size: 0.75rem;
 	font-weight: 600;
-}
-
-/* Full-strength ink instead of `opacity`: blending the label down to 0.75 dropped
- * it to 4.48:1 on the user turn, under the 4.5:1 that axe enforces. */
-.chatbox__message--assistant .chatbox__message-author {
-	color: var(--chatbox-color-text);
-}
-
-.chatbox__message--user .chatbox__message-author {
-	color: var(--chatbox-color-surface);
 }
 
 /* Bloques de Markdown del asistente (issue #182): los párrafos y listas consecutivos
@@ -470,7 +478,7 @@
 	padding: 0.2rem 0.5rem;
 	border-radius: 0.375rem;
 	border: 1px solid var(--chatbox-color-border);
-	background-color: var(--chatbox-color-surface);
+	background-color: var(--chatbox-color-surface-subtle);
 	font-family: var(--chatbox-font-code);
 	font-size: 0.75rem;
 	color: var(--chatbox-color-text);
@@ -532,29 +540,19 @@
 	padding: 0;
 }
 
-/* Prompt chips: dev terminal style (accepted in live mode). */
+/* Sugerencias en píldoras limpias con la tipografía normal del widget. */
 .chatbox__empty ul button {
 	display: inline-flex;
 	align-items: center;
-	padding: 0.375rem 0.75rem;
-	border-radius: 0.5rem;
+	padding: 0.5rem 1rem;
+	border-radius: 9999px;
 	border: 1px solid var(--chatbox-color-border);
-	background-color: var(--chatbox-color-surface-subtle);
+	background-color: var(--chatbox-color-surface);
 	color: var(--chatbox-color-text);
-	font-family: var(--chatbox-font-code);
-	font-size: 0.75rem;
-	line-height: 1.25rem;
+	font-size: 0.8125rem;
+	line-height: 1.35;
 	font-weight: 500;
-	letter-spacing: -0.01em;
 	text-align: left;
-	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-
-.chatbox__empty ul button::before {
-	content: ">";
-	color: var(--chatbox-color-link);
-	font-weight: 600;
-	margin-right: 0.375rem;
 }
 
 .chatbox__empty ul button:hover:not(:disabled) {
@@ -680,11 +678,8 @@
 	width: min(100% - 2rem, 380px);
 	height: min(100dvh - 2rem, 640px);
 	border-radius: 1rem;
-	box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+	box-shadow: 0 12px 32px rgb(0 0 0 / 0.14), 0 2px 6px rgb(0 0 0 / 0.08);
 	z-index: 50;
-	backdrop-filter: blur(20px);
-	-webkit-backdrop-filter: blur(20px);
-	background-color: color-mix(in srgb, var(--chatbox-color-surface) 92%, transparent);
 	border: 1px solid var(--chatbox-color-border);
 }
 
@@ -713,12 +708,11 @@
 	right: 0;
 	width: min(100%, 460px);
 	height: 100dvh;
-	box-shadow: -8px 0 24px rgb(0 0 0 / 0.16);
+	box-shadow: -8px 0 28px rgb(0 0 0 / 0.12), -1px 0 4px rgb(0 0 0 / 0.06);
 	z-index: 50;
-	backdrop-filter: blur(20px);
-	-webkit-backdrop-filter: blur(20px);
-	background-color: color-mix(in srgb, var(--chatbox-color-surface) 92%, transparent);
-	border: 1px solid var(--chatbox-color-border);
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: var(--chatbox-color-border);
 }
 
 /*
@@ -750,6 +744,21 @@
 	border: 0;
 }
 
+/* El botón de contraer: discreto en reposo, sin borde visible hasta pasar el ratón o enfocar. */
+.chatbox .chatbox__collapse {
+	display: inline-grid;
+	place-items: center;
+	padding: 0;
+	border-color: transparent;
+	border-radius: 9999px;
+	background-color: transparent;
+}
+
+.chatbox .chatbox__collapse:focus-visible {
+	border-color: var(--chatbox-color-focus);
+	background-color: var(--chatbox-color-surface-subtle);
+}
+
 @media (hover: hover) {
 	.chatbox[data-state="collapsed"]:hover {
 		transform: translateY(-2px);
@@ -761,7 +770,7 @@
 		box-shadow: 0 2px 8px rgb(0 0 0 / 0.15);
 	}
 
-	.chatbox__collapse:hover:not(:disabled),
+	.chatbox .chatbox__collapse:hover:not(:disabled),
 	.chatbox__footer > button:hover:not(:disabled),
 	.chatbox__conversation > button:hover:not(:disabled),
 	.chatbox__conversation-actions button:hover:not(:disabled) {
@@ -789,12 +798,32 @@
 	fill: currentColor;
 }
 
-/* El botón de contraer: un círculo con la barra del «minimizar». */
-.chatbox__collapse {
-	display: inline-grid;
-	place-items: center;
-	padding: 0;
-	border-radius: 9999px;
+/* En mayor contraste y colores forzados los turnos recuperan borde explícito y
+ * espaciado interior para mantener la separación visual. */
+@media (prefers-contrast: more) {
+	.chatbox__message {
+		border: 1px solid var(--chatbox-color-text);
+	}
+
+	.chatbox__message--assistant {
+		padding: 0.625rem 0.875rem;
+		border-radius: 1rem;
+	}
+}
+
+@media (forced-colors: active) {
+	.chatbox__message {
+		border: 1px solid CanvasText;
+	}
+
+	.chatbox__message--assistant {
+		padding: 0.625rem 0.875rem;
+		border-radius: 1rem;
+	}
+
+	.chatbox .chatbox__collapse {
+		border-color: ButtonText;
+	}
 }
 
 /*

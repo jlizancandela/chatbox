@@ -16,6 +16,14 @@ import { contrastRatio, isTransparent, parseColor } from "../contrast";
 /** Una respuesta con un enlace dentro: la burbuja del asistente tiene más de un color. */
 const ANSWER = "Usa **Preact** y [Fastify](https://example.com/docs) sobre PostgreSQL.";
 
+const SOURCE = {
+	documentId: "doc-1",
+	chunkIndex: 0,
+	title: "Currículum — Jorge.pdf",
+	content: "Jorge trabaja con Preact y Fastify.",
+	distance: 0.12,
+};
+
 async function openChatbox(page: Page, theme?: "light" | "dark"): Promise<void> {
 	await page.goto("/?widget=embedded");
 	await page.evaluate((value) => {
@@ -232,6 +240,18 @@ for (const colorScheme of ["light", "dark"] as const) {
 			assertContrasts(await collectMeasurements(page));
 		});
 	}
+
+	test(`RF-F42 — contraste resuelto con mayor contraste y respuesta (${colorScheme})`, async ({
+		page,
+	}) => {
+		await page.emulateMedia({ colorScheme, contrast: "more" });
+		await mockChatApi(page, sourcesFrame([], [SOURCE]), tokenFrame(ANSWER));
+		await openChatbox(page);
+		await sendQuestion(page);
+		await expect(page.locator(".chatbox__sources")).toBeVisible();
+
+		assertContrasts(await collectMeasurements(page));
+	});
 }
 
 test.describe("RF-F42 — el anillo de foco", () => {
@@ -261,29 +281,41 @@ test.describe("RF-F42 — el anillo de foco", () => {
 });
 
 test.describe("RF-F42 — el borde del chip al pasar el ratón", () => {
-	test("al pasar el ratón el chip alcanza 3:1 contra su superficie elevada", async ({ page }) => {
-		await page.emulateMedia({ colorScheme: "light" });
-		await mockChatApi(page, sourcesFrame(), tokenFrame(ANSWER), doneFrame);
-		await openChatbox(page);
+	for (const colorScheme of ["light", "dark"] as const) {
+		test(`al pasar el ratón el chip alcanza 3:1 contra su superficie elevada (${colorScheme})`, async ({
+			page,
+		}) => {
+			await page.emulateMedia({ colorScheme });
+			await mockChatApi(page, sourcesFrame(), tokenFrame(ANSWER), doneFrame);
+			await openChatbox(page);
 
-		const chip = page.locator(".chatbox__empty ul button").first();
-		await chip.hover();
+			const chip = page.locator(".chatbox__empty ul button").first();
+			await chip.hover();
 
-		const hovered = await page.evaluate(() => {
-			const element = document.querySelector(".chatbox__empty ul button") as HTMLElement;
-			const style = getComputedStyle(element);
-			return {
-				border: style.borderTopColor,
-				fill: style.backgroundColor,
-				outside: getComputedStyle(element.parentElement!.parentElement!).backgroundColor,
-			};
+			const hovered = await page.evaluate(() => {
+				const element = document.querySelector(".chatbox__empty ul button") as HTMLElement;
+				const style = getComputedStyle(element);
+				const chain: string[] = [];
+				let node: Element | null = element.parentElement;
+				while (node) {
+					chain.push(getComputedStyle(node).backgroundColor);
+					node = node.parentElement;
+				}
+				chain.push(getComputedStyle(document.body).backgroundColor);
+				return {
+					border: style.borderTopColor,
+					fill: style.backgroundColor,
+					outsideChain: chain,
+				};
+			});
+
+			const outside = resolveBackground(hovered.outsideChain);
+			// El borde del chip pasa a ser el color de marca y su relleno a la superficie elevada:
+			// el borde tiene que destacar contra los dos lados.
+			expect(contrastRatio(hovered.border, hovered.fill)).toBeGreaterThanOrEqual(3);
+			expect(contrastRatio(hovered.border, outside)).toBeGreaterThanOrEqual(3);
 		});
-
-		// El borde del chip pasa a ser el color de marca y su relleno a la superficie elevada:
-		// el borde tiene que destacar contra los dos lados.
-		expect(contrastRatio(hovered.border, hovered.fill)).toBeGreaterThanOrEqual(3);
-		expect(contrastRatio(hovered.border, hovered.outside)).toBeGreaterThanOrEqual(3);
-	});
+	}
 });
 
 test.describe("RF-F42 — precedencia de las capas de accesibilidad", () => {
