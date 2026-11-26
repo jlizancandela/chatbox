@@ -1,3 +1,4 @@
+import { isSafeUrl } from "./chat/components/AssistantMarkdown";
 import { Chatbox } from "./components/Chatbox";
 
 /**
@@ -10,8 +11,11 @@ import { Chatbox } from "./components/Chatbox";
  * de altura completa pegado al borde derecho (RF-F65).
  */
 export function App() {
-	const requested = new URLSearchParams(window.location.search).get("widget");
+	const params = new URLSearchParams(window.location.search);
+	const requested = params.get("widget");
 	const variant = requested === "embedded" || requested === "drawer" ? requested : "floating";
+	const rawContact = params.get("contact");
+	const contactUrl = rawContact && isSafeUrl(rawContact) ? rawContact : undefined;
 
-	return <Chatbox apiUrl="http://127.0.0.1:7000" variant={variant} />;
+	return <Chatbox apiUrl="http://127.0.0.1:7000" variant={variant} contactUrl={contactUrl} />;
 }
