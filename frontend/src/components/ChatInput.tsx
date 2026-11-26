@@ -1,7 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { ExternalLink } from "../chat/components/ExternalLink";
 import { strings } from "../strings.es";
+import { Icon } from "./Icon";
 
 type ChatInputProps = {
 	value: string;
@@ -9,12 +9,13 @@ type ChatInputProps = {
 	onSubmit: () => void;
 	onAbort: () => void;
 	isBusy: boolean;
-	contactUrl?: string;
 	maxLength?: number;
 	textareaRef?: { current: HTMLTextAreaElement | null };
 };
 
 const DEFAULT_MAX_LENGTH = 1000;
+const SEND_ICON_PATH = "M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z";
+const STOP_ICON_PATH = "M6 8c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V8z";
 
 export function ChatInput({
 	value,
@@ -22,7 +23,6 @@ export function ChatInput({
 	onSubmit,
 	onAbort,
 	isBusy,
-	contactUrl,
 	maxLength = DEFAULT_MAX_LENGTH,
 	textareaRef: externalTextareaRef,
 }: ChatInputProps): ComponentChildren {
@@ -36,10 +36,21 @@ export function ChatInput({
 		if (!textarea) return;
 		textarea.style.height = "auto";
 		const { scrollHeight } = textarea;
-		const maxHeight =
-			scrollHeight > 0 ? (Number.parseFloat(getComputedStyle(textarea).lineHeight) || 24) * 5 : 0;
-		textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
-		textarea.style.overflowY = scrollHeight > maxHeight ? "auto" : "hidden";
+		if (scrollHeight === 0) {
+			textarea.style.overflowY = "hidden";
+			return;
+		}
+		const style = getComputedStyle(textarea);
+		const lineHeight = Number.parseFloat(style.lineHeight) || 24;
+		const verticalPadding =
+			(Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0);
+		const verticalBorder =
+			(Number.parseFloat(style.borderTopWidth) || 0) +
+			(Number.parseFloat(style.borderBottomWidth) || 0);
+		const contentHeight = scrollHeight + verticalBorder;
+		const maxHeight = lineHeight * 5 + verticalPadding + verticalBorder;
+		textarea.style.height = `${Math.min(contentHeight, maxHeight)}px`;
+		textarea.style.overflowY = contentHeight > maxHeight ? "auto" : "hidden";
 	}, [value]);
 
 	// Enviar y detener son un conjunto cerrado: se elige el registro de textos, no el texto (RF-F62).
@@ -70,31 +81,32 @@ export function ChatInput({
 	return (
 		<form onSubmit={handleSubmit}>
 			<label for="chatbox-question">{strings.input.label}</label>
-			<textarea
-				id="chatbox-question"
-				data-chatbox-control="question-field"
-				ref={textareaRef}
-				value={value}
-				maxLength={maxLength}
-				onInput={(e) => onChange(e.currentTarget.value)}
-				onKeyDown={handleKeyDown}
-				onCompositionStart={() => setIsComposing(true)}
-				onCompositionEnd={() => setIsComposing(false)}
-				placeholder={strings.input.placeholder}
-				rows={1}
-			/>
-			<button
-				type="submit"
-				data-chatbox-control="send"
-				disabled={!isBusy && !canSubmit}
-				aria-label={submitCopy.ariaLabel}
-			>
-				{submitCopy.label}
-			</button>
+			<div class="chatbox__composer">
+				<textarea
+					id="chatbox-question"
+					data-chatbox-control="question-field"
+					ref={textareaRef}
+					value={value}
+					maxLength={maxLength}
+					onInput={(e) => onChange(e.currentTarget.value)}
+					onKeyDown={handleKeyDown}
+					onCompositionStart={() => setIsComposing(true)}
+					onCompositionEnd={() => setIsComposing(false)}
+					placeholder={strings.input.placeholder}
+					rows={1}
+				/>
+				<button
+					type="submit"
+					data-chatbox-control="send"
+					disabled={!isBusy && !canSubmit}
+					aria-label={submitCopy.ariaLabel}
+				>
+					<Icon path={isBusy ? STOP_ICON_PATH : SEND_ICON_PATH} />
+				</button>
+			</div>
 			{value.length > maxLength * 0.8 && (
 				<small aria-live="off">{strings.input.chars(value.length, maxLength)}</small>
 			)}
-			{contactUrl && <ExternalLink href={contactUrl}>{strings.input.contactLink}</ExternalLink>}
 		</form>
 	);
 }

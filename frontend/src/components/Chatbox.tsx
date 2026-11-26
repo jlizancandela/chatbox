@@ -19,6 +19,7 @@ import { ChatInput } from "./ChatInput";
 import { ChatLauncher } from "./ChatLauncher";
 import { ChatMessages } from "./ChatMessages";
 import { EmptyState } from "./EmptyState";
+import { Icon } from "./Icon";
 import { NewConversation } from "./NewConversation";
 
 export type ChatboxProps = {
@@ -49,6 +50,7 @@ export type ChatboxProps = {
 // un array mutable una vez, al cargar el módulo, para no recrearla en cada render.
 const DEFAULT_SUGGESTIONS: string[] = [...strings.emptyState.suggestions];
 const MAX_QUESTION_LENGTH = 1000;
+const SCROLL_TO_END_ICON_PATH = "M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z";
 
 /**
  * Clase de la región de estado y su variante de error (RF-F42). La variante solo cambia el
@@ -470,9 +472,10 @@ export function Chatbox({
 						<button
 							type="button"
 							data-chatbox-control="scroll-to-end"
+							aria-label={strings.actions.scrollToEnd}
 							onClick={() => scrollToEnd(currentScrollBehavior("salto"))}
 						>
-							{strings.actions.scrollToEnd}
+							<Icon path={SCROLL_TO_END_ICON_PATH} />
 						</button>
 					)}
 				</main>
@@ -486,12 +489,16 @@ export function Chatbox({
 						onSubmit={() => submit(question)}
 						onAbort={abort}
 						isBusy={isBusy}
-						contactUrl={contactUrl}
 						maxLength={MAX_QUESTION_LENGTH}
 						textareaRef={textareaRef}
 					/>
 
-					<NewConversation onReset={handleReset} />
+					<div class="chatbox__footer-secondary">
+						<NewConversation onReset={handleReset} />
+						{contactUrl && (
+							<ExternalLink href={contactUrl}>{strings.input.contactLink}</ExternalLink>
+						)}
+					</div>
 				</footer>
 			)}
 		</section>

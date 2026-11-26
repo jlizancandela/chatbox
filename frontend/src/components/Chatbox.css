@@ -385,6 +385,7 @@
 	min-height: 0;
 	padding: 1rem;
 	padding-top: 1.25rem;
+	padding-bottom: 1.5rem;
 	padding-left: max(1rem, env(safe-area-inset-left, 0px));
 	padding-right: max(1rem, env(safe-area-inset-right, 0px));
 	overflow-y: auto;
@@ -407,8 +408,17 @@
 
 .chatbox__conversation > button[data-chatbox-control="scroll-to-end"] {
 	position: sticky;
-	bottom: 0;
-	box-shadow: 0 4px 12px rgb(0 0 0 / 0.14);
+	bottom: 1.5rem;
+	display: inline-grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border: 1px solid var(--chatbox-color-border);
+	border-radius: 9999px;
+	background-color: var(--chatbox-color-surface);
+	color: var(--chatbox-color-text);
+	box-shadow: 0 4px 12px rgb(0 0 0 / 0.14), 0 1px 3px rgb(0 0 0 / 0.08);
 }
 
 .chatbox__messages {
@@ -562,36 +572,70 @@
 }
 
 .chatbox__footer {
+	position: relative;
+	z-index: 1;
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
 	padding: 0.75rem 1rem;
+	padding-top: 2rem;
 	padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
 	padding-left: max(1rem, env(safe-area-inset-left, 0px));
 	padding-right: max(1rem, env(safe-area-inset-right, 0px));
-	border-top: 1px solid var(--chatbox-color-border);
+	margin-top: -1.25rem;
+	pointer-events: none;
+}
+
+.chatbox__footer > * {
+	pointer-events: auto;
+}
+
+/* Degradado inferior sobre el final del hilo para desvanecer mensajes al entrar bajo el
+ * compositor. Vive dentro del padding superior del pie para no alterar su scrollHeight ni
+ * las safe areas. */
+.chatbox__footer::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 1.25rem;
+	pointer-events: none;
+	background: linear-gradient(to top, var(--chatbox-color-surface), transparent);
 }
 
 .chatbox__footer form {
+	position: relative;
 	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-end;
-	gap: 0.5rem;
+	flex-direction: column;
+	gap: 0.375rem;
 }
 
-/* Stitch label-md for the visible field label. */
+/* Etiqueta asociada oculta visualmente pero presente en el árbol de accesibilidad (RF-F45). */
 .chatbox__footer label {
-	flex: 1 1 100%;
-	font-size: 0.8125rem;
-	font-weight: 500;
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
+.chatbox__composer {
+	position: relative;
+	width: 100%;
 }
 
 .chatbox textarea {
-	flex: 1 1 12rem;
-	min-height: 2.75rem;
-	padding: 0.5rem 0.75rem;
+	display: block;
+	width: 100%;
+	min-height: 56px;
+	padding: 16px 60px 16px 16px;
 	border: 1px solid var(--chatbox-color-border);
-	border-radius: 0.75rem;
+	border-radius: 1.5rem;
 	/* 16 px evita el zoom automático de iOS Safari al enfocar el campo. El suelo es
 	 * absoluto: `1rem` a secas vale 16 px solo si la raíz del sitio host mide 16 px, y con
 	 * una raíz de 14 px el campo quedaría en 14 px y el navegador ampliaría la página
@@ -602,6 +646,7 @@
 	 * fuente en vez de contradecirlo. */
 	line-height: 1.375;
 	background-color: var(--chatbox-color-surface);
+	box-shadow: 0 2px 10px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.05);
 	caret-color: currentColor;
 	scrollbar-width: thin;
 	resize: none;
@@ -612,21 +657,22 @@
 }
 
 .chatbox__footer small {
-	flex: 1 1 100%;
+	align-self: flex-end;
 	font-family: var(--chatbox-font-code);
 	font-size: 0.75rem;
 	font-variant-numeric: tabular-nums;
 }
 
-.chatbox__footer form a {
-	flex: 0 0 auto;
-	font-size: 0.75rem;
-}
-
 .chatbox__footer button[type="submit"] {
-	flex: 0 0 auto;
-	align-self: flex-end;
-	border-color: var(--chatbox-color-primary);
+	position: absolute;
+	right: 6px;
+	bottom: 6px;
+	display: inline-grid;
+	place-items: center;
+	width: 44px;
+	height: 44px;
+	padding: 0;
+	border: 0;
 	border-radius: 9999px;
 	background-color: var(--chatbox-color-primary);
 	/* Label ink reuses the surface token: white in light, #2f3038 in dark.
@@ -635,10 +681,29 @@
 	font-weight: 600;
 }
 
-/* Secondary action, kept as a compact pill instead of a full-width bar. */
-.chatbox__footer > button {
-	align-self: flex-start;
+/* Fila secundaria discreta: agrupa «Nueva conversación» (o su confirmación) y el enlace de contacto. */
+.chatbox__footer-secondary {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem 0.75rem;
+}
+
+.chatbox__footer-secondary > button {
+	border: 0;
 	border-radius: 9999px;
+	background-color: transparent;
+	font-weight: 500;
+}
+
+.chatbox__footer-secondary > button:focus-visible {
+	background-color: var(--chatbox-color-surface-subtle);
+}
+
+.chatbox__footer-secondary a {
+	flex: 0 0 auto;
+	font-size: 0.75rem;
 }
 
 /* Fila de confirmación de «Nueva conversación»: la pregunta y los dos botones van en línea. */
@@ -771,10 +836,13 @@
 	}
 
 	.chatbox .chatbox__collapse:hover:not(:disabled),
-	.chatbox__footer > button:hover:not(:disabled),
 	.chatbox__conversation > button:hover:not(:disabled),
 	.chatbox__conversation-actions button:hover:not(:disabled) {
 		border-color: var(--chatbox-color-primary);
+		background-color: var(--chatbox-color-surface-subtle);
+	}
+
+	.chatbox__footer-secondary > button:hover:not(:disabled) {
 		background-color: var(--chatbox-color-surface-subtle);
 	}
 }
@@ -809,6 +877,10 @@
 		padding: 0.625rem 0.875rem;
 		border-radius: 1rem;
 	}
+
+	.chatbox__footer-secondary > button {
+		border: 1px solid var(--chatbox-color-border);
+	}
 }
 
 @media (forced-colors: active) {
@@ -823,6 +895,12 @@
 
 	.chatbox .chatbox__collapse {
 		border-color: ButtonText;
+	}
+
+	.chatbox__conversation > button[data-chatbox-control="scroll-to-end"],
+	.chatbox__footer button[type="submit"],
+	.chatbox__footer-secondary > button {
+		border: 1px solid ButtonText;
 	}
 }
 

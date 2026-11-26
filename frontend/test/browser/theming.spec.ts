@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { strings } from "../../src/strings.es";
+import { contrastRatio } from "../contrast";
 
 const surface = (page: import("@playwright/test").Page) =>
 	page.locator(".chatbox").evaluate((element) => getComputedStyle(element).backgroundColor);
@@ -125,13 +126,31 @@ test.describe("RF-F61 browser theming resolution", () => {
 			.toContain("Courier New");
 	});
 
-	test("submit label is readable in light and dark themes", async ({ page }) => {
+	test("submit icon button is visible with accessible contrast in light and dark themes", async ({
+		page,
+	}) => {
 		for (const colorScheme of ["light", "dark"] as const) {
 			await page.emulateMedia({ colorScheme });
 			await openChatbox(page);
+			await page.locator("#chatbox-question").fill("¿Qué experiencia tiene Jorge?");
+
 			const button = page.locator('.chatbox__footer button[type="submit"]');
-			await expect(button).toHaveText(strings.input.send.label);
 			await expect(button).toBeVisible();
+			await expect(button).toBeEnabled();
+			await expect(button).toHaveAttribute("aria-label", strings.input.send.ariaLabel);
+			await expect(button.locator("svg.chatbox__icon")).toBeVisible();
+
+			const colors = await button.evaluate((element) => {
+				const style = getComputedStyle(element);
+				return {
+					color: style.color,
+					backgroundColor: style.backgroundColor,
+				};
+			});
+			expect(
+				contrastRatio(colors.color, colors.backgroundColor),
+				colorScheme
+			).toBeGreaterThanOrEqual(4.5);
 		}
 	});
 });

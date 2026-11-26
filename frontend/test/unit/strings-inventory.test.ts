@@ -51,10 +51,12 @@ const CSS_CLASSES_AND_IDS = [
 	"chatbox-question",
 	"chatbox__badge",
 	"chatbox__collapse",
+	"chatbox__composer",
 	"chatbox__conversation",
 	"chatbox__conversation-actions",
 	"chatbox__empty",
 	"chatbox__footer",
+	"chatbox__footer-secondary",
 	"chatbox__header",
 	"chatbox__icon",
 	"chatbox__launcher",
@@ -91,6 +93,9 @@ const SVG_VALUES = [
 	"0 0 24 24",
 	"M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z",
 	"M6 19h12v-2H6v2z",
+	"M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z",
+	"M6 8c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v8c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V8z",
+	"M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z",
 ];
 
 /** Teclado: nombres de tecla de `KeyboardEvent.key`. */

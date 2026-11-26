@@ -9,7 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Chatbox } from "../../src/components/Chatbox";
 import { strings } from "../../src/strings.es";
-import { withoutAccessibleName } from "../accessible-names";
+import { visibleTextOf, withoutAccessibleName } from "../accessible-names";
 import { mockHangingRequest, regionOf, send } from "./fixtures";
 
 // ─── Tests: static render ──────────────────────────────────────────────────────
@@ -124,9 +124,41 @@ describe("Chatbox — static render", () => {
 			expect(contactLink).toHaveAttribute("target", "_blank");
 			expect(contactLink).toHaveAttribute("rel", "noopener noreferrer");
 		});
+
+		it("groups new conversation and contact link in .chatbox__footer-secondary after the form", () => {
+			const { container } = render(
+				<Chatbox
+					variant="embedded"
+					apiUrl="http://localhost:7000"
+					contactUrl="mailto:jorge@example.com"
+				/>
+			);
+			const form = container.querySelector(".chatbox__footer form");
+			const secondary = container.querySelector(".chatbox__footer-secondary");
+			const newConversation = screen.getByRole("button", { name: strings.actions.newConversation });
+			const contactLink = screen.getByRole("link", { name: strings.input.contactLink });
+
+			expect(form).not.toBeNull();
+			expect(secondary).not.toBeNull();
+			expect(secondary?.contains(newConversation)).toBe(true);
+			expect(secondary?.contains(contactLink)).toBe(true);
+			expect(form?.contains(contactLink)).toBe(false);
+			expect(
+				Boolean(
+					form &&
+						secondary &&
+						form.compareDocumentPosition(secondary) & Node.DOCUMENT_POSITION_FOLLOWING
+				)
+			).toBe(true);
+		});
 	});
 
 	describe("RF-F03 — textarea", () => {
+		afterEach(() => {
+			vi.unstubAllGlobals();
+			sessionStorage.clear();
+		});
+
 		it("send button is disabled when the textarea is empty", () => {
 			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
 			expect(screen.getByRole("button", { name: strings.input.send.ariaLabel })).toBeDisabled();
@@ -137,6 +169,34 @@ describe("Chatbox — static render", () => {
 			expect(
 				screen.getByRole("button", { name: strings.input.send.ariaLabel })
 			).toBeInTheDocument();
+		});
+
+		it("send button is icon-only with decorative svg and aria-label", () => {
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
+			const button = screen.getByRole("button", { name: strings.input.send.ariaLabel });
+			const icon = button.querySelector("svg.chatbox__icon");
+
+			expect(icon).not.toBeNull();
+			expect(icon).toHaveAttribute("aria-hidden", "true");
+			expect(visibleTextOf(button)).toBe("");
+			expect(button).toHaveAttribute("aria-label", strings.input.send.ariaLabel);
+		});
+
+		it("toggles aria-label and icon path to stop while a turn is in progress", async () => {
+			mockHangingRequest();
+			render(<Chatbox variant="embedded" apiUrl="http://localhost:7000" />);
+
+			const sendButton = screen.getByRole("button", { name: strings.input.send.ariaLabel });
+			const sendPath = sendButton.querySelector("svg.chatbox__icon path")?.getAttribute("d");
+			expect(sendPath).toBeTruthy();
+
+			await send("¿Qué usa Jorge?");
+
+			const stopButton = await screen.findByRole("button", { name: strings.input.stop.ariaLabel });
+			const stopPath = stopButton.querySelector("svg.chatbox__icon path")?.getAttribute("d");
+			expect(stopButton).toHaveAttribute("aria-label", strings.input.stop.ariaLabel);
+			expect(stopPath).toBeTruthy();
+			expect(stopPath).not.toBe(sendPath);
 		});
 	});
 });

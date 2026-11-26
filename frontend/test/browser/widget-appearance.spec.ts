@@ -1,6 +1,7 @@
 import { expect, type Locator, type Page, test } from "@playwright/test";
 import { strings } from "../../src/strings.es";
-import { mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
+import { holdChatAnswer, mockChatApi, sourcesFrame, tokenFrame } from "../chat-frames";
+import { contrastRatio, isTransparent } from "../contrast";
 
 const SOURCE = {
 	documentId: "doc-1",
@@ -471,6 +472,329 @@ test.describe("Rediseño visual Rufus (#190)", () => {
 			}));
 			expect(monoAfterSend.code, colorScheme).toContain("monospace");
 			expect(monoAfterSend.sources, colorScheme).toContain("monospace");
+		}
+	});
+});
+
+test.describe("Compositor flotante y pie ligero (#191)", () => {
+	test("footer drops top border and projects bottom fade gradient without blocking clicks", async ({
+		page,
+	}) => {
+		for (const colorScheme of ["light", "dark"] as const) {
+			await page.emulateMedia({ colorScheme });
+			await page.goto("/?widget=embedded");
+			await expect(page.locator(".chatbox__footer")).toBeVisible();
+
+			const footerStyles = await computed(page, ".chatbox__footer", [
+				"border-top-width",
+				"border-top-style",
+				"pointer-events",
+			]);
+			expect(footerStyles["border-top-width"], colorScheme).toBe("0px");
+			expect(footerStyles["border-top-style"], colorScheme).toBe("none");
+			expect(footerStyles["pointer-events"], colorScheme).toBe("none");
+
+			const formPointerEvents = await computed(page, ".chatbox__footer form", ["pointer-events"]);
+			expect(formPointerEvents["pointer-events"], colorScheme).toBe("auto");
+
+			const before = await page.locator(".chatbox__footer").evaluate((element) => {
+				const style = getComputedStyle(element, "::before");
+				return {
+					content: style.content,
+					pointerEvents: style.pointerEvents,
+					backgroundImage: style.backgroundImage,
+				};
+			});
+			expect(before.content, colorScheme).not.toBe("none");
+			expect(before.pointerEvents, colorScheme).toBe("none");
+			expect(before.backgroundImage, colorScheme).toContain("linear-gradient");
+		}
+	});
+
+	test("floating composer hides label visually, keeps accessible name and 16px floor, and reserves space for circular send/stop button", async ({
+		page,
+	}) => {
+		for (const colorScheme of ["light", "dark"] as const) {
+			await page.emulateMedia({ colorScheme });
+			await page.goto("/?widget=embedded");
+			await page.evaluate(() => sessionStorage.clear());
+			await page.reload();
+
+			const field = page.locator("#chatbox-question");
+			const label = page.locator('.chatbox__footer label[for="chatbox-question"]');
+			const submit = page.locator('.chatbox__footer button[type="submit"]');
+			await expect(field).toBeVisible();
+
+			const labelBox = await label.boundingBox();
+			expect(labelBox, colorScheme).not.toBeNull();
+			expect(labelBox!.width, colorScheme).toBeLessThanOrEqual(1);
+			expect(labelBox!.height, colorScheme).toBeLessThanOrEqual(1);
+			expect(await field.ariaSnapshot(), colorScheme).toContain(strings.input.label);
+
+			await page.addStyleTag({ content: "html { font-size: 14px; }" });
+			const fieldStyles = await computedStyle(field, [
+				"box-shadow",
+				"border-top-left-radius",
+				"font-size",
+				"padding-right",
+			]);
+			expect(fieldStyles["box-shadow"], colorScheme).not.toBe("none");
+			expect(
+				Number.parseFloat(fieldStyles["border-top-left-radius"]),
+				colorScheme
+			).toBeGreaterThanOrEqual(16);
+			expect(Number.parseFloat(fieldStyles["font-size"]), colorScheme).toBeGreaterThanOrEqual(16);
+
+			const assertEmbeddedWithoutOverlap = async (labelTag: string) => {
+				const geometry = await page.evaluate(() => {
+					const textarea = document.querySelector("#chatbox-question") as HTMLElement;
+					const button = document.querySelector(
+						'.chatbox__footer button[type="submit"]'
+					) as HTMLElement;
+					const textareaRect = textarea.getBoundingClientRect();
+					const buttonRect = button.getBoundingClientRect();
+					const paddingRight = Number.parseFloat(getComputedStyle(textarea).paddingRight);
+					return {
+						textareaRect,
+						buttonRect,
+						textRightEdge: textareaRect.left + textareaRect.width - paddingRight,
+					};
+				});
+				expect(Math.round(geometry.buttonRect.width), labelTag).toBe(44);
+				expect(Math.round(geometry.buttonRect.height), labelTag).toBe(44);
+				expect(geometry.buttonRect.left, labelTag).toBeGreaterThanOrEqual(
+					geometry.textareaRect.left
+				);
+				expect(geometry.buttonRect.right, labelTag).toBeLessThanOrEqual(
+					geometry.textareaRect.right
+				);
+				expect(geometry.buttonRect.top, labelTag).toBeGreaterThanOrEqual(geometry.textareaRect.top);
+				expect(geometry.buttonRect.bottom, labelTag).toBeLessThanOrEqual(
+					geometry.textareaRect.bottom
+				);
+				expect(geometry.textRightEdge, labelTag).toBeLessThanOrEqual(geometry.buttonRect.left);
+			};
+
+			await field.fill("Una línea corta");
+			await assertEmbeddedWithoutOverlap(`${colorScheme} single-line`);
+
+			await field.fill("Línea 1\nLínea 2\nLínea 3\nLínea 4");
+			await assertEmbeddedWithoutOverlap(`${colorScheme} multi-line`);
+
+			// Tab desde el campo va inmediatamente al botón Enviar con anillo reglamentario
+			await field.focus();
+			await page.keyboard.press("Tab");
+			await expect(submit).toBeFocused();
+			const focusRing = await computedStyle(submit, [
+				"outline-style",
+				"outline-width",
+				"outline-offset",
+			]);
+			expect(focusRing["outline-style"], colorScheme).toBe("solid");
+			expect(focusRing["outline-width"], colorScheme).toBe("2px");
+			expect(focusRing["outline-offset"], colorScheme).toBe("2px");
+
+			const sendIconPath = await submit.locator("svg.chatbox__icon path").getAttribute("d");
+			const sendRadius = await computedStyle(submit, ["border-radius"]);
+			expect(sendRadius["border-radius"], colorScheme).toBe("9999px");
+
+			const release = await holdChatAnswer(page, tokenFrame("Respuesta"));
+			await submit.click();
+
+			const stopButton = page.getByRole("button", { name: strings.input.stop.ariaLabel });
+			await expect(stopButton).toBeVisible();
+			const stopIconPath = await stopButton.locator("svg.chatbox__icon path").getAttribute("d");
+			expect(stopIconPath, colorScheme).not.toBe(sendIconPath);
+
+			const stopBox = await stopButton.boundingBox();
+			expect(Math.round(stopBox!.width), colorScheme).toBe(44);
+			expect(Math.round(stopBox!.height), colorScheme).toBe(44);
+
+			const stopColors = await computedStyle(stopButton, ["color", "background-color"]);
+			expect(
+				contrastRatio(stopColors.color, stopColors["background-color"]),
+				`${colorScheme} stop contrast`
+			).toBeGreaterThanOrEqual(4.5);
+
+			release();
+			await expect(page.locator(".chatbox__message--assistant")).toContainText("Respuesta");
+			await page.unroute("**/api/chat");
+		}
+	});
+
+	test("secondary footer row groups new conversation and contact link cleanly across viewports and high-contrast modes", async ({
+		page,
+	}) => {
+		for (const colorScheme of ["light", "dark"] as const) {
+			for (const viewport of [
+				{ name: "desktop", width: 420, height: 640 },
+				{ name: "narrow", width: 360, height: 640 },
+			]) {
+				await page.setViewportSize({ width: viewport.width, height: viewport.height });
+				await page.emulateMedia({
+					colorScheme,
+					contrast: "no-preference",
+					forcedColors: "none",
+				});
+				await page.goto("/?widget=embedded&contact=mailto:jorge@example.com");
+
+				const field = page.locator("#chatbox-question");
+				const secondary = page.locator(".chatbox__footer-secondary");
+				const newConv = secondary.getByRole("button", { name: strings.actions.newConversation });
+				const contact = secondary.getByRole("link", { name: strings.input.contactLink });
+				await expect(newConv).toBeVisible();
+				await expect(contact).toBeVisible();
+
+				const [fieldBox, newConvBox, contactBox, widgetBox] = await Promise.all([
+					field.boundingBox(),
+					newConv.boundingBox(),
+					contact.boundingBox(),
+					page.locator(".chatbox").boundingBox(),
+				]);
+				expect(newConvBox!.y, `${colorScheme} ${viewport.name}`).toBeGreaterThan(
+					fieldBox!.y + fieldBox!.height
+				);
+				expect(contactBox!.y, `${colorScheme} ${viewport.name}`).toBeGreaterThan(
+					fieldBox!.y + fieldBox!.height
+				);
+				expect(newConvBox!.width, `${colorScheme} ${viewport.name}`).toBeGreaterThanOrEqual(44);
+				expect(newConvBox!.height, `${colorScheme} ${viewport.name}`).toBeGreaterThanOrEqual(44);
+				expect(
+					newConvBox!.x + newConvBox!.width,
+					`${colorScheme} ${viewport.name}`
+				).toBeLessThanOrEqual(contactBox!.x);
+				expect(
+					contactBox!.x + contactBox!.width,
+					`${colorScheme} ${viewport.name}`
+				).toBeLessThanOrEqual(widgetBox!.x + widgetBox!.width);
+
+				// Orden de Tab: campo -> submit -> nueva conversación -> contactar
+				await field.fill("Pregunta");
+				await field.focus();
+				await page.keyboard.press("Tab");
+				await expect(page.locator('.chatbox__footer button[type="submit"]')).toBeFocused();
+				await page.keyboard.press("Tab");
+				await expect(newConv).toBeFocused();
+				await page.keyboard.press("Tab");
+				await expect(contact).toBeFocused();
+
+				// Confirmación en línea conserva botones >= 44px junto al enlace
+				await newConv.click();
+				const accept = secondary.getByRole("button", { name: strings.actions.confirm.accept });
+				const cancel = secondary.getByRole("button", { name: strings.actions.confirm.cancel });
+				await expect(accept).toBeVisible();
+				await expect(cancel).toBeVisible();
+				const [acceptBox, cancelBox] = await Promise.all([
+					accept.boundingBox(),
+					cancel.boundingBox(),
+				]);
+				expect(acceptBox!.height).toBeGreaterThanOrEqual(44);
+				expect(cancelBox!.height).toBeGreaterThanOrEqual(44);
+				await cancel.click();
+			}
+
+			// En reposo el botón es discreto sin borde; en alto contraste y colores forzados recupera borde
+			const newConv = page
+				.locator(".chatbox__footer-secondary")
+				.getByRole("button", { name: strings.actions.newConversation });
+			const restStyles = await computedStyle(newConv, ["border-top-width", "background-color"]);
+			expect(restStyles["border-top-width"], `${colorScheme} rest`).toBe("0px");
+			expect(isTransparent(restStyles["background-color"]), `${colorScheme} rest`).toBe(true);
+
+			for (const media of [
+				{ name: "contrast:more", contrast: "more" as const, forcedColors: "none" as const },
+				{
+					name: "forced-colors",
+					contrast: "no-preference" as const,
+					forcedColors: "active" as const,
+				},
+			]) {
+				await page.emulateMedia({
+					colorScheme,
+					contrast: media.contrast,
+					forcedColors: media.forcedColors,
+				});
+				const accessibleStyles = await computedStyle(newConv, [
+					"border-top-width",
+					"border-top-style",
+				]);
+				expect(accessibleStyles["border-top-width"], `${colorScheme} ${media.name}`).toBe("1px");
+				expect(accessibleStyles["border-top-style"], `${colorScheme} ${media.name}`).toBe("solid");
+			}
+		}
+	});
+
+	test("scroll-to-end appears as a floating 44x44 icon-only circle above the footer fade", async ({
+		page,
+	}) => {
+		const longAnswer = Array.from({ length: 140 }, (_, index) => `palabra${index}`).join(" ");
+		await page.setViewportSize({ width: 420, height: 520 });
+
+		for (const colorScheme of ["light", "dark"] as const) {
+			await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+			await mockChatApi(page, sourcesFrame(), tokenFrame(longAnswer));
+			await page.goto("/?widget=embedded");
+			await page.evaluate(() => sessionStorage.clear());
+			await page.reload();
+
+			await sendQuestion(page, "Cuéntame algo largo");
+			await expect(page.locator(".chatbox__message--assistant")).toContainText("palabra139");
+
+			await page.evaluate(() => {
+				const conversation = document.querySelector(".chatbox__conversation") as HTMLElement;
+				conversation.scrollTop = 0;
+				conversation.dispatchEvent(new Event("scroll"));
+			});
+
+			const scrollBtn = page.getByRole("button", { name: strings.actions.scrollToEnd });
+			await expect(scrollBtn).toBeVisible();
+
+			const details = await page.evaluate(() => {
+				const button = document.querySelector(
+					'[data-chatbox-control="scroll-to-end"]'
+				) as HTMLElement;
+				const footer = document.querySelector(".chatbox__footer") as HTMLElement;
+				const icon = button.querySelector("svg.chatbox__icon");
+				const clone = button.cloneNode(true) as Element;
+				for (const hidden of clone.querySelectorAll('[aria-hidden="true"]')) hidden.remove();
+				const btnRect = button.getBoundingClientRect();
+				const footerRect = footer.getBoundingClientRect();
+				const style = getComputedStyle(button);
+				const centerHits = document.elementsFromPoint(
+					btnRect.left + btnRect.width / 2,
+					btnRect.top + btnRect.height / 2
+				);
+				return {
+					width: btnRect.width,
+					height: btnRect.height,
+					borderRadius: style.borderRadius,
+					boxShadow: style.boxShadow,
+					visibleText: (clone.textContent ?? "").trim(),
+					iconHidden: icon?.getAttribute("aria-hidden"),
+					buttonBottom: btnRect.bottom,
+					footerTop: footerRect.top,
+					centerClickable: button.contains(centerHits[0]),
+				};
+			});
+
+			expect(Math.round(details.width), colorScheme).toBe(44);
+			expect(Math.round(details.height), colorScheme).toBe(44);
+			expect(details.borderRadius, colorScheme).toBe("9999px");
+			expect(details.boxShadow, colorScheme).not.toBe("none");
+			expect(details.visibleText, colorScheme).toBe("");
+			expect(details.iconHidden, colorScheme).toBe("true");
+			expect(details.buttonBottom, colorScheme).toBeLessThanOrEqual(details.footerTop + 1);
+			expect(details.centerClickable, colorScheme).toBe(true);
+
+			await page.emulateMedia({ colorScheme, reducedMotion: "reduce", forcedColors: "active" });
+			const forcedBorder = await computedStyle(scrollBtn, ["border-top-width", "border-top-style"]);
+			expect(forcedBorder["border-top-width"], `${colorScheme} forced`).toBe("1px");
+			expect(forcedBorder["border-top-style"], `${colorScheme} forced`).toBe("solid");
+			await page.emulateMedia({ colorScheme, reducedMotion: "reduce", forcedColors: "none" });
+
+			await scrollBtn.click();
+			await expect(scrollBtn).toBeHidden();
+			await page.unroute("**/api/chat");
 		}
 	});
 });
